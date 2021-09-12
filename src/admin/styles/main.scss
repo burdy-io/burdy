@@ -1,0 +1,48 @@
+@import 'global';
+@import 'misc/scrollbar';
+@import 'misc/draft-js';
+
+@import 'layout/page';
+@import 'layout/toolbar';
+
+html {
+  font-size: 14px;
+}
+
+body {
+  height: 100vh;
+  margin: 0 !important;
+}
+
+.card {
+  @include ms-depth-4;
+  background: #ffffff;
+  padding: 28px;
+  border-radius: 2px;
+  background-clip: padding-box;
+}
+
+.chip {
+  padding: 8px 12px;
+  background: $ms-color-gray30;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.1s ease-in-out;
+
+  &:hover {
+    background: $ms-color-gray40;
+  }
+
+  &--small {
+    padding: 4px 8px;
+  }
+}
+
+a {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+.ms-Panel-scrollableContent {
+  padding: 1rem 0 0;
+}

@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.defaults
+!.env.sample
+node_modules
+.idea
+dist
+package/
+.vscode
+burdy/
+docs/
+burdy.tar.gz
+build.tar.gz
+project/

@@ -1,0 +1,14 @@
+.page-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1;
+  height: calc(100% - 45px);
+}
+
+.page-content-scroll {
+  overflow-y: auto;
+}

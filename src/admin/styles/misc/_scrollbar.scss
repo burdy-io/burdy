@@ -1,0 +1,23 @@
+::-webkit-scrollbar {
+  height: 12px;
+  width: 8px;
+  background: scale-color(#f4f4f4, $lightness: -25%);
+  z-index: 12;
+  overflow: visible;
+}
+
+::-webkit-scrollbar-corner {
+  background: color(light);
+}
+
+::-webkit-scrollbar-thumb {
+  width: 8px;
+  background-color: rgba(#f4f4f4, 0.8);
+  z-index: 12;
+  transition: all 0.32s ease-in-out;
+  transform: scale(0.5);
+  &:hover {
+    background-color: rgba(#f4f4f4, 0.6);
+    transform: scaleX(1);
+  }
+}
