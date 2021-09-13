@@ -2,7 +2,7 @@
 
 **The most powerful and flexible open-source headless cms.**
 
-<img src="https://github.com/burdy-io/burdy/assets/burdy.png" alt="headless cms burdy" />
+<img src="https://github.com/burdy-io/burdy/tree/main/assets/burdy.png" alt="headless cms burdy" />
 
 We took the inspiration from **WordPress** plugin system (hooks and actions) and have built a completely new hook-based core for our backend and admin that is highly extendable and pluggable.
 
