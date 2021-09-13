@@ -55,7 +55,8 @@ export default class Tag extends BaseEntity implements ITag {
   meta: ITagMeta[];
 
   @ManyToOne(() => User, {
-    onDelete: 'NO ACTION',
+    onDelete: 'SET NULL',
+    nullable: true
   })
   author: User;
 
