@@ -68,7 +68,8 @@ export default class Post extends BaseEntity implements IPost {
   publishedUntil?: Date;
 
   @ManyToOne(() => User, {
-    onDelete: 'NO ACTION'
+    onDelete: 'SET NULL',
+    nullable: true
   })
   author: User;
 

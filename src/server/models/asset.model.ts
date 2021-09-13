@@ -64,7 +64,8 @@ export default class Asset extends BaseEntity implements IAsset {
   parentId?: number;
 
   @ManyToOne(() => User, {
-    onDelete: 'NO ACTION',
+    onDelete: 'SET NULL',
+    nullable: true
   })
   author: User;
 

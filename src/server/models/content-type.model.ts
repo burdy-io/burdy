@@ -37,7 +37,8 @@ export default class ContentType extends BaseEntity implements IContentType {
   updatedAt: Date;
 
   @ManyToOne(() => User, {
-    onDelete: 'NO ACTION',
+    onDelete: 'SET NULL',
+    nullable: true
   })
   author: User;
 
