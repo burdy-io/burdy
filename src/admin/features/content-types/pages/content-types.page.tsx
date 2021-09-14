@@ -71,9 +71,8 @@ const ContentTypesPage = () => {
         onDismiss={() => {
           setStateData('deleteContentTypesOpen', false);
         }}
-        onDeleted={(data) => {
+        onDeleted={() => {
           setStateData('deleteContentTypesOpen', false);
-          contentTypesState.delete(data as number[]);
           getGlobalContentTypes.execute({
             type: 'post',
           });

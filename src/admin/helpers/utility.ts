@@ -68,6 +68,6 @@ export const isEmptyString = (str) => {
   return false;
 }
 
-export const isTrue = (str: string|boolean) => {
-  return str == 'true';
+export const isTrue = (str: string|boolean|number) => {
+  return str === 'true' || str === true || str === 1;
 }

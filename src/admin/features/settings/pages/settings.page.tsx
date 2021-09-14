@@ -29,7 +29,7 @@ const Settings = () => {
     ];
 
     return filterPermissions(
-      Hooks.applySyncFilters('admin/settings', predefined)
+      Hooks.applySyncFilters('admin/settings/tabs', predefined)
     );
   }, []);
 

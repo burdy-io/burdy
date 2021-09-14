@@ -80,6 +80,7 @@ const useModelState = <T extends BaseModel>(defaultValue: T[] = [], sorter: Comp
   };
 
   const destroy = (ids: number[]) => {
+    if (!Array.isArray(ids)) return;
     setArrayState(arrayState.filter((u) => !ids.includes(u.id as number)));
   };
 
