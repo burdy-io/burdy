@@ -47,7 +47,10 @@ const useStyles = makeStyles((theme) => ({
   drop: {
     position: 'absolute',
     border: `2px dashed ${theme.palette.themePrimary}`,
-    inset: '0',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
     zIndex: 100,
   },
 }));

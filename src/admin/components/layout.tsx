@@ -25,14 +25,18 @@ const useStyles = makeStyles({
   },
   header: {
     position: 'fixed !important' as any,
-    inset: '0 0 auto',
+    top: 0,
+    left: 0,
+    right: 0,
     paddingLeft: '0 !important',
     paddingRight: '0 !important',
     zIndex: 14
   },
   sider: {
     position: 'fixed !important' as any,
-    inset: '48px auto 0 0',
+    top: 48,
+    bottom: 0,
+    left: 0,
     background: NeutralColors.gray20,
     width: 200,
     zIndex: 10
