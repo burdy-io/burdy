@@ -20,9 +20,11 @@ const launch = async () => {
     });
 
     const port = process.env.SERVER_PORT || 4000;
+    const host = process.env.SERVER_HOST || 'http://localhost';
 
     app.listen(port, () => {
       console.log(chalk.green(`Express started on ${port} port.`));
+      console.log(chalk.green(`To open admin visit ${host}:${port}/admin`));
     }).on('error', (e) => {
       console.log(e);
       console.log(chalk.red('Error starting Express'));
