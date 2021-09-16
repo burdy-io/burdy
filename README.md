@@ -43,7 +43,7 @@ Out of the box Burdy comes with many features
 
 ### Field types
 
-16 Out of the box field types. Learn how to extend with your custom by visiting [Custom Field Types](https://burdy.io/docs/custom-field-types) docs.
+16 Out of the box field types. Learn how to extend with your custom by visiting [Custom Editor Fields](https://burdy.io/docs/custom-editor-field/) docs.
 
 Core:
 - Text
