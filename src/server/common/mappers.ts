@@ -1,6 +1,6 @@
 import Hooks from '@shared/features/hooks';
 import { unflatten } from '@server/common/object';
-import { parseMetaContent } from '@server/common/post.parser';
+import { parseInternalMetaContent } from '@server/common/post.parser';
 
 Hooks.addSyncFilter(
   'assets/public-mapping',
@@ -56,7 +56,7 @@ export const mapPostWithMeta = (post) => {
     ...post,
     contentType: mapContentType(post.contentType),
     author: mapUser(post.author),
-    meta: parseMetaContent(post),
+    meta: parseInternalMetaContent(post),
     tags: mapTags(post.tags)
   };
 };
