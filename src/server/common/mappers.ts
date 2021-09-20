@@ -1,5 +1,6 @@
 import Hooks from '@shared/features/hooks';
 import { unflatten } from '@server/common/object';
+import { parseMetaContent } from '@server/common/post.parser';
 
 Hooks.addSyncFilter(
   'assets/public-mapping',
@@ -51,31 +52,11 @@ export const mapPost = (post) => {
 export const mapPostWithMeta = (post) => {
   if (!post) return undefined;
 
-  const meta = {};
-  (post?.meta || []).forEach((m) => {
-    meta[m.key] = m?.value;
-  });
-
-  // TODO Fixes null for useFormArray for repeatable and zone
-  Object.keys(meta).forEach(key => {
-    const keyIndex = key.indexOf('_$type');
-    if (keyIndex > -1) {
-      if ((meta[key] === 'repeatable' || meta[key] === 'zone')) {
-        if (meta[`${key.slice(0, keyIndex)}[]`] === null) {
-          delete meta[`${key.slice(0, keyIndex)}[]`];
-          meta[key.slice(0, keyIndex)] = [];
-        } else if (meta[`${key.slice(0, keyIndex)}`] === null) {
-          meta[`${key.slice(0, keyIndex)}`] = [];
-        }
-      }
-    }
-  });
-
   return {
     ...post,
     contentType: mapContentType(post.contentType),
     author: mapUser(post.author),
-    meta: unflatten(meta || {}),
+    meta: parseMetaContent(post),
     tags: mapTags(post.tags)
   };
 };
