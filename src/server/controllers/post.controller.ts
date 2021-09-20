@@ -1,5 +1,5 @@
 import express from 'express';
-import { isAfter, isBefore } from 'date-fns'
+import { endOfDay, isAfter, isBefore } from 'date-fns';
 import authMiddleware from '@server/middleware/auth.middleware';
 import asyncMiddleware from '@server/middleware/async.middleware';
 import { Brackets, getManager, getRepository, In, Repository } from 'typeorm';
@@ -385,7 +385,9 @@ app.put(
             publishedAt: new Date(),
             status: 'published',
             publishedFrom: publishedFrom || null,
-            publishedUntil: publishedUntil || null,
+            publishedUntil: publishedUntil ? endOfDay(
+              new Date(publishedUntil),
+            ) : null,
             updatedAt: new Date()
           });
         } else {

@@ -123,7 +123,7 @@ export const parseContent = (post: IPost, path?: string) => {
   };
 };
 
-export const parseMetaContent = (post: IPost, path?: string) => {
+export const parseInternalMetaContent = (post: IPost, path?: string) => {
   const metaObjFlattened = {};
   (post?.meta || []).forEach((item) => {
     metaObjFlattened[item.key] = item.value;
