@@ -122,3 +122,51 @@ export const parseContent = (post: IPost, path?: string) => {
     references
   };
 };
+
+export const parseMetaContent = (post: IPost, path?: string) => {
+  const metaObjFlattened = {};
+  (post?.meta || []).forEach((item) => {
+    metaObjFlattened[item.key] = item.value;
+  });
+
+  const metaObj = unflatten(metaObjFlattened);
+
+  const parseList = (content, path) => {
+    const array = [];
+    (content || []).filter(el => !!el).forEach((elContent, index) => {
+      const itemPath = path ? `${path}.[${index}]` : `[${index}]`;
+      array.push(parseGroup(elContent, itemPath));
+    });
+    return array;
+  };
+
+  const parseGroup = (content = {}, path?: string) => {
+    const groupContent = _.cloneDeep(content);
+    Object.keys(content).forEach(key => {
+      if (key.endsWith('_$type')) {
+        const contentKey = key.slice(0, key.indexOf('_$type'));
+        const newPath = path ? `${path}.${contentKey}` : contentKey;
+        switch (content[key]) {
+          case 'group':
+          case 'custom':
+            groupContent[contentKey] = parseGroup(content?.[contentKey], newPath);
+            break;
+          case 'zone':
+          case 'repeatable':
+            groupContent[contentKey] = parseList(content?.[contentKey], newPath);
+            break;
+          default:
+            break;
+        }
+      }
+    });
+    return groupContent;
+  };
+
+  const group = parseGroup(metaObj?.content, path);
+
+  return {
+    ...metaObj,
+    content: group,
+  };
+};
