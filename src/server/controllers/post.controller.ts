@@ -8,7 +8,6 @@ import BadRequestError from '@server/errors/bad-request-error';
 import Post from '@server/models/post.model';
 import ContentType from '@server/models/content-type.model';
 import { flatten } from '@server/common/object';
-import Asset from '@server/models/asset.model';
 import logger from '@shared/features/logger';
 import Tag from '@server/models/tag.model';
 import { IPost, IUser } from '@shared/interfaces/model';
@@ -17,13 +16,10 @@ import {
   updateMeta
 } from '@server/common/orm-helpers';
 import { v4 as uuidv4 } from 'uuid';
-import { parseContent } from '@server/common/post.parser';
-import _ from 'lodash';
-import { mapPublicAsset, mapPost, mapPostWithMeta, mapPublicPostWithMeta } from '@server/common/mappers';
+import { mapPost, mapPostWithMeta } from '@server/common/mappers';
+import { compilePost, retrievePostAndCompile } from '@server/common/post.utility';
 
 const app = express();
-
-const maxDebt = 3;
 
 export const isPostPublished = (post?: IPost) => {
   if (post?.status === 'published') {
@@ -656,120 +652,12 @@ app.delete(
   })
 );
 
-const compilePost = async (
-  { slugPath, id, allowNull }: { slugPath?: string; id?: number; allowNull?: boolean },
-  data?: any,
-  debt: number = 0
-) => {
-  const postRepository = getRepository(Post);
-  const assetRepository = getRepository(Asset);
-
-  if (!slugPath && !id && !data) throw new BadRequestError('invalid_post');
-  let post: any;
-  if (data) {
-    post = data;
-  } else {
-    const where: any = {};
-    if (slugPath) {
-      where.slugPath = slugPath;
-    } else if (id) {
-      where.id = id;
-    }
-
-    post = await postRepository.findOne({
-      relations: ['meta', 'author', 'author.meta', 'tags'],
-      where
-    });
-    const getReturn = () => {
-      if (allowNull) return null;
-      throw new BadRequestError('invalid_post');
-    }
-    if (!post) return getReturn();
-    if (!isPostPublished(post)) return getReturn();
-  }
-
-  const {
-    content,
-    assets: assetsRefs,
-    references
-  } = parseContent(post);
-
-  post = mapPublicPostWithMeta(post);
-
-  // Inject references
-  const referencesIds = _.uniq(Object.values(references || {})).filter(id => !!id);
-  if (referencesIds?.length > 0 && debt < maxDebt) {
-    // @ts-ignore
-    const posts = await Promise.all(referencesIds.map(id => compilePost({ id, allowNull: true }, null, debt + 1)));
-    const postsObj = {};
-    posts.forEach((post: any) => {
-      postsObj[post.id] = post;
-    });
-
-    Object.keys(references).forEach(key => {
-      _.set(content, key, postsObj[references[key]]);
-    });
-  }
-  // Inject assets
-  const assetsIds = _.uniq(Object.values(assetsRefs || {})).filter(id => !!id);
-  if (assetsIds?.length > 0) {
-    const assets = await assetRepository.find({
-      relations: ['meta', 'tags'],
-      where: {
-        id: In(assetsIds)
-      }
-    });
-    const assetsObj = {};
-    assets.forEach(asset => {
-      assetsObj[asset.id] = mapPublicAsset(asset);
-    });
-
-    Object.keys(assetsRefs).forEach(key => {
-      _.set(content, key, {
-        ..._.get(content, key, {}),
-        ...(assetsObj?.[assetsRefs?.[key]] || {})
-      });
-    });
-  }
-
-  return {
-    ...post,
-    meta: {
-      ...post.meta,
-      content
-    }
-  };
-};
-
-app.get(
-  '/posts/one',
-  authMiddleware(),
-  asyncMiddleware(async (req, res) => {
-    const postRepository = getRepository(Post);
-
-    let slugPath = req.query.slugPath;
-    if (slugPath?.[0] === '/') {
-      slugPath = (slugPath as string).substring(1);
-    }
-
-    const post = await postRepository.findOne({
-      relations: ['meta', 'tags', 'contentType', 'author', 'author.meta'],
-      where: {
-        slugPath
-      }
-    });
-    if (!post) throw new BadRequestError('invalid_post');
-    res.send(mapPostWithMeta(post));
-  })
-);
-
 app.get(
   '/content/*',
   asyncMiddleware(async (req, res) => {
-    const post = await compilePost({
+    const post = await retrievePostAndCompile({
       slugPath: req.params[0],
     });
-
     res.send(post);
   })
 );
@@ -795,7 +683,7 @@ app.post(
     });
 
     post.meta = post.meta.filter((meta) => flat[meta.key]);
-    const compiled = await compilePost({ id: req.params.id }, post);
+    const compiled = await compilePost(post);
     res.send(compiled);
   })
 );

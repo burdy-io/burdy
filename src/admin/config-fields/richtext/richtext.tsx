@@ -2,7 +2,7 @@ import React, {useEffect} from "react";
 import {useRichtext} from "@admin/config-fields/dynamic-richtext.context";
 import {useExtendedFormContext} from "@admin/config-fields/dynamic-form";
 import {Controller} from "react-hook-form";
-import Draft, {convertToRaw, DraftHandleValue, Editor, EditorState, Modifier} from "draft-js";
+import { convertToRaw, DraftHandleValue, Editor, EditorState, Modifier, RichUtils } from 'draft-js';
 import {Label, makeStyles} from "@fluentui/react";
 import RichtextToolbar from "@admin/config-fields/richtext/components/richtext-toolbar";
 import DraftImageBlock from "@admin/config-fields/richtext/blocks/draft-image-block";
@@ -18,13 +18,11 @@ const useStyles = makeStyles((theme) => ({
   },
   editor: {
     display: 'grid',
-    minHeight: 200,
-    maxHeight: 400,
     overflowY: 'auto',
     border: `1px solid ${theme.palette.neutralSecondary}`,
     padding: 8,
     '.DraftEditor-root': {
-      height: '100% !important'
+      height: '400px'
     },
     '&:hover': {
       cursor: 'text'
@@ -170,6 +168,21 @@ const RichText: React.FC<IDynamicTextProps> = ({field, name, control}) => {
     ]);
   }, [editorState]);
 
+  const onTab = (e) => {
+    e.preventDefault();
+
+    // assign a constant for the new editorState
+    const newState = RichUtils.onTab(e, editorState, 4);
+
+    // if a new editor state exists, set editor state to new state
+    // and return 'handled', otherwise return 'not-handled
+    if (newState) {
+      setEditorState(newState);
+      return 'handled';
+    }
+      return 'not-handled';
+  }
+
   return (
     <div>
       <Controller
@@ -197,6 +210,7 @@ const RichText: React.FC<IDynamicTextProps> = ({field, name, control}) => {
                   onChange={(state) => {
                     setEditorState(state);
                   }}
+                  onTab={onTab}
                   handleReturn={disableHeaderBlock}
                   readOnly={disabled}
                   keyBindingFn={handleKeypress}

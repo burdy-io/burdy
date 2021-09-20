@@ -171,9 +171,16 @@ const ActionButtons: React.FC = () => {
   const [assetOpen, setAssetOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
 
+  const [selection, setSelection] = useState(null);
+
   const styles = useToolbarStyles();
   const setReadOnly = (readOnly: boolean) => {
     setEditorProps({...editorProps, readOnly});
+  }
+
+  const forceSelection = () => {
+    setEditorState(EditorState.forceSelection(editorState, selection));
+    setSelection(null);
   }
 
   const createImage = (image: IAsset) => {
@@ -222,6 +229,11 @@ const ActionButtons: React.FC = () => {
 
     const entityKey = contentWithEntity.getLastCreatedEntityKey();
     setEditorState(RichUtils.toggleLink(newEditorState, selection, entityKey));
+
+    EditorState.forceSelection(
+      newEditorState,
+      newEditorState.getCurrentContent().getSelectionAfter()
+    );
   };
 
   return (
@@ -234,7 +246,7 @@ const ActionButtons: React.FC = () => {
           onMouseDown={(e) => {
             setAssetOpen(true);
             e.preventDefault();
-            setReadOnly(true);
+            setSelection(editorState.getSelection());
             return false;
           }}
         />
@@ -245,6 +257,7 @@ const ActionButtons: React.FC = () => {
           onMouseDown={(e) => {
             setLinkOpen(true);
             e.preventDefault();
+            setReadOnly(true);
             return false;
           }}
         />
@@ -253,7 +266,10 @@ const ActionButtons: React.FC = () => {
         isOpen={assetOpen}
         mimeTypes={['image/jpeg', 'image/webp', 'image/png', '']}
         selectionMode={SelectionMode.single}
-        onDismiss={() => setAssetOpen(false)}
+        onDismiss={() => {
+          setAssetOpen(false);
+          forceSelection();
+        }}
         onSubmit={(asset: IAsset[]) => {
           if (asset[0]) {
             createImage(asset[0]);
@@ -263,10 +279,14 @@ const ActionButtons: React.FC = () => {
       />
       <InsertLinkDialog
         isOpen={linkOpen}
-        onDismiss={() => setLinkOpen(false)}
+        onDismiss={() => {
+          setLinkOpen(false);
+          setReadOnly(false);
+        }}
         onInsert={(data) => {
           createLink(data);
           setLinkOpen(false);
+          setReadOnly(false);
         }}
       />
     </>

@@ -35,8 +35,8 @@ export const mapAsset = (asset) => {
     ...asset,
     author: mapUser(asset.author),
     tags: mapTags(asset.tags)
-  }
-}
+  };
+};
 
 export const mapPost = (post) => {
   if (!post) return undefined;
@@ -54,6 +54,21 @@ export const mapPostWithMeta = (post) => {
   const meta = {};
   (post?.meta || []).forEach((m) => {
     meta[m.key] = m?.value;
+  });
+
+  // TODO Fixes null for useFormArray for repeatable and zone
+  Object.keys(meta).forEach(key => {
+    const keyIndex = key.indexOf('_$type');
+    if (keyIndex > -1) {
+      if ((meta[key] === 'repeatable' || meta[key] === 'zone')) {
+        if (meta[`${key.slice(0, keyIndex)}[]`] === null) {
+          delete meta[`${key.slice(0, keyIndex)}[]`];
+          meta[key.slice(0, keyIndex)] = [];
+        } else if (meta[`${key.slice(0, keyIndex)}`] === null) {
+          meta[`${key.slice(0, keyIndex)}`] = [];
+        }
+      }
+    }
   });
 
   return {
@@ -81,9 +96,9 @@ export const mapPublicPostWithMeta = (post) => {
     updatedAt: post.updatedAt,
     author: mapPublicUser(post.author),
     meta: unflatten(meta || {}),
-    tags: mapPublicTags(post.tags),
-  }
-}
+    tags: mapPublicTags(post.tags)
+  };
+};
 
 export const mapContentType = (contentType) => {
   let fields;
@@ -96,7 +111,7 @@ export const mapContentType = (contentType) => {
   return {
     ...contentType,
     author: mapUser(contentType?.author),
-    fields,
+    fields
   };
 };
 
@@ -104,28 +119,28 @@ export const mapUser = (user) => {
   if (!user) return undefined;
   delete user.password;
   return user;
-}
+};
 
 export const mapPublicUser = (user) => {
   if (!user) return undefined;
   return {
     firstName: user?.firstName,
-    lastName: user?.lastName,
-  }
-}
+    lastName: user?.lastName
+  };
+};
 
 export const mapTag = (tag) => {
   if (!tag) return undefined;
   return {
     ...tag,
-    author: mapUser(tag.author),
-  }
-}
+    author: mapUser(tag.author)
+  };
+};
 
 export const mapTags = (tags) => {
   if (!tags) return undefined;
   return tags.map(mapTag);
-}
+};
 
 export const mapPublicTag = (tag) => {
   if (!tag) return undefined;
@@ -133,11 +148,11 @@ export const mapPublicTag = (tag) => {
     name: tag.name,
     slug: tag.slug,
     id: tag.id,
-    author: mapPublicUser(tag.author),
-  }
-}
+    author: mapPublicUser(tag.author)
+  };
+};
 
 export const mapPublicTags = (tags) => {
   if (!tags) return undefined;
   return tags.map(mapPublicTag);
-}
+};

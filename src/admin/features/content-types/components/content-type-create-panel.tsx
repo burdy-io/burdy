@@ -21,6 +21,7 @@ import {
   useContentTypes,
 } from '../context/content-types.context';
 import FieldsList from './fields-list';
+import { slugRegex, slugRegexMessage } from '@shared/validators';
 
 interface IContentTypeCreatePanelProps {
   isOpen?: boolean;
@@ -104,6 +105,10 @@ const ContentTypeCreatePanel: React.FC<IContentTypeCreatePanelProps> = ({
             data-cy="contentTypes-add-name"
             rules={{
               required: 'Name is required',
+              pattern: {
+                value: slugRegex,
+                message: slugRegexMessage,
+              }
             }}
           />
           <ControlledDropdown
