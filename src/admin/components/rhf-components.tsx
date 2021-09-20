@@ -47,7 +47,7 @@ const ControlledTextField: React.FC<HookFormProps & ITextFieldProps> = (
         <TextField
           {...props}
           multiline={isTrue(props?.multiline)}
-          required={isTrue(props?.multiline)}
+          required={isTrue(props?.required)}
           onChange={onChange}
           value={value}
           onBlur={onBlur}

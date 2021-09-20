@@ -19,6 +19,7 @@ import {
   useContentTypes,
 } from '../context/content-types.context';
 import FieldsList from './fields-list';
+import { slugRegex, slugRegexMessage } from '@shared/validators';
 
 interface IContentTypeUpdatePanelProps {
   isOpen?: boolean;
@@ -136,6 +137,10 @@ const ContentTypeUpdatePanel: React.FC<IContentTypeUpdatePanelProps> = ({
                 data-cy="contentTypes-edit-name"
                 rules={{
                   required: 'Name is required',
+                  pattern: {
+                    value: slugRegex,
+                    message: slugRegexMessage,
+                  }
                 }}
               />
               <div>
