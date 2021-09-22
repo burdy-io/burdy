@@ -25,7 +25,7 @@ const ControlledPostTypesDropdown: React.FC<HookFormProps & IDropdownProps> = (
       {...props}
       options={(getContentTypes?.result ?? []).map((type) => ({
         key: `${type.id}`,
-        text: `${type.name} (${type.id})`,
+        text: type.name,
       }))}
     />
   );

@@ -45,7 +45,6 @@ const useStyles = makeStyles({
     padding: '48px 0 0 200px',
     transition: '.2s padding ease-in-out',
     height: 'calc(100vh - 48px)',
-    overflow: 'hidden',
     '&:global(.menuCollapsed)': {
       padding: '48px 0 0 80px'
     }

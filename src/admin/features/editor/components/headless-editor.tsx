@@ -41,7 +41,8 @@ const styles = mergeStyleSets({
     height: '100%',
     overflowY: 'auto',
     position: 'relative',
-    padding: 24
+    padding: 24,
+    boxSizing: 'border-box',
   },
   side: {
     maxWidth: 270,

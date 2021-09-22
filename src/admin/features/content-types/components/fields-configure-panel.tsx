@@ -13,6 +13,7 @@ import { ControlledTextField } from '@admin/components/rhf-components';
 import { useContentTypes } from '@admin/features/content-types/context/content-types.context';
 import LoadingBar from '@admin/components/loading-bar';
 import DynamicGroup from '../../../config-fields/dynamic-group';
+import camelCase from 'camelcase';
 import { FormHelperContextProvider } from '@admin/config-fields/dynamic-form';
 
 interface IFieldsConfigurePanelProps {
@@ -37,6 +38,13 @@ const FieldsConfigurePanel: React.FC<IFieldsConfigurePanelProps> = ({
     mode: 'all',
     defaultValues: field
   });
+
+  useEffect(() => {
+    if (!methods.formState?.dirtyFields?.name && methods.watch('label')) {
+      const cc = camelCase(methods.watch('label'));
+      methods.setValue('name', cc);
+    }
+  }, [methods.watch('label')]);
 
   const { getField } = useContentTypes();
 
@@ -92,6 +100,13 @@ const FieldsConfigurePanel: React.FC<IFieldsConfigurePanelProps> = ({
             <FormHelperContextProvider>
               <Stack tokens={{ childrenGap: 10 }}>
                 <ControlledTextField
+                  defaultValue={field?.label ?? ''}
+                  control={methods.control}
+                  name='label'
+                  label='Label'
+                  data-cy='contentTypes-fieldsConfig-label'
+                />
+                <ControlledTextField
                   defaultValue={field?.name ?? ''}
                   control={methods.control}
                   name='name'
@@ -100,13 +115,6 @@ const FieldsConfigurePanel: React.FC<IFieldsConfigurePanelProps> = ({
                   rules={{
                     required: 'Name is required'
                   }}
-                />
-                <ControlledTextField
-                  defaultValue={field?.label ?? ''}
-                  control={methods.control}
-                  name='label'
-                  label='Label'
-                  data-cy='contentTypes-fieldsConfig-label'
                 />
                 {getField?.result && <DynamicGroup field={getField?.result} />}
               </Stack>

@@ -128,6 +128,8 @@ export const mapPublicTag = (tag) => {
   return {
     name: tag.name,
     slug: tag.slug,
+    slugPath: tag.slugPath,
+    parent: tag.parent,
     id: tag.id,
     author: mapPublicUser(tag.author)
   };
