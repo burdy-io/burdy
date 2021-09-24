@@ -38,7 +38,7 @@ export default class FileDriver implements IFileDriver {
   getUpload = () => this.implementation.getUpload();
   getName = () => this.implementation.getName();
   copy = (src: string, dest: string) => this.implementation.copy(src, dest);
-  write = (key: string, content: any) => this.implementation.copy(key, content);
+  write = (key: string, content: any) => this.implementation.write(key, content);
   read = (key: string) => this.implementation.read(key);
   stat = (key: string) => this.implementation.stat(key);
   delete = (params: string | string[]) => this.implementation.delete(params);
