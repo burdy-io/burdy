@@ -88,10 +88,9 @@ const RichtextContextProvider: React.FC<RichtextContextProviderProps> = ({
   };
 
   const handleKeyCommand = (command: string) => {
-    const keyCommand = keyMap.find((k) => k.name === command);
-
-    if (keyCommand?.handle) {
-      keyCommand.handle();
+    const newState = RichUtils.handleKeyCommand(editorState, command)
+    if (newState) {
+      setEditorState(newState);
       return 'handled';
     }
 
