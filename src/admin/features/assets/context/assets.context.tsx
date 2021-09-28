@@ -150,11 +150,7 @@ const AssetsContextProvider = ({ children }) => {
           const { file, data } = fileWithData;
           const id = uuid();
           const formData = new FormData();
-          let name = data?.name ?? (file as any)?.path ?? (file as any)?.webkitRelativePath ?? file?.name ?? id;
-
-          if (typeof name !== 'string' || name.length === 0) {
-            name = file?.name;
-          }
+          const name = data?.name || (file as any)?.path || (file as any)?.webkitRelativePath || file?.name || id;
 
           data.name = name;
           data.duplicateName = true;
