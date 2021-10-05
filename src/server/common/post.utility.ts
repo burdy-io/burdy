@@ -3,7 +3,7 @@ import Post from '@server/models/post.model';
 import Asset from '@server/models/asset.model';
 import BadRequestError from '@server/errors/bad-request-error';
 import { parseContent } from '@server/common/post.parser';
-import { mapPublicAsset, mapPublicPostWithMeta } from '@server/common/mappers';
+import { mapPostWithMeta, mapPublicAsset, mapPublicPostWithMeta } from '@server/common/mappers';
 import _ from 'lodash';
 import { IPost } from '@shared/interfaces/model';
 
@@ -18,6 +18,8 @@ export interface ICompilePostOptions {
 export interface ICompilePostParams {
   id?: number | string;
   slugPath?: string;
+  query?: any;
+  versionId?: number | string;
 }
 
 export const publishedQuery = (qb: any, allowUnpublished?: boolean) => {
@@ -40,7 +42,7 @@ export const publishedQuery = (qb: any, allowUnpublished?: boolean) => {
   }
 };
 
-export const retrievePostAndCompile = async ({ id, slugPath }: ICompilePostParams, options?: ICompilePostOptions) => {
+export const retrievePostAndCompile = async ({ id, slugPath, versionId }: ICompilePostParams, options?: ICompilePostOptions) => {
   const postRepository = getRepository(Post);
   const where: any = {};
   if (slugPath) {
@@ -52,6 +54,7 @@ export const retrievePostAndCompile = async ({ id, slugPath }: ICompilePostParam
   const qb = await postRepository.createQueryBuilder('post')
     .leftJoinAndSelect('post.meta', 'meta')
     .leftJoinAndSelect('post.author', 'author')
+    .leftJoinAndSelect('post.contentType', 'contentType')
     .leftJoinAndSelect('post.tags', 'tags')
 
   if (slugPath) {
@@ -62,7 +65,18 @@ export const retrievePostAndCompile = async ({ id, slugPath }: ICompilePostParam
 
   publishedQuery(qb, options?.allowUnpublished);
 
-  const post = await qb.getOne();
+  let post = await qb.getOne();
+  if (versionId) {
+    const postVersion = await postRepository.findOne({
+      relations: ['meta', 'contentType', 'author', 'tags'],
+      where: {
+        id: versionId,
+        parentId: post?.id
+      }
+    });
+    if (!postVersion) throw new BadRequestError('invalid_post_version');
+    post = postVersion;
+  }
 
   const getReturn = () => {
     if (options?.allowNull) return null;

@@ -16,6 +16,7 @@ interface IPostsContext {
   copyPosts: UseAsyncReturn<IPost, [id: number, data?: any]>;
   updatePostContent: UseAsyncReturn<IPost, [id: number, data?: any]>;
   compilePost: UseAsyncReturn<IPost, [post: any]>;
+  getIFrameData: UseAsyncReturn<any, [id: number]>;
   deletePosts: UseAsyncReturn<any[], [ids?: number[]]>;
 
   getVersions: UseAsyncReturn<IPost[], [postId: number, params?: any]>;
@@ -199,6 +200,15 @@ const PostsContextProvider = ({ children }) => {
     }
   });
 
+  const getIFrameData = useAsyncCallback(async (id) => {
+    try {
+      const response = await axios.get(`/api/posts/iframe/${id}`);
+      return response.data;
+    } catch (e) {
+      throw e.response.data;
+    }
+  });
+
   const getVersions = useAsyncCallback(async (postId, params) => {
     try {
       const response = await axios.get(`/api/posts/${postId}/versions`, {
@@ -263,6 +273,7 @@ const PostsContextProvider = ({ children }) => {
         getOneContentType,
 
         compilePost,
+        getIFrameData,
 
         getVersions,
         getVersionsCount,

@@ -18,6 +18,8 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { mapPost, mapPostWithMeta } from '@server/common/mappers';
 import { compilePost, retrievePostAndCompile } from '@server/common/post.utility';
+import { sign, verify } from '@server/common/jwt';
+import Hooks from '@shared/features/hooks';
 
 const app = express();
 
@@ -545,6 +547,8 @@ app.get(
         mapPostWithMeta({
           ...postVersion,
           id: post?.id,
+          slug: post?.slug,
+          slugPath: post?.slugPath,
           versionId: postVersion?.id
         })
       );
@@ -654,12 +658,53 @@ app.delete(
   })
 );
 
+
+app.get(
+  '/posts/iframe/:postId',
+  authMiddleware(),
+  asyncMiddleware(async (req, res) => {
+    const id = req?.params?.postId;
+    const postRepository = getRepository(Post);
+    const post = await postRepository.findOne({id});
+    if (!post) throw new BadRequestError('invalid_post');
+
+    const token = sign({
+      postId: post.id,
+      userId: req?.data?.user?.id,
+    }, process.env.IFRAME_TOKEN_EXPIRES || 1800);
+
+    const data = await Hooks.applyFilters('posts/iframe/data', {
+      post,
+      data: {
+        baseUrl: process.env.IFRAME_BASE_URL,
+        token
+      }
+    });
+
+    return res.send(data);
+  })
+)
+
 app.get(
   '/content/*',
   asyncMiddleware(async (req, res) => {
+    let allowUnpublished = req?.query?.allowUnpublished === 'true';
+    let versionId = req?.query?.versionId;
+    const token = req?.headers?.token;
+
+    if (allowUnpublished) {
+      if (!token) allowUnpublished = false;
+      const decoded = verify(token as string);
+      if (!decoded || !decoded?.userId || !decoded?.postId) {
+        allowUnpublished = false;
+        versionId = undefined;
+      }
+    }
+
     const post = await retrievePostAndCompile({
       slugPath: req.params[0],
-    });
+      versionId: versionId as string,
+    }, {allowUnpublished});
     res.send(post);
   })
 );
@@ -685,7 +730,7 @@ app.post(
     });
 
     post.meta = post.meta.filter((meta) => flat[meta.key]);
-    const compiled = await compilePost(post);
+    const compiled = await compilePost(post, { allowUnpublished: true });
     res.send(compiled);
   })
 );
