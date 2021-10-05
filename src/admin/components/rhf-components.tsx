@@ -105,7 +105,8 @@ const ControlledDropdown: React.FC<HookFormProps & IDropdownProps> = (
         return (
           <Dropdown
             {...props}
-            {...(props.multiSelect
+            multiSelect={isTrue(props.multiSelect)}
+            {...(isTrue(props.multiSelect)
               ? {
                   selectedKeys: (value ?? '')
                     .split(',')
@@ -115,7 +116,7 @@ const ControlledDropdown: React.FC<HookFormProps & IDropdownProps> = (
                   selectedKey: value,
                 })}
             onChange={(_e, option) => {
-              if (props.multiSelect) {
+              if (isTrue(props.multiSelect)) {
                 const items = (value ?? '')
                   .split(',')
                   .filter((v) => v !== option.key)
@@ -271,7 +272,6 @@ const ControlledCombobox: React.FC<HookFormProps & IComboBoxProps> = (
         field: { onChange, onBlur, value },
         fieldState: { error },
       }) => {
-        console.log(value);
         return <ComboBox
           {...props}
           selectedKey={value}

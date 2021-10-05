@@ -12,3 +12,6 @@ docs/
 burdy.tar.gz
 build.tar.gz
 project/
+.next
+next.config.js
+next-env.d.ts

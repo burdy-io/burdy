@@ -1,8 +1,8 @@
 import {
   CommandBar,
   ICommandBarItemProps,
-  NeutralColors,
-  SearchBox,
+  NeutralColors, PrimaryButton,
+  SearchBox
 } from '@fluentui/react';
 import React, { useMemo } from 'react';
 import { useHistory } from 'react-router';
@@ -10,7 +10,11 @@ import { useDebouncedCallback } from 'use-debounce';
 import { useAuth } from '@admin/features/authentication/context/auth.context';
 import { usePosts } from '../context/posts.context';
 
-interface ISitesCommandBarProps {}
+const enableIframeEditor = process.env.PUBLIC_ENABLE_IFRAME_EDITOR === 'true';
+
+interface ISitesCommandBarProps {
+}
+
 const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
   const {
     selectedPosts,
@@ -18,7 +22,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
     params,
     setParams,
     stateData,
-    setStateData,
+    setStateData
   } = usePosts();
   const history = useHistory();
 
@@ -26,17 +30,17 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
 
   const debounced = useDebouncedCallback(async (val) => {
     setParams({
-      search: val,
+      search: val
     });
     getPosts.execute({
       type: 'page,folder,fragment',
-      search: val,
+      search: val
     });
   }, 500);
 
   const commandItems = useMemo<ICommandBarItemProps[]>(
-    () =>
-      filterPermissions([
+    () => {
+      const items = filterPermissions([
         {
           key: 'newItem',
           text: 'New',
@@ -47,20 +51,20 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
               {
                 key: 'page',
                 text: 'Page',
-                onClick: () => setStateData('createPageOpen', true),
+                onClick: () => setStateData('createPageOpen', true)
               },
               {
                 key: 'fragment',
                 text: 'Fragment',
-                onClick: () => setStateData('createFragmentOpen', true),
+                onClick: () => setStateData('createFragmentOpen', true)
               },
               {
                 key: 'folder',
                 text: 'Folder',
-                onClick: () => setStateData('createFolderOpen', true),
-              },
-            ],
-          },
+                onClick: () => setStateData('createFolderOpen', true)
+              }
+            ]
+          }
         },
         {
           key: 'edit',
@@ -71,7 +75,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
           permissions: ['sites_update'],
           onClick: () => {
             history.push(`/sites/editor/${selectedPosts?.[0]?.id}`);
-          },
+          }
         },
         {
           key: 'settings',
@@ -81,7 +85,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
           permissions: ['sites_update'],
           onClick: () => {
             setStateData('updatePostOpen', true);
-          },
+          }
         },
         {
           key: 'copyItem',
@@ -92,7 +96,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
           permissions: ['sites_create'],
           onClick: () => {
             setStateData('copyPostsOpen', true);
-          },
+          }
         },
         {
           key: 'delete',
@@ -102,7 +106,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
           permissions: ['sites_delete'],
           onClick: () => {
             setStateData('deletePostsOpen', true);
-          },
+          }
         },
         {
           key: 'quickPublish',
@@ -112,7 +116,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
           permissions: ['sites_update'],
           onClick: () => {
             setStateData('publishPostOpen', true);
-          },
+          }
         },
         {
           key: 'quickUnpublish',
@@ -122,7 +126,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
           permissions: ['sites_update'],
           onClick: () => {
             setStateData('unpublishPostOpen', true);
-          },
+          }
         },
         {
           key: 'refresh',
@@ -131,11 +135,33 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
           onClick: () => {
             getPosts.execute({
               type: 'page,folder,fragment',
-              ...(params || {}),
+              ...(params || {})
             });
-          },
-        },
-      ]),
+          }
+        }
+      ]);
+      if (enableIframeEditor && selectedPosts?.[0]?.type === 'page') {
+        const index = items.findIndex(item => item.key === 'edit');
+        if (index > -1) {
+          items.splice(index, 0, {
+            key: 'editFrame',
+            text: 'Customize',
+            iconProps: { iconName: 'Edit' },
+            permissions: ['sites_update'],
+            onRender: () => {
+              return <div style={{ display: 'flex', alignItems: 'center', margin: '0 4px' }}>
+                <PrimaryButton onClick={() => {
+                  history.push(`/sites/frame/${selectedPosts?.[0]?.id}`);
+                }}>
+                  Customize
+                </PrimaryButton>
+              </div>;
+            }
+          });
+        }
+      }
+      return items;
+    },
     [selectedPosts, params, stateData]
   );
 
@@ -145,13 +171,13 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
         key: 'search',
         onRenderIcon: () => (
           <SearchBox
-            placeholder="Search posts..."
+            placeholder='Search posts...'
             onChange={(_event, newValue) => {
               debounced(newValue);
             }}
           />
-        ),
-      },
+        )
+      }
     ],
     []
   );

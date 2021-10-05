@@ -21,6 +21,7 @@ import DynamicAssets from './dynamic-assets';
 import DynamicRichText from './dynamic-richtext';
 import { useExtendedFormContext } from './dynamic-form';
 import ErrorBoundary from '@admin/components/error-boundary';
+import { isTrue } from '@admin/helpers/utility';
 
 interface DynamicFieldProps {
   field: any;
@@ -52,11 +53,11 @@ const DynamicField: React.FC<DynamicFieldProps> = ({ field, name }) => {
           <DynamicAssets
             field={field}
             selectionMode={
-              field.multiSelect ? SelectionMode.multiple : SelectionMode.single
+              isTrue(field.multiSelect) ? SelectionMode.multiple : SelectionMode.single
             }
             mimeTypes={
               field?.type === 'images'
-                ? ['image/jpeg', 'image/webp', 'image/png', '']
+                ? ['image/jpeg', 'image/webp', 'image/png', 'image/svg+xml']
                 : null
             }
             name={getName()}

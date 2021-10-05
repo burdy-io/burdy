@@ -42,7 +42,7 @@ const styles = mergeStyleSets({
     overflowY: 'auto',
     position: 'relative',
     padding: 24,
-    boxSizing: 'border-box',
+    boxSizing: 'border-box'
   },
   side: {
     maxWidth: 270,
@@ -136,27 +136,6 @@ const HeadlessEditor = forwardRef<any, any>(({ onChange }, ref) => {
   return (
     <div className={styles.mainWrapper}>
       <div className={styles.content}>
-        {post?.versionId && (
-          <div className={styles.messages}>
-            <MessageBar messageBarType={MessageBarType.info}>
-              You are previewing historical version
-            </MessageBar>
-          </div>
-        )}
-        {message === 'version_deleted' && (
-          <div className={styles.messages}>
-            <MessageBar messageBarType={MessageBarType.success}>
-              Version deleted
-            </MessageBar>
-          </div>
-        )}
-        {message === 'version_restored' && (
-          <div className={styles.messages}>
-            <MessageBar messageBarType={MessageBarType.success}>
-              Version restored
-            </MessageBar>
-          </div>
-        )}
         <div className={`${styles.editor}`}>
           <LoadingBar loading={!loaded}>
             {post?.contentType?.fields?.length > 0 && (
@@ -189,6 +168,27 @@ const HeadlessEditor = forwardRef<any, any>(({ onChange }, ref) => {
           )}
         </div>
         <div className={styles.card}>
+          {post?.versionId && (
+            <div className={styles.messages}>
+              <MessageBar messageBarType={MessageBarType.info}>
+                You are previewing historical version
+              </MessageBar>
+            </div>
+          )}
+          {message === 'version_deleted' && (
+            <div className={styles.messages}>
+              <MessageBar messageBarType={MessageBarType.success}>
+                Version deleted
+              </MessageBar>
+            </div>
+          )}
+          {message === 'version_restored' && (
+            <div className={styles.messages}>
+              <MessageBar messageBarType={MessageBarType.success}>
+                Version restored
+              </MessageBar>
+            </div>
+          )}
           <PostDetails loading={!post} post={post} />
         </div>
       </div>

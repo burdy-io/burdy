@@ -1,6 +1,5 @@
 import {
   CommandBar,
-  CommandBarButton,
   ICommandBarItemProps,
   IconButton,
   NeutralColors,
@@ -14,9 +13,12 @@ import queryString from 'query-string';
 import { usePosts } from '../../posts/context/posts.context';
 import { useAuth } from '@admin/features/authentication/context/auth.context';
 
-interface EditorCommandBarProps {
+export interface EditorCommandBarProps {
   handleSubmit: any;
   displayDevice?: boolean;
+  displayToggleMenu?: boolean;
+  toggleMenu?: (val: boolean) => void;
+  menuOpened?: boolean;
   device?: string;
   onDeviceChange?: (device: string) => void;
   loading?: boolean;
@@ -27,6 +29,9 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
   device,
   onDeviceChange,
   displayDevice,
+  displayToggleMenu,
+  menuOpened,
+  toggleMenu,
   loading,
 }) => {
   const { getPost, post, setStateData, stateData, getVersionsCount } =
@@ -250,8 +255,19 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
         },
       });
     }
+    if (displayToggleMenu) {
+      items.push({
+        key: 'toggle',
+        'data-cy': 'editor-commandBar-toggle-menu',
+        iconProps: { iconName: 'SidePanelMirrored' },
+        checked: menuOpened,
+        onClick: () => {
+          toggleMenu(!menuOpened);
+        },
+      },)
+    }
     return items;
-  }, [getPost?.result, post, loading, stateData, getVersionsCount?.result]);
+  }, [getPost?.result, post, loading, stateData, getVersionsCount?.result, menuOpened]);
 
   return (
     <CommandBar

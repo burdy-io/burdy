@@ -75,6 +75,7 @@ export const mapPublicPostWithMeta = (post) => {
     slug: post.slug,
     slugPath: post.slugPath,
     updatedAt: post.updatedAt,
+    contentType: mapContentType(post.contentType),
     author: mapPublicUser(post.author),
     meta: unflatten(meta || {}),
     tags: mapPublicTags(post.tags)

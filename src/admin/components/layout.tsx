@@ -15,6 +15,9 @@ import Hooks from '@shared/features/hooks';
 import { makeStyles, NeutralColors } from '@fluentui/react';
 import { useAuth } from '@admin/features/authentication/context/auth.context';
 import ErrorBoundary from '@admin/components/error-boundary';
+import IFramePage from '@admin/features/editor/pages/iframe.page';
+
+const enableIframeEditor = process.env.PUBLIC_ENABLE_IFRAME_EDITOR === 'true';
 
 const useStyles = makeStyles({
   layout: {
@@ -80,13 +83,19 @@ const Layout = () => {
       {
         key: 'users',
         path: '/users',
-        component: UsersPage,
+        component: UsersPage
       },
       {
         key: 'settings',
         path: '/settings',
         component: Settings,
         permissions: ['settings']
+      },
+      {
+        key: 'sites-frame-editor',
+        path: '/sites/frame/:postId',
+        component: IFramePage,
+        permissions: ['sites_update']
       },
       {
         key: 'sites-editor',
