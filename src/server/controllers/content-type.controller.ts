@@ -215,7 +215,7 @@ const fields = [
         label: 'Options',
       },
       {
-        name: 'default',
+        name: 'defaultValue',
         type: 'text',
         label: 'Default',
       },
