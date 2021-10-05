@@ -255,14 +255,9 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
 
   const fetchIframeData = async (post: IPost) => {
     try {
-      const response = await getIFrameData.execute(post?.id);
+      const response = await getIFrameData.execute(post?.id, post?.versionId);
       if (response) {
-        setIframeSrc(
-          `${response?.data?.baseUrl}/${post.slugPath}?${queryString.stringify({
-            token: response?.data?.token,
-            versionId: post?.versionId
-          })}`
-        );
+        setIframeSrc(response?.src);
       }
     } catch (err) {
       //

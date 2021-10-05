@@ -20,6 +20,7 @@ import { mapPost, mapPostWithMeta } from '@server/common/mappers';
 import { compilePost, retrievePostAndCompile } from '@server/common/post.utility';
 import { sign, verify } from '@server/common/jwt';
 import Hooks from '@shared/features/hooks';
+import queryString from 'query-string';
 
 const app = express();
 
@@ -664,6 +665,7 @@ app.get(
   authMiddleware(),
   asyncMiddleware(async (req, res) => {
     const id = req?.params?.postId;
+    const {versionId} = req?.query;
     const postRepository = getRepository(Post);
     const post = await postRepository.findOne({id});
     if (!post) throw new BadRequestError('invalid_post');
@@ -678,7 +680,8 @@ app.get(
       data: {
         baseUrl: process.env.IFRAME_BASE_URL,
         token
-      }
+      },
+      src: `${process.env.IFRAME_BASE_URL}/${post?.slugPath}?${queryString.stringify({versionId, token})}`
     });
 
     return res.send(data);
