@@ -57,7 +57,7 @@ const DynamicField: React.FC<DynamicFieldProps> = ({ field, name }) => {
             }
             mimeTypes={
               field?.type === 'images'
-                ? ['image/jpeg', 'image/webp', 'image/png', '']
+                ? ['image/jpeg', 'image/webp', 'image/png', 'image/svg+xml']
                 : null
             }
             name={getName()}
