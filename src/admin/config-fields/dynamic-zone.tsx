@@ -120,7 +120,12 @@ const DynamicZoneComponentImpl: React.FC<DynamicZoneComponentProps> = ({
           name={`${name}.component_name`}
           control={control}
           defaultValue={getContentType?.result?.name}
-          render={() => null}
+          render={({ field }) => {
+            useEffect(() => {
+              field.onChange(getContentType?.result?.name);
+            }, []);
+            return null;
+          }}
         />
         {!narrow && <DynamicGroup field={getContentType?.result} name={name} />}
         {narrow && <Panel
