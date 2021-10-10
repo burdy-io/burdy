@@ -12,7 +12,8 @@
     "start": "cross-env NODE_ENV=development ts-node -T -r tsconfig-paths/register ./src/burdy.ts start",
     "dev": "cross-env NODE_ENV=development ts-node -T -r tsconfig-paths/register ./src/burdy.ts dev",
     "build": "cross-env NODE_ENV=production ts-node -T -r tsconfig-paths/register ./src/burdy.ts build",
-    "db": "cross-env NODE_ENV=development ts-node -T -r tsconfig-paths/register ./src/burdy.ts db"
+    "db": "cross-env NODE_ENV=development ts-node -T -r tsconfig-paths/register ./src/burdy.ts db",
+    "ct:export": "cross-env NODE_ENV=development ts-node -T -r tsconfig-paths/register ./src/burdy.ts ct export"
   },
   "bin": {
     "burdy": "./src/burdy.js"
@@ -72,6 +73,7 @@
     "dotenv-flow": "^3.2.0",
     "draft-js": "^0.11.7",
     "express": "^4.17.1",
+    "fast-glob": "^3.2.7",
     "file-loader": "^6.2.0",
     "fs-extra": "^10.0.0",
     "generate-password-browser": "^1.1.0",

@@ -150,7 +150,6 @@ export interface IContentType {
   createdAt: Date;
   updatedAt: Date;
   fields?: any[];
-  content?: string;
 }
 
 export interface IGroup {

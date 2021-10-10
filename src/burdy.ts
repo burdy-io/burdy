@@ -49,6 +49,15 @@ const db = async () => {
   require(dbScriptPath);
 }
 
+const exportContentTypes = async () => {
+  process.env.NODE_ENV = process.env.NODE_ENV ?? 'development';
+
+  const ctScriptPath = PathUtil.cache('ct-build', 'main.js');
+
+  await require('@scripts/content-types').default(process.argv?.[3] ?? 'export', process.argv.slice(4));
+  require(ctScriptPath);
+}
+
 // Initial program setup
 program.storeOptionsAsProperties(false).allowUnknownOption(true);
 
@@ -74,5 +83,11 @@ program.command('start').description('Start your Burdy application').action(star
 program.command('build').description('Build your Burdy application').action(build);
 program.command('dev').description('Develop your Burdy server').action(dev);
 program.command('db').allowUnknownOption(true).helpOption(false).description('Run TypeORM commands').action(db);
+
+const contentTypeCommands = program.command('ct').description('Content type helpers')
+contentTypeCommands
+  .command('export')
+  .description('Exports content type defined in components')
+  .action(exportContentTypes)
 
 program.parseAsync(process.argv);
