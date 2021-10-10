@@ -1,7 +1,7 @@
 import express from 'express';
 import authMiddleware from '@server/middleware/auth.middleware';
 import asyncMiddleware from '@server/middleware/async.middleware';
-import { getRepository, In } from 'typeorm';
+import { getManager, getRepository, In } from 'typeorm';
 import * as yup from 'yup';
 import ContentType from '@server/models/content-type.model';
 import BadRequestError from '@server/errors/bad-request-error';
@@ -9,6 +9,7 @@ import InternalServerError from '@server/errors/internal-server-error';
 import Post from '@server/models/post.model';
 import Hooks from '@shared/features/hooks';
 import { mapContentType } from '@server/common/mappers';
+import { isEmptyString } from '@admin/helpers/utility';
 
 const app = express();
 
@@ -137,6 +138,81 @@ app.put(
 
     await contentTypeRepository.save(contentType);
     res.send(mapContentType(contentType));
+  })
+);
+
+app.post(
+  '/content-types/import',
+  authMiddleware(),
+  asyncMiddleware(async (req, res) => {
+    const data = req?.body?.data || [];
+    const force = req?.body?.force;
+
+    const filtered = data.filter(contentType => {
+      return !isEmptyString(contentType.name) && !isEmptyString(contentType.type);
+    });
+
+    const entityManager = getManager();
+    const response = [];
+    await entityManager.transaction(async (transactionManager) => {
+      const contentTypes = await transactionManager.find(ContentType, {
+        where: {
+          name: In(filtered?.map(contentType => contentType?.name))
+        },
+      });
+
+      await Promise.all(filtered.map(async (item) => {
+        const contentType = contentTypes.find(ct => ct.name === item.name);
+        if (contentType && force) {
+          contentType.author = req?.data?.user;
+          contentType.fields = JSON.stringify(item.fields ?? []);
+          const obj = await transactionManager.save(ContentType, contentType);
+          response.push(obj);
+        } else if (!contentType) {
+          const obj = await transactionManager.save(ContentType, {
+            name: item.name,
+            type: item.type,
+            author: req?.data?.user,
+            fields: JSON.stringify(item.fields ?? []),
+          });
+          response.push(obj);
+        }
+      }));
+    });
+
+    res.send(response);
+  })
+);
+
+app.get(
+  '/content-types/export',
+  authMiddleware(),
+  asyncMiddleware(async (req, res) => {
+    const ids = ((req?.query?.id || '') as string).split(',');
+    const contentTypeRepository = getRepository(ContentType);
+
+    const contentTypes = await contentTypeRepository.find({
+      where: {
+        id: In(ids)
+      }
+    });
+
+    const mapped = contentTypes.map(contentType => {
+      let fields = [];
+      try {
+        fields = JSON.parse(contentType.fields);
+      } catch {
+        //
+      }
+      return {
+        name: contentType?.name,
+        type: contentType?.type,
+        fields
+      }
+    });
+    res.setHeader('Content-disposition', `attachment; filename=contentTypes.json`);
+    res.setHeader('Content-type', 'application/json');
+    res.send(mapped);
   })
 );
 

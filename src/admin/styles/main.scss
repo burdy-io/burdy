@@ -36,6 +36,18 @@ body {
   &--small {
     padding: 4px 8px;
   }
+
+  .content {
+    flex: 1;
+    padding: 0 8px;
+  }
+
+  &--actionable {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0;
+  }
 }
 
 a {

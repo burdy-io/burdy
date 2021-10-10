@@ -8,6 +8,7 @@ import React, { useMemo } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { useContentTypes } from '../context/content-types.context';
 import { useAuth } from '@admin/features/authentication/context/auth.context';
+import * as queryString from 'querystring';
 
 const ContentTypesCommandBar = () => {
   const {
@@ -68,6 +69,31 @@ const ContentTypesCommandBar = () => {
           permissions: ['content_types_delete'],
           onClick: () => {
             setStateData('deleteContentTypesOpen', true);
+          },
+        },
+        {
+          key: 'import',
+          text: 'Import',
+          'data-cy': 'contentTypes-commandBar-import',
+          iconProps: { iconName: 'Import' },
+          permissions: ['content_types_update'],
+          onClick: () => {
+            setStateData('importContentTypesOpen', true);
+          },
+        },
+        {
+          key: 'export',
+          text: 'Export',
+          'data-cy': 'contentTypes-commandBar-export',
+          disabled: !(selectedContentTypes?.length > 0),
+          iconProps: { iconName: 'Export' },
+          onClick: () => {
+            window.open(
+              `/api/content-types/export?${queryString.stringify({
+                id: selectedContentTypes?.map((ct) => ct?.id).join(','),
+              })}`,
+              '_blank'
+            );
           },
         },
         {
