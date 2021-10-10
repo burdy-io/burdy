@@ -11,6 +11,7 @@ import ContentTypesList from '../components/content-types-list';
 import ContentTypesCommandBar from '../components/content-types-command-bar';
 import ContentTypeUpdatePanel from '../components/content-type-update-panel';
 import ContentTypesDeleteDialog from '../components/content-types-delete-dialog';
+import ContentTypesImportDialog from '@admin/features/content-types/components/content-type-import-dialog';
 
 const ContentTypesPage = () => {
   const {
@@ -73,6 +74,19 @@ const ContentTypesPage = () => {
         }}
         onDeleted={() => {
           setStateData('deleteContentTypesOpen', false);
+          getGlobalContentTypes.execute({
+            type: 'post',
+          });
+        }}
+      />
+      <ContentTypesImportDialog
+        isOpen={stateData?.importContentTypesOpen}
+        onDismiss={() => {
+          setStateData('importContentTypesOpen', false);
+        }}
+        onImported={() => {
+          setStateData('importContentTypesOpen', false);
+          getContentTypes.execute();
           getGlobalContentTypes.execute({
             type: 'post',
           });

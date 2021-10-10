@@ -15,6 +15,7 @@ interface IContentTypesContext {
     number[] | string[],
     [ids?: number[] | string[], params?: any]
   >;
+  importContentTypes: UseAsyncReturn<IContentType[], [data?: any]>;
 
   selectedContentTypes: IContentType[];
 
@@ -96,6 +97,8 @@ const ContentTypesContextProvider = ({ children }) => {
     return response;
   });
 
+  const importContentTypes = useApiCallback(async (data) => apiAxios.post(`/content-types/import`, data));
+
   const getComponents = useApiCallback(async () => apiAxios.get(`/components`));
 
   const getFields = useApiCallback(async () => apiAxios.get(`/fields`));
@@ -118,6 +121,7 @@ const ContentTypesContextProvider = ({ children }) => {
         createContentType,
         updateContentType,
         deleteContentTypes,
+        importContentTypes,
 
         getComponents,
 
