@@ -18,6 +18,10 @@ const scriptContentTypes = async (subcommand = 'export', pattern: string[] = [])
       'components/**/*.tsx',
       'components/**/*.js',
       'components/**/*.jsx',
+      'templates/**/*.ts',
+      'templates/**/*.tsx',
+      'templates/**/*.js',
+      'templates/**/*.jsx',
     ]
   }
 
