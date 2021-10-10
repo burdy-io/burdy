@@ -2,6 +2,7 @@ import {IContentType} from "@shared/interfaces/model";
 import PathUtil from "@scripts/util/path.util";
 import {formatISO} from 'date-fns';
 import fs from 'fs-extra'
+import ConsoleOutput from "@scripts/util/console-output.util";
 
 type IExportedContentType = Omit<IContentType, 'id' | 'createdAt' | 'updatedAt'>;
 
@@ -46,7 +47,7 @@ const writeContentTypes = async (contentTypes: IExportedContentType[], path: str
 
   await fs.ensureFile(path);
   await fs.writeJson(path, contentTypes, {spaces: 2, EOL: '\n'});
+  ConsoleOutput.info(`Content types exported in ${path}.`);
 }
-
 
 export {GetBurdyContentType, GetBurdyContentTypes, IExportedContentType, joinContentTypes, writeContentTypes}
