@@ -12,6 +12,7 @@ const scriptDbCliBuild = async () => {
 
   const webpackServerConfig = webpackServerConfigure((webpackConfig) => {
     webpackConfig.entry = PathUtil.root('scripts', 'entry', 'db-cli');
+    webpackConfig.devtool = false;
     webpackConfig.output.path = dbBuildDirectory;
     return webpackConfig;
   }, config?.webpack?.server);
