@@ -117,7 +117,7 @@ app.get(
             .where('LOWER(post.name) LIKE :search', {
               search: `%${(search as string).toLowerCase()}%`
             })
-            .orWhere('LOWER(post.slug) LIKE :search', {
+            .orWhere('LOWER(post.slugPath) LIKE :search', {
               search: `%${(search as string).toLowerCase()}%`
             });
         })
