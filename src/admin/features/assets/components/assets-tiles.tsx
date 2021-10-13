@@ -224,6 +224,55 @@ const MediaCell: React.FC<ExtendedTileGridItem> = ({
   });
 };
 
+const SvgCell: React.FC<ExtendedTileGridItem> = ({
+                                                     finalSize,
+                                                     item,
+                                                     selection,
+                                                     ...props
+                                                   }) => {
+  const tile = (
+    <Tile
+      role="gridcell"
+      aria-colindex={item.index}
+      contentSize={finalSize}
+      className={AnimationClassNames.fadeIn400}
+      selection={selection as any}
+      selectionIndex={item.index}
+      invokeSelection
+      showBackgroundFrame
+      itemName={item.name}
+      itemActivity={
+        <>
+          <div
+            style={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {humanFileSize(item.contentLength)}
+          </div>
+        </>
+      }
+      nameplateOnlyOnHover={false}
+      {...props}
+    />
+  );
+
+  return renderTileWithLayout(tile, {
+    background: (
+      <img
+        style={{
+          height: '100%',
+          width: '100%',
+        }}
+        alt="placeholder"
+        src={`/api/assets/${item.id}`}
+      />
+    ),
+  });
+};
+
 interface IAssetsTilesProps {
   selectionMode?: SelectionMode;
   selection?: ISelection;
@@ -305,16 +354,16 @@ const AssetsTiles: React.FC<IAssetsTilesProps> = ({
       } else {
         file.items.push({
           ...defaultProps,
-          onRenderCell: (props) =>
-            IMAGE_MIME_TYPES.includes(asset.mimeType) ? (
-              <MediaCell {...props} selection={selection} />
-            ) : (
-              <DocumentCell
-                {...props}
-                selection={selection}
-                compact={compact}
-              />
-            ),
+          onRenderCell: (props) => {
+            switch (true) {
+              case IMAGE_MIME_TYPES.includes(asset.mimeType):
+                return <MediaCell {...props} selection={selection} />
+              case asset.mimeType === 'image/svg+xml' || asset.mimeType === 'image/svg':
+                return <SvgCell {...props} selection={selection} />
+              default:
+                return <DocumentCell {...props} selection={selection} compact={compact} />
+            }
+          }
         });
       }
     });
