@@ -84,6 +84,7 @@ export const mapPublicPostWithMeta = (post) => {
 
   return {
     id: post.id,
+    type: post.type,
     name: post.name,
     slug: post.slug,
     slugPath: post.slugPath,

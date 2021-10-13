@@ -108,7 +108,7 @@ export const compilePostContainer = async (post: IPost, options?: ICompilePostOp
 
   return {
     ...mapPostContainer(post),
-    posts: childPosts.map(mapPostWithMeta)
+    posts: childPosts.map(mapPublicPostWithMeta)
   };
 }
 
