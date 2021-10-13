@@ -1,6 +1,6 @@
 import Heading from '@admin/components/heading';
 import { composeWrappers } from '@admin/helpers/hoc';
-import React, { useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import { useParams } from 'react-router';
 import PostsCommandBar from '../components/posts-command-bar';
 import PostsDeleteDialog from '../components/posts-delete-dialog';
@@ -11,10 +11,13 @@ import PostSettingsDialog from '../components/post-settings-dialog';
 import PostDuplicateDialog from '@admin/features/posts/components/post-duplicate-dialog';
 import PostPublishDialog from '@admin/features/posts/components/post-publish-dialog';
 import PostUnpublishDialog from '@admin/features/posts/components/post-unpublish-dialog';
+import {IPost} from "@shared/interfaces/model";
 
-const PostsPage = () => {
+const PostContainerPage = () => {
   const params = useParams<any>();
+
   const {
+    getPost,
     getPosts,
     getOneContentType,
     selectedPosts,
@@ -23,21 +26,29 @@ const PostsPage = () => {
 
     stateData,
     setStateData,
-    setAdditionalData,
+    ...postsState
   } = usePosts();
 
   useEffect(() => {
-    setParams({
-      ...(searchParams || {}),
-      type: 'post',
-      contentTypeId: params?.contentTypeId,
-    });
-    getPosts.execute({
-      type: 'post',
-      contentTypeId: params?.contentTypeId,
-    });
-    getOneContentType.execute(params?.contentTypeId);
-  }, [params?.contentTypeId]);
+    (async () => {
+      const parentId = params?.postId;
+      postsState.setAdditionalData({parentId});
+
+      setParams({
+        ...(searchParams || {}),
+        type: 'post',
+        parentId,
+      });
+
+      getPosts.execute({
+        type: 'post',
+        parentId,
+      });
+
+      const parent = await getPost.execute(params?.postId);
+      getOneContentType.execute(parent.contentTypeId);
+    })();
+  }, [params?.parentId]);
 
   return (
     <div className="page-wrapper">
@@ -107,5 +118,5 @@ const PostsPage = () => {
 };
 
 export default composeWrappers({
-  postsContext: ({children}) => PostsContextProvider({defaultAdditionalData: {onlyOrphans: true}, children}),
-})(PostsPage);
+  postsContext: PostsContextProvider,
+})(PostContainerPage);

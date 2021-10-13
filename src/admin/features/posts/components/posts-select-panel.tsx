@@ -87,6 +87,13 @@ const PostsSelectPanel: React.FC<IPostsSelectPanelProps> = ({
         isPadded: true,
       },
       {
+        key: 'slugPath',
+        name: 'Path',
+        fieldName: 'slugPath',
+        minWidth: 200,
+        isPadded: true,
+      },
+      {
         key: 'contentType',
         name: 'Content Type',
         onRender: ({ contentType }) => <div>{contentType?.name}</div>,

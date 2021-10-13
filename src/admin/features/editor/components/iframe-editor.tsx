@@ -1,6 +1,6 @@
 import LoadingBar from '@admin/components/loading-bar';
 import {
-  getTheme,
+  getTheme, IconButton,
   mergeStyleSets,
   MessageBar,
   MessageBarType, Pivot, PivotItem,
@@ -235,7 +235,7 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
     } catch (err) {
       //
     }
-  }, 1000);
+  }, 500);
 
   useEffect(() => {
     const search = queryString.parse(location.search) as any;
@@ -256,6 +256,7 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
   const fetchIframeData = async (post: IPost) => {
     try {
       const response = await getIFrameData.execute(post?.id, post?.versionId);
+      console.log(response);
       if (response) {
         setIframeSrc(response?.src);
       }
@@ -296,6 +297,15 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
     return tmpTabs;
   }, [post]);
 
+  const pageUrl = useMemo(() => {
+    try {
+      const url = new URL(iframeSrc);
+      return `${url.origin}${url.pathname}`;
+    } catch (e) {
+      return '';
+    }
+  }, [iframeSrc]);
+
   return (
     <div className={styles.mainWrapper}>
       <div className={styles.content}>
@@ -306,7 +316,13 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
           <LoadingBar loading={!loaded}>
             <div className={styles.urlBar}>
               <div className={styles.urlBarSearch}>
-                {post?.slugPath}
+                {pageUrl}
+              </div>
+              <div>
+                <IconButton
+                  iconProps={{iconName: 'OpenInNewTab'}}
+                  onClick={() => window.open(iframeSrc, '_blank')}
+                />
               </div>
             </div>
             <div className={styles.iframeWrapper}>

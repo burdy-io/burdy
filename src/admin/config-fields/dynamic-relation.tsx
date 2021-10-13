@@ -74,6 +74,14 @@ const PostsList: React.FC<PostsListProps> = ({ posts, onReorder }) => {
         isPadded: true,
       },
       {
+        key: 'slugPath',
+        name: 'Path',
+        fieldName: 'slugPath',
+        minWidth: 300,
+        isRowHeader: true,
+        data: 'string'
+      },
+      {
         key: 'contentType',
         name: 'Content Type',
         fieldName: 'contentType',
@@ -91,7 +99,7 @@ const PostsList: React.FC<PostsListProps> = ({ posts, onReorder }) => {
         fieldName: 'action',
         minWidth: 60,
         maxWidth: 60,
-        onRender: ({ contentType, contentTypeId, id }) => (
+        onRender: ({ contentType, contentTypeId, id, parentId }) => (
           <IconButton
             iconProps={{
               iconName: 'OpenInNewTab',
@@ -99,7 +107,9 @@ const PostsList: React.FC<PostsListProps> = ({ posts, onReorder }) => {
             title="Open in new tab"
             onClick={() => {
               let url;
-              if (contentType?.type === 'page') {
+              if (contentType?.type === 'post' && parentId) {
+                url = `/admin/sites/editor/${id}`;
+              } else if (contentType?.type === 'page') {
                 url = `/admin/sites/editor/${id}`;
               } else {
                 url = `/admin/posts/${contentTypeId}/editor/${id}`;

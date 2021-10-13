@@ -40,7 +40,7 @@ const classNames = mergeStyleSets({
 
 const PostsList = () => {
   const history = useHistory();
-  const { getPosts, posts, selection, getOneContentType, params } = usePosts();
+  const { getPosts, posts, selection, getOneContentType, params, additionalData } = usePosts();
   const { hasPermission } = useAuth();
 
   const columns = useMemo<IColumn[]>(
@@ -58,9 +58,13 @@ const PostsList = () => {
             <span
               className={classNames.link}
               onClick={() => {
-                history.push(
-                  `/posts/${getOneContentType?.result?.id}/editor/${item.id}`
-                );
+                if (additionalData?.parentId) {
+                  history.push(`/sites/editor/${item.id}`);
+                } else {
+                  history.push(
+                    `/posts/${getOneContentType?.result?.id}/editor/${item.id}`
+                  );
+                }
               }}
             >
               {item.name}

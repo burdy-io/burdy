@@ -67,6 +67,8 @@ app.get(
     const type = req?.query?.type;
     const id = req?.query?.id;
     const search = req?.query?.search;
+    const parentId = req?.query?.parentId;
+    const onlyOrphans = req?.query?.onlyOrphans;
 
     const postRepository = getRepository(Post);
 
@@ -98,6 +100,16 @@ app.get(
       });
     }
 
+    if (parentId && !onlyOrphans) {
+      qb.andWhere('post.parentId IN (:...parentIds)', {
+        parentIds: (parentId as string).split(',')
+      });
+    }
+
+    if (onlyOrphans) {
+      qb.andWhere('post.parentId IS NULL');
+    }
+
     if (search?.length > 0) {
       qb.andWhere(
         new Brackets((subQb) => {
@@ -105,7 +117,7 @@ app.get(
             .where('LOWER(post.name) LIKE :search', {
               search: `%${(search as string).toLowerCase()}%`
             })
-            .orWhere('LOWER(post.slug) LIKE :search', {
+            .orWhere('LOWER(post.slugPath) LIKE :search', {
               search: `%${(search as string).toLowerCase()}%`
             });
         })
@@ -150,19 +162,23 @@ app.post(
           contentType = await transactionManager.findOne(ContentType, {
             where: {
               id: params.contentTypeId,
-              type: In(['post', 'page', 'fragment'])
+              type: In(['post', 'page', 'fragment', 'hierarchical_post'])
             }
           });
           if (!contentType) throw new BadRequestError('invalid_content_type');
         }
 
-        const postObj: any = {
+        const postObj: Partial<IPost> = {
           name: params.name,
           slug: params.slug,
           type: params?.type || 'post',
           contentType,
           author: req?.data?.user
         };
+
+        if(postObj.type === 'folder') {
+          postObj.status = 'published';
+        }
 
         if (parent) {
           postObj.parent = parent;
@@ -231,7 +247,7 @@ app.post(
             .leftJoinAndSelect('post.meta', 'meta')
             .leftJoinAndSelect('post.tags', 'tags')
             .where('post.type IN (:...types)', {
-              types: ['folder', 'page', 'fragment']
+              types: ['folder', 'page', 'fragment', 'hierarchical_post', 'post']
             })
             .andWhere(new Brackets((subQb) => {
               subQb
@@ -704,8 +720,10 @@ app.get(
       }
     }
 
+    const slugPath = (req.params[0] as string).replace(/\/$/, '');
+
     const post = await retrievePostAndCompile({
-      slugPath: req.params[0],
+      slugPath,
       versionId: versionId as string,
     }, {allowUnpublished});
     res.send(post);
