@@ -132,6 +132,10 @@ const ContentTypeCreatePanel: React.FC<IContentTypeCreatePanelProps> = ({
                 key: 'component',
                 text: 'Component',
               },
+              {
+                key: 'hierarchical_post',
+                text: 'Hierarchical Post',
+              }
             ]}
             name="type"
             label="Type"

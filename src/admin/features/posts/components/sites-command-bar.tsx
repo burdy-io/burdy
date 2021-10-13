@@ -38,7 +38,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
       search: val
     });
     getPosts.execute({
-      type: 'page,folder,fragment,post_container',
+      type: 'page,folder,fragment,hierarchical_post',
       search: val
     });
   }, 500);
@@ -51,7 +51,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
           text: 'New',
           iconProps: { iconName: 'Add' },
           permissions: ['sites_create'],
-          disabled: selectedPosts?.[0]?.type === 'post_container',
+          disabled: selectedPosts?.[0]?.type === 'hierarchical_post',
           subMenuProps: {
             items: [
               {
@@ -70,14 +70,14 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
                 onClick: () => setStateData('createFolderOpen', true)
               },
               {
-                key: 'post_container',
-                text: 'Post Container',
+                key: 'hierarchical_post',
+                text: 'Hierarchical Posts',
                 onClick: () => setStateData('createPostContainerOpen', true)
               }
             ]
           }
         },
-        selectedPosts?.[0]?.type !== 'post_container' ? {
+        selectedPosts?.[0]?.type !== 'hierarchical_post' ? {
           key: 'edit',
           text: 'Edit',
           disabled:
@@ -167,7 +167,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
           iconProps: { iconName: 'Refresh' },
           onClick: () => {
             getPosts.execute({
-              type: 'page,folder,fragment,post_container',
+              type: 'page,folder,fragment,hierarchical_post',
               ...(params || {})
             });
           }

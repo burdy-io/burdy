@@ -114,7 +114,7 @@ const SitesSelectDialog: React.FC<ISitesSelectDialogProps> = ({
                   case 'fragment':
                     iconName = 'WebAppBuilderFragment';
                     break;
-                  case 'post_container':
+                  case 'hierarchical_post':
                     iconName = 'ArrangeBringToFront';
                     break;
                   default:

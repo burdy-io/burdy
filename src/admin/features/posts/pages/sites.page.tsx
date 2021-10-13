@@ -22,7 +22,7 @@ import PostSettingsDialog from '../components/post-settings-dialog';
 import SitesCopyDialog from '../components/sites-copy-dialog';
 import PostPublishDialog from '@admin/features/posts/components/post-publish-dialog';
 import PostUnpublishDialog from '@admin/features/posts/components/post-unpublish-dialog';
-import CreatePostContainerDialog from "@admin/features/posts/components/post-container-create-dialog";
+import CreatePostContainerDialog from "@admin/features/posts/components/hierarchical-post-create-dialog";
 
 const theme = getTheme();
 
@@ -83,7 +83,7 @@ const SitesPage = () => {
 
   useEffect(() => {
     getPosts.execute({
-      type: 'page,folder,fragment,post_container',
+      type: 'page,folder,fragment,hierarchical_post',
     });
     const search = queryString.parse(location.search) as any;
     setSelectedPost(search?.id);
@@ -140,7 +140,7 @@ const SitesPage = () => {
                       case 'fragment':
                         iconName = 'WebAppBuilderFragment';
                         break;
-                      case 'post_container':
+                      case 'hierarchical_post':
                         iconName = 'ArrangeBringToFront';
                         break;
                       default:
@@ -255,7 +255,7 @@ const SitesPage = () => {
         onUpdated={() => {
           setStateData('updatePostOpen', false);
           getPosts.execute({
-            type: 'page,folder,fragment,post_container',
+            type: 'page,folder,fragment,hierarchical_post',
             ...(params || {}),
           });
         }}
@@ -267,7 +267,7 @@ const SitesPage = () => {
         onCreated={() => {
           setStateData('copyPostsOpen', false);
           getPosts.execute({
-            type: 'page,folder,fragment,post_container',
+            type: 'page,folder,fragment,hierarchical_post',
             ...(params || {}),
           });
         }}
@@ -279,7 +279,7 @@ const SitesPage = () => {
         onUpdated={() => {
           setStateData('publishPostOpen', false);
           getPosts.execute({
-            type: 'page,folder,fragment,post_container',
+            type: 'page,folder,fragment,hierarchical_post',
             ...(params || {}),
           });
         }}
@@ -291,7 +291,7 @@ const SitesPage = () => {
         onUpdated={() => {
           setStateData('unpublishPostOpen', false);
           getPosts.execute({
-            type: 'page,folder,fragment,post_container',
+            type: 'page,folder,fragment,hierarchical_post',
             ...(params || {}),
           });
         }}

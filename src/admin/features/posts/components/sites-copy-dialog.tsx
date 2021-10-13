@@ -134,7 +134,7 @@ const SitesCopyDialog: React.FC<ISitesCopyDialogProps> = ({
                   case 'fragment':
                     iconName = 'WebAppBuilderFragment';
                     break;
-                  case 'post_container':
+                  case 'hierarchical_post':
                     iconName = 'ArrangeBringToFront';
                     break;
                   default:

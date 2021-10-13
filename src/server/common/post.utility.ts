@@ -90,7 +90,7 @@ export const retrievePostAndCompile = async ({ id, slugPath, versionId }: ICompi
   };
   if (!post) return getReturn();
 
-  return post.type === 'post_container' ? compilePostContainer(post, options) : compilePost(post, options);
+  return post.type === 'hierarchical_post' ? compilePostContainer(post, options) : compilePost(post, options);
 };
 
 export const compilePostContainer = async (post: IPost, options?: ICompilePostOptions) => {

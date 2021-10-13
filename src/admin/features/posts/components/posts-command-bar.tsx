@@ -1,7 +1,7 @@
 import {
   CommandBar,
   ICommandBarItemProps,
-  NeutralColors,
+  NeutralColors, PrimaryButton,
   SearchBox,
 } from '@fluentui/react';
 import React, {useMemo} from 'react';
@@ -9,6 +9,8 @@ import {useHistory} from 'react-router';
 import {useDebouncedCallback} from 'use-debounce';
 import {useAuth} from '@admin/features/authentication/context/auth.context';
 import {usePosts} from '../context/posts.context';
+
+const enableIframeEditor = process.env.PUBLIC_ENABLE_IFRAME_EDITOR === 'true';
 
 const PostsCommandBar = () => {
   const history = useHistory();
@@ -145,6 +147,27 @@ const PostsCommandBar = () => {
           },
         },
       ]))
+
+      if (enableIframeEditor) {
+        const index = commandBarItems.findIndex(item => item.key === 'edit');
+        if (index > -1) {
+          commandBarItems.splice(index, 0, {
+            key: 'editFrame',
+            text: 'Customize',
+            iconProps: { iconName: 'Edit' },
+            permissions: ['posts_update'],
+            onRender: () => {
+              return <div style={{ display: 'flex', alignItems: 'center', margin: '0 4px' }}>
+                <PrimaryButton onClick={() => {
+                  history.push(`/sites/frame/${selectedPosts?.[0]?.id}`);
+                }}>
+                  Customize
+                </PrimaryButton>
+              </div>;
+            }
+          });
+        }
+      }
 
       return commandBarItems;
     },

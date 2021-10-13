@@ -68,14 +68,14 @@ const SelectParent = composeWrappers({
   postsContext: PostsContextProvider,
 })(SelectParentImpl);
 
-interface ICreatePostContainerDialogProps {
+interface ICreateHierarchicalPostProps {
   isOpen?: boolean;
   defaultValues?: any;
   onDismiss?: () => void;
   onCreated?: (data?: any) => void;
 }
 
-const CreatePostContainerDialog: React.FC<ICreatePostContainerDialogProps> = ({
+const CreateHierarchicalPostDialog: React.FC<ICreateHierarchicalPostProps> = ({
                                                                                 isOpen,
                                                                                 defaultValues,
                                                                                 onDismiss,
@@ -105,7 +105,7 @@ const CreatePostContainerDialog: React.FC<ICreatePostContainerDialogProps> = ({
     reset(defaultValues);
     if (isOpen) {
       getContentTypes.execute({
-        type: 'post',
+        type: 'hierarchical_post',
       });
     }
   }, [isOpen]);
@@ -181,7 +181,7 @@ const CreatePostContainerDialog: React.FC<ICreatePostContainerDialogProps> = ({
             handleSubmit((data) => {
               createPost.execute({
                 ...data,
-                type: 'post_container',
+                type: 'hierarchical_post',
               });
             })();
           }}
@@ -195,4 +195,4 @@ const CreatePostContainerDialog: React.FC<ICreatePostContainerDialogProps> = ({
 
 export default composeWrappers({
   contentTypesContext: ContentTypesContextProvider,
-})(CreatePostContainerDialog);
+})(CreateHierarchicalPostDialog);
