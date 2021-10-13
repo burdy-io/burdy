@@ -147,7 +147,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
           }
         },
         {
-          key: 'copy',
+          key: 'copyUrl',
           text: 'Copy API URL',
           iconProps: {iconName: 'ClipboardList'},
           disabled: selectedPosts?.length === 0 || selectedPosts?.[0]?.type === 'folder',

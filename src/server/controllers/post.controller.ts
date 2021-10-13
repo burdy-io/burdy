@@ -247,7 +247,7 @@ app.post(
             .leftJoinAndSelect('post.meta', 'meta')
             .leftJoinAndSelect('post.tags', 'tags')
             .where('post.type IN (:...types)', {
-              types: ['folder', 'page', 'fragment']
+              types: ['folder', 'page', 'fragment', 'post_container', 'post']
             })
             .andWhere(new Brackets((subQb) => {
               subQb
