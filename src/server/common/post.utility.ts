@@ -3,7 +3,13 @@ import Post from '@server/models/post.model';
 import Asset from '@server/models/asset.model';
 import BadRequestError from '@server/errors/bad-request-error';
 import { parseContent } from '@server/common/post.parser';
-import { mapPostWithMeta, mapPublicAsset, mapPublicPostWithMeta } from '@server/common/mappers';
+import {
+  mapPost,
+  mapPostContainer,
+  mapPostWithMeta,
+  mapPublicAsset,
+  mapPublicPostWithMeta
+} from '@server/common/mappers';
 import _ from 'lodash';
 import { IPost } from '@shared/interfaces/model';
 
@@ -84,9 +90,27 @@ export const retrievePostAndCompile = async ({ id, slugPath, versionId }: ICompi
   };
   if (!post) return getReturn();
 
-  const compiledPost = await compilePost(post, options);
-  return compiledPost;
+  return post.type === 'post_container' ? compilePostContainer(post, options) : compilePost(post, options);
 };
+
+export const compilePostContainer = async (post: IPost, options?: ICompilePostOptions) => {
+  const postRepository = getRepository(Post);
+  const {allowUnpublished} = options;
+
+  const childPosts = await postRepository.find({
+    relations: ['author', 'tags'],
+    where: {
+      parent: post,
+      ...(allowUnpublished ? {status: 'published'} : {})
+    }
+  });
+
+
+  return {
+    ...mapPostContainer(post),
+    posts: childPosts.map(mapPostWithMeta)
+  };
+}
 
 export const compilePost = async (post: IPost, options?: ICompilePostOptions) => {
   const assetRepository = getRepository(Asset);

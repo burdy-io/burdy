@@ -16,6 +16,7 @@ import { makeStyles, NeutralColors } from '@fluentui/react';
 import { useAuth } from '@admin/features/authentication/context/auth.context';
 import ErrorBoundary from '@admin/components/error-boundary';
 import IFramePage from '@admin/features/editor/pages/iframe.page';
+import PostContainerPage from "@admin/features/posts/pages/post-container.page";
 
 const enableIframeEditor = process.env.PUBLIC_ENABLE_IFRAME_EDITOR === 'true';
 
@@ -96,6 +97,12 @@ const Layout = () => {
         path: '/sites/frame/:postId',
         component: IFramePage,
         permissions: ['sites_update']
+      },
+      {
+        key: 'post-container',
+        path: '/sites/post-container/:postId',
+        component: PostContainerPage,
+        permissions: ['sites_list']
       },
       {
         key: 'sites-editor',

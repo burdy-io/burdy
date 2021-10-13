@@ -22,6 +22,7 @@ import PostSettingsDialog from '../components/post-settings-dialog';
 import SitesCopyDialog from '../components/sites-copy-dialog';
 import PostPublishDialog from '@admin/features/posts/components/post-publish-dialog';
 import PostUnpublishDialog from '@admin/features/posts/components/post-unpublish-dialog';
+import CreatePostContainerDialog from "@admin/features/posts/components/post-container-create-dialog";
 
 const theme = getTheme();
 
@@ -82,7 +83,7 @@ const SitesPage = () => {
 
   useEffect(() => {
     getPosts.execute({
-      type: 'page,folder,fragment',
+      type: 'page,folder,fragment,post_container',
     });
     const search = queryString.parse(location.search) as any;
     setSelectedPost(search?.id);
@@ -138,6 +139,9 @@ const SitesPage = () => {
                         break;
                       case 'fragment':
                         iconName = 'WebAppBuilderFragment';
+                        break;
+                      case 'post_container':
+                        iconName = 'ArrangeBringToFront';
                         break;
                       default:
                         iconName = 'Page';
@@ -226,6 +230,19 @@ const SitesPage = () => {
         }}
         onDismiss={() => setStateData('createFolderOpen', false)}
       />
+      <CreatePostContainerDialog
+        isOpen={stateData?.createPostContainerOpen}
+        defaultValues={{
+          parentId:
+            selectedPosts?.length === 1 ? selectedPosts?.[0]?.id : undefined,
+        }}
+        onCreated={() => {
+          setStateData('createPostContainerOpen', false);
+        }}
+        onDismiss={() => {
+          setStateData('createPostContainerOpen', false);
+        }}
+      />
       <SitesDeleteDialog
         isOpen={stateData?.deletePostsOpen}
         onDeleted={() => {
@@ -238,7 +255,7 @@ const SitesPage = () => {
         onUpdated={() => {
           setStateData('updatePostOpen', false);
           getPosts.execute({
-            type: 'page,folder,fragment',
+            type: 'page,folder,fragment,post_container',
             ...(params || {}),
           });
         }}
@@ -250,7 +267,7 @@ const SitesPage = () => {
         onCreated={() => {
           setStateData('copyPostsOpen', false);
           getPosts.execute({
-            type: 'page,folder,fragment',
+            type: 'page,folder,fragment,post_container',
             ...(params || {}),
           });
         }}
@@ -262,7 +279,7 @@ const SitesPage = () => {
         onUpdated={() => {
           setStateData('publishPostOpen', false);
           getPosts.execute({
-            type: 'page,folder,fragment',
+            type: 'page,folder,fragment,post_container',
             ...(params || {}),
           });
         }}
@@ -274,7 +291,7 @@ const SitesPage = () => {
         onUpdated={() => {
           setStateData('unpublishPostOpen', false);
           getPosts.execute({
-            type: 'page,folder,fragment',
+            type: 'page,folder,fragment,post_container',
             ...(params || {}),
           });
         }}

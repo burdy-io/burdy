@@ -27,6 +27,9 @@ interface IPostsContext {
   post: IPost;
   setPost: (post: IPost) => void;
 
+  additionalData: any;
+  setAdditionalData: (data: any) => void;
+
   posts: IPost[];
   postsState: ModelState<IPost>;
 
@@ -43,8 +46,9 @@ interface IPostsContext {
 
 const PostsContext = createContext<IPostsContext>({} as any);
 
-const PostsContextProvider = ({ children }) => {
+const PostsContextProvider = ({ defaultAdditionalData = {}, children }) => {
   const [selectedPosts, setSelectedPosts] = useState([]);
+  const [additionalData, setAdditionalData] = useState<object>(defaultAdditionalData ?? {});
 
   const [stateData, setStateDataImpl] = useState({});
   const setStateData = (key: string, value: any) => {
@@ -77,7 +81,10 @@ const PostsContextProvider = ({ children }) => {
     try {
       postsState.setArrayState([]);
       const response = await axios.get('/api/posts', {
-        params,
+        params: {
+          ...additionalData,
+          ...params
+        },
       });
       postsState.setArrayState(response.data);
       return response.data;
@@ -123,7 +130,10 @@ const PostsContextProvider = ({ children }) => {
 
   const createPost = useAsyncCallback(async (data) => {
     try {
-      const response = await axios.post('/api/posts', data);
+      const response = await axios.post('/api/posts', {
+        ...additionalData,
+        ...data
+      });
       postsState.create([response.data]);
       return response.data;
     } catch (e) {
@@ -161,7 +171,10 @@ const PostsContextProvider = ({ children }) => {
 
   const copyPosts = useAsyncCallback(async (id, data) => {
     try {
-      const response = await axios.post(`/api/posts/${id}/copy`, data);
+      const response = await axios.post(`/api/posts/${id}/copy`, {
+        ...additionalData,
+        ...data
+      });
       postsState.create(response.data);
       return response.data;
     } catch (e) {
@@ -171,7 +184,10 @@ const PostsContextProvider = ({ children }) => {
 
   const updatePostContent = useAsyncCallback(async (id, data) => {
     try {
-      const response = await axios.put(`/api/posts/${id}/content`, data);
+      const response = await axios.put(`/api/posts/${id}/content`, {
+        ...additionalData,
+        ...data
+      });
       setPost(response.data);
       return response.data;
     } catch (e) {
@@ -289,6 +305,9 @@ const PostsContextProvider = ({ children }) => {
 
         posts: postsState.arrayState,
         postsState,
+
+        additionalData,
+        setAdditionalData,
 
         params,
         setParams,

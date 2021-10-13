@@ -49,6 +49,19 @@ export const mapPost = (post) => {
   };
 };
 
+export const mapPostContainer = (post) => {
+  if (!post) return undefined;
+  return {
+    id: post.id,
+    name: post.name,
+    slug: post.slug,
+    slugPath: post.slugPath,
+    type: post.type,
+    contentType: mapContentType(post.contentType),
+    tags: mapTags(post.tags)
+  }
+}
+
 export const mapPostWithMeta = (post) => {
   if (!post) return undefined;
 

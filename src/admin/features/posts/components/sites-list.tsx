@@ -60,6 +60,9 @@ const SitesList = () => {
             case 'fragment':
               iconName = 'WebAppBuilderFragment';
               break;
+            case 'post_container':
+              iconName = 'ArrangeBringToFront';
+              break;
             case 'page':
               iconName = 'Page';
               break;

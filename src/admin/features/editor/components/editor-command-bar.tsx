@@ -56,7 +56,9 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
         'data-cy': 'editor-commandBar-back',
         iconProps: { iconName: 'Back' },
         onClick: () => {
-          if (params?.contentTypeId) {
+          if (post?.type === 'post' && post?.parentId) {
+            history.push(`/sites/post-container/${post.parentId}`);
+          } else if (params?.contentTypeId) {
             history.push(`/posts/${params?.contentTypeId}`);
           } else {
             history.push({

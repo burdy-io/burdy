@@ -67,6 +67,8 @@ app.get(
     const type = req?.query?.type;
     const id = req?.query?.id;
     const search = req?.query?.search;
+    const parentId = req?.query?.parentId;
+    const onlyOrphans = req?.query?.onlyOrphans;
 
     const postRepository = getRepository(Post);
 
@@ -96,6 +98,16 @@ app.get(
       qb.andWhere('post.contentTypeId IN (:...ids)', {
         ids: (contentTypeId as string).split(',')
       });
+    }
+
+    if (parentId && !onlyOrphans) {
+      qb.andWhere('post.parentId IN (:...parentIds)', {
+        parentIds: (parentId as string).split(',')
+      });
+    }
+
+    if (onlyOrphans) {
+      qb.andWhere('post.parentId IS NULL');
     }
 
     if (search?.length > 0) {
@@ -156,13 +168,17 @@ app.post(
           if (!contentType) throw new BadRequestError('invalid_content_type');
         }
 
-        const postObj: any = {
+        const postObj: Partial<IPost> = {
           name: params.name,
           slug: params.slug,
           type: params?.type || 'post',
           contentType,
           author: req?.data?.user
         };
+
+        if(postObj.type === 'folder') {
+          postObj.status = 'published';
+        }
 
         if (parent) {
           postObj.parent = parent;
@@ -704,8 +720,10 @@ app.get(
       }
     }
 
+    const slugPath = (req.params[0] as string).replace(/\/$/, '');
+
     const post = await retrievePostAndCompile({
-      slugPath: req.params[0],
+      slugPath,
       versionId: versionId as string,
     }, {allowUnpublished});
     res.send(post);

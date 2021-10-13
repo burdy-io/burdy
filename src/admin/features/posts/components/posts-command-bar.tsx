@@ -4,15 +4,15 @@ import {
   NeutralColors,
   SearchBox,
 } from '@fluentui/react';
-import React, { useMemo } from 'react';
-import { useHistory } from 'react-router';
-import { useDebouncedCallback } from 'use-debounce';
-import { useAuth } from '@admin/features/authentication/context/auth.context';
-import { usePosts } from '../context/posts.context';
+import React, {useMemo} from 'react';
+import {useHistory} from 'react-router';
+import {useDebouncedCallback} from 'use-debounce';
+import {useAuth} from '@admin/features/authentication/context/auth.context';
+import {usePosts} from '../context/posts.context';
 
 const PostsCommandBar = () => {
   const history = useHistory();
-  const { filterPermissions } = useAuth();
+  const {filterPermissions} = useAuth();
 
   const {
     selectedPosts,
@@ -21,6 +21,7 @@ const PostsCommandBar = () => {
     setParams,
     stateData,
     setStateData,
+    additionalData,
   } = usePosts();
 
   const debounced = useDebouncedCallback(async (val) => {
@@ -35,13 +36,26 @@ const PostsCommandBar = () => {
   }, 500);
 
   const commandItems = useMemo<ICommandBarItemProps[]>(
-    () =>
-      filterPermissions([
+    () => {
+      const commandBarItems: ICommandBarItemProps[] = [];
+
+      if (additionalData?.parentId) {
+        commandBarItems.push({
+          key: 'back',
+          text: 'Back',
+          iconProps: {iconName: 'Back'},
+          onClick: () => {
+            history.push(`/sites?id=${additionalData?.parentId}`)
+          }
+        });
+      }
+
+      commandBarItems.push(...filterPermissions([
         {
           key: 'newItem',
           text: 'New',
           'data-cy': 'post-commandBar-new',
-          iconProps: { iconName: 'Add' },
+          iconProps: {iconName: 'Add'},
           permissions: ['posts_create'],
           onClick: () => {
             setStateData('createPostOpen', true);
@@ -52,12 +66,16 @@ const PostsCommandBar = () => {
           text: 'Edit',
           'data-cy': 'post-commandBar-edit',
           disabled: selectedPosts?.length !== 1,
-          iconProps: { iconName: 'Edit' },
+          iconProps: {iconName: 'Edit'},
           permissions: ['posts_update'],
           onClick: () => {
-            history.push(
-              `/posts/${selectedPosts?.[0]?.contentTypeId}/editor/${selectedPosts?.[0]?.id}`
-            );
+            if (additionalData?.parentId) {
+              history.push(`/sites/editor/${selectedPosts?.[0]?.id}`);
+            } else {
+              history.push(
+                `/posts/${selectedPosts?.[0]?.contentTypeId}/editor/${selectedPosts?.[0]?.id}`
+              );
+            }
           },
         },
         {
@@ -66,7 +84,7 @@ const PostsCommandBar = () => {
           'data-cy': 'post-commandBar-settings',
           disabled:
             selectedPosts?.length !== 1 || selectedPosts?.[0]?.type === 'site',
-          iconProps: { iconName: 'Settings' },
+          iconProps: {iconName: 'Settings'},
           permissions: ['posts_update'],
           onClick: () => {
             setStateData('updatePostOpen', true);
@@ -78,7 +96,7 @@ const PostsCommandBar = () => {
           'data-cy': 'post-commandBar-duplicate',
           disabled:
             selectedPosts?.length !== 1,
-          iconProps: { iconName: 'Copy' },
+          iconProps: {iconName: 'Copy'},
           permissions: ['posts_create'],
           onClick: () => {
             setStateData('copyPostsOpen', true);
@@ -89,7 +107,7 @@ const PostsCommandBar = () => {
           text: 'Delete',
           'data-cy': 'post-commandBar-delete',
           disabled: selectedPosts?.length === 0,
-          iconProps: { iconName: 'Delete' },
+          iconProps: {iconName: 'Delete'},
           permissions: ['posts_delete'],
           onClick: () => {
             setStateData('deletePostsOpen', true);
@@ -100,7 +118,7 @@ const PostsCommandBar = () => {
           text: 'Publish',
           'data-cy': 'post-commandBar-publish',
           disabled: selectedPosts?.length === 0,
-          iconProps: { iconName: 'WebPublish' },
+          iconProps: {iconName: 'WebPublish'},
           permissions: ['posts_update'],
           onClick: () => {
             setStateData('publishPostOpen', true);
@@ -111,7 +129,7 @@ const PostsCommandBar = () => {
           text: 'Unpublish',
           'data-cy': 'post-commandBar-unpublish',
           disabled: selectedPosts?.length === 0,
-          iconProps: { iconName: 'UnpublishContent' },
+          iconProps: {iconName: 'UnpublishContent'},
           permissions: ['posts_update'],
           onClick: () => {
             setStateData('unpublishPostOpen', true);
@@ -121,13 +139,16 @@ const PostsCommandBar = () => {
           key: 'refresh',
           text: 'Refresh',
           'data-cy': 'post-commandBar-refresh',
-          iconProps: { iconName: 'Refresh' },
+          iconProps: {iconName: 'Refresh'},
           onClick: () => {
             getPosts.execute(params);
           },
         },
-      ]),
-    [selectedPosts, params, stateData]
+      ]))
+
+      return commandBarItems;
+    },
+    [selectedPosts, params, stateData, additionalData]
   );
 
   const farToolbarItems = useMemo<ICommandBarItemProps[]>(
@@ -150,7 +171,7 @@ const PostsCommandBar = () => {
   return (
     <CommandBar
       items={commandItems}
-      style={{ borderBottom: `1px solid ${NeutralColors.gray30}` }}
+      style={{borderBottom: `1px solid ${NeutralColors.gray30}`}}
       farItems={farToolbarItems}
     />
   );

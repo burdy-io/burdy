@@ -1,14 +1,18 @@
 import {
   CommandBar,
   ICommandBarItemProps,
-  NeutralColors, PrimaryButton,
+  MessageBarType,
+  NeutralColors,
+  PrimaryButton,
   SearchBox
 } from '@fluentui/react';
-import React, { useMemo } from 'react';
-import { useHistory } from 'react-router';
-import { useDebouncedCallback } from 'use-debounce';
-import { useAuth } from '@admin/features/authentication/context/auth.context';
-import { usePosts } from '../context/posts.context';
+import React, {useMemo} from 'react';
+import {useHistory} from 'react-router';
+import {useDebouncedCallback} from 'use-debounce';
+import {useAuth} from '@admin/features/authentication/context/auth.context';
+import {usePosts} from '../context/posts.context';
+import {useSnackbar} from "@admin/context/snackbar";
+import {copyToClipboard} from "@admin/helpers/utility";
 
 const enableIframeEditor = process.env.PUBLIC_ENABLE_IFRAME_EDITOR === 'true';
 
@@ -27,13 +31,14 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
   const history = useHistory();
 
   const { filterPermissions } = useAuth();
+  const snackbar = useSnackbar();
 
   const debounced = useDebouncedCallback(async (val) => {
     setParams({
       search: val
     });
     getPosts.execute({
-      type: 'page,folder,fragment',
+      type: 'page,folder,fragment,post_container',
       search: val
     });
   }, 500);
@@ -46,6 +51,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
           text: 'New',
           iconProps: { iconName: 'Add' },
           permissions: ['sites_create'],
+          disabled: selectedPosts?.[0]?.type === 'post_container',
           subMenuProps: {
             items: [
               {
@@ -62,11 +68,16 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
                 key: 'folder',
                 text: 'Folder',
                 onClick: () => setStateData('createFolderOpen', true)
+              },
+              {
+                key: 'post_container',
+                text: 'Post Container',
+                onClick: () => setStateData('createPostContainerOpen', true)
               }
             ]
           }
         },
-        {
+        selectedPosts?.[0]?.type !== 'post_container' ? {
           key: 'edit',
           text: 'Edit',
           disabled:
@@ -75,6 +86,13 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
           permissions: ['sites_update'],
           onClick: () => {
             history.push(`/sites/editor/${selectedPosts?.[0]?.id}`);
+          }
+        } : {
+          key: 'open',
+          text: 'Open',
+          iconProps: { iconName: 'OpenInNewWindow' },
+          onClick: () => {
+            history.push(`/sites/post-container/${selectedPosts?.[0]?.id}`);
           }
         },
         {
@@ -129,12 +147,27 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
           }
         },
         {
+          key: 'copy',
+          text: 'Copy API URL',
+          iconProps: {iconName: 'ClipboardList'},
+          disabled: selectedPosts?.length === 0 || selectedPosts?.[0]?.type === 'folder',
+          onClick: () => {
+            const [selectedPost] = selectedPosts;
+            copyToClipboard(`${window.location.origin}/api/content/${selectedPost.slugPath}`);
+            snackbar.openSnackbar({
+              message: 'Successfully copied URL to clipboard!',
+              messageBarType: MessageBarType.success,
+              duration: 1000,
+            })
+          }
+        },
+        {
           key: 'refresh',
           text: 'Refresh',
           iconProps: { iconName: 'Refresh' },
           onClick: () => {
             getPosts.execute({
-              type: 'page,folder,fragment',
+              type: 'page,folder,fragment,post_container',
               ...(params || {})
             });
           }
