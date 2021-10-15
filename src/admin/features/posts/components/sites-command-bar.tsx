@@ -30,7 +30,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
   } = usePosts();
   const history = useHistory();
 
-  const { filterPermissions } = useAuth();
+  const {filterPermissions} = useAuth();
   const snackbar = useSnackbar();
 
   const debounced = useDebouncedCallback(async (val) => {
@@ -46,10 +46,10 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
   const commandItems = useMemo<ICommandBarItemProps[]>(
     () => {
       const items = filterPermissions([
-        {
+        selectedPosts?.[0]?.type !== 'hierarchical_post' ? {
           key: 'newItem',
           text: 'New',
-          iconProps: { iconName: 'Add' },
+          iconProps: {iconName: 'Add'},
           permissions: ['sites_create'],
           disabled: selectedPosts?.[0]?.type === 'hierarchical_post',
           subMenuProps: {
@@ -76,30 +76,30 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
               }
             ]
           }
+        } : {
+          key: 'open',
+          text: 'Open',
+          iconProps: {iconName: 'OpenInNewWindow'},
+          onClick: () => {
+            history.push(`/sites/post-container/${selectedPosts?.[0]?.id}`);
+          }
         },
-        selectedPosts?.[0]?.type !== 'hierarchical_post' ? {
+        {
           key: 'edit',
           text: 'Edit',
           disabled:
             selectedPosts?.length !== 1 || selectedPosts?.[0]?.type === 'folder',
-          iconProps: { iconName: 'Edit' },
+          iconProps: {iconName: 'Edit'},
           permissions: ['sites_update'],
           onClick: () => {
             history.push(`/sites/editor/${selectedPosts?.[0]?.id}`);
-          }
-        } : {
-          key: 'open',
-          text: 'Open',
-          iconProps: { iconName: 'OpenInNewWindow' },
-          onClick: () => {
-            history.push(`/sites/post-container/${selectedPosts?.[0]?.id}`);
           }
         },
         {
           key: 'settings',
           text: 'Settings',
           disabled: selectedPosts?.length !== 1,
-          iconProps: { iconName: 'Settings' },
+          iconProps: {iconName: 'Settings'},
           permissions: ['sites_update'],
           onClick: () => {
             setStateData('updatePostOpen', true);
@@ -110,7 +110,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
           text: 'Copy',
           disabled:
             selectedPosts?.length !== 1,
-          iconProps: { iconName: 'Copy' },
+          iconProps: {iconName: 'Copy'},
           permissions: ['sites_create'],
           onClick: () => {
             setStateData('copyPostsOpen', true);
@@ -120,7 +120,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
           key: 'delete',
           text: 'Delete',
           disabled: selectedPosts?.length === 0,
-          iconProps: { iconName: 'Delete' },
+          iconProps: {iconName: 'Delete'},
           permissions: ['sites_delete'],
           onClick: () => {
             setStateData('deletePostsOpen', true);
@@ -130,7 +130,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
           key: 'quickPublish',
           text: 'Publish',
           disabled: selectedPosts?.length === 0,
-          iconProps: { iconName: 'WebPublish' },
+          iconProps: {iconName: 'WebPublish'},
           permissions: ['sites_update'],
           onClick: () => {
             setStateData('publishPostOpen', true);
@@ -140,7 +140,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
           key: 'quickUnpublish',
           text: 'Unpublish',
           disabled: selectedPosts?.length === 0,
-          iconProps: { iconName: 'UnpublishContent' },
+          iconProps: {iconName: 'UnpublishContent'},
           permissions: ['sites_update'],
           onClick: () => {
             setStateData('unpublishPostOpen', true);
@@ -164,7 +164,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
         {
           key: 'refresh',
           text: 'Refresh',
-          iconProps: { iconName: 'Refresh' },
+          iconProps: {iconName: 'Refresh'},
           onClick: () => {
             getPosts.execute({
               type: 'page,folder,fragment,hierarchical_post',
@@ -173,16 +173,17 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
           }
         }
       ]);
-      if (enableIframeEditor && selectedPosts?.[0]?.type === 'page') {
+
+      if (enableIframeEditor && ['page', 'hierarchical_post'].includes(selectedPosts?.[0]?.type)) {
         const index = items.findIndex(item => item.key === 'edit');
         if (index > -1) {
           items.splice(index, 0, {
             key: 'editFrame',
             text: 'Customize',
-            iconProps: { iconName: 'Edit' },
+            iconProps: {iconName: 'Edit'},
             permissions: ['sites_update'],
             onRender: () => {
-              return <div style={{ display: 'flex', alignItems: 'center', margin: '0 4px' }}>
+              return <div style={{display: 'flex', alignItems: 'center', margin: '0 4px'}}>
                 <PrimaryButton onClick={() => {
                   history.push(`/sites/frame/${selectedPosts?.[0]?.id}`);
                 }}>
@@ -218,7 +219,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
   return (
     <CommandBar
       items={commandItems}
-      style={{ borderBottom: `1px solid ${NeutralColors.gray30}` }}
+      style={{borderBottom: `1px solid ${NeutralColors.gray30}`}}
       farItems={farToolbarItems}
     />
   );

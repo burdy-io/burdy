@@ -168,12 +168,18 @@ app.post(
           if (!contentType) throw new BadRequestError('invalid_content_type');
         }
 
+        let meta = [];
+        if (params.meta) {
+          meta = Object.entries(params.meta).map(([key, value]) => ({ key, value }));
+        }
+
         const postObj: Partial<IPost> = {
           name: params.name,
           slug: params.slug,
           type: params?.type || 'post',
           contentType,
-          author: req?.data?.user
+          author: req?.data?.user,
+          meta
         };
 
         if(postObj.type === 'folder') {
@@ -725,7 +731,7 @@ app.get(
     const post = await retrievePostAndCompile({
       slugPath,
       versionId: versionId as string,
-    }, {allowUnpublished});
+    }, {allowUnpublished, query: req.query});
     res.send(post);
   })
 );
