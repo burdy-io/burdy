@@ -112,6 +112,7 @@ export const compilePostContainer = async (post: IPost, options?: ICompilePostOp
     take: perPage,
     where: {
       parent: post,
+      type: 'post',
       ...(allowUnpublished ? {status: 'published'} : {})
     }
   });
