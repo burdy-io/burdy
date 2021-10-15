@@ -21,10 +21,11 @@ import {
   PrimaryButton,
   Stack,
 } from '@fluentui/react';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Control, useForm} from 'react-hook-form';
 import slugify from 'slugify';
 import {slugRegex, slugRegexMessage} from '@shared/validators';
+import {IContentType} from "@shared/interfaces/model";
 
 interface ISelectParentProps {
   control: Control;
@@ -83,6 +84,8 @@ const CreateHierarchicalPostDialog: React.FC<ICreateHierarchicalPostProps> = ({
                                                                               }) => {
   const {createPost} = usePosts();
   const {getContentTypes} = useContentTypes();
+  const [pageContentTypes, setPageContentTypes] = useState<IContentType[]>([]);
+  const [postContentTypes, setPostContentTypes] = useState<IContentType[]>([]);
 
   const {control, handleSubmit, reset, formState, watch, setValue} = useForm({
     mode: 'all',
@@ -104,9 +107,15 @@ const CreateHierarchicalPostDialog: React.FC<ICreateHierarchicalPostProps> = ({
     createPost.reset();
     reset(defaultValues);
     if (isOpen) {
-      getContentTypes.execute({
-        type: 'hierarchical_post',
-      });
+      (async () => {
+        const [pageTypes, postTypes] = await Promise.all([
+          getContentTypes.execute({ type: 'page' }),
+          getContentTypes.execute({ type: 'hierarchical_post' }),
+        ]);
+
+        setPageContentTypes(pageTypes);
+        setPostContentTypes(postTypes);
+      })();
     }
   }, [isOpen]);
 
@@ -161,13 +170,27 @@ const CreateHierarchicalPostDialog: React.FC<ICreateHierarchicalPostProps> = ({
         <ControlledDropdown
           disabled={getContentTypes?.loading}
           name="contentTypeId"
-          label="Content Type"
+          label="Page Type"
           control={control}
           rules={{
-            required: 'Content type is required',
+            required: 'Page type is required',
           }}
-          placeHolder="Select Content Type"
-          options={(getContentTypes?.result ?? []).map((contentType) => ({
+          placeHolder="Select Page Type"
+          options={pageContentTypes.map((contentType) => ({
+            key: contentType.id,
+            text: contentType.name,
+          }))}
+        />
+        <ControlledDropdown
+          disabled={getContentTypes?.loading}
+          name="meta.postContentTypeId"
+          label="Post Type"
+          control={control}
+          rules={{
+            required: 'Post type is required',
+          }}
+          placeHolder="Select Post Type"
+          options={postContentTypes.map((contentType) => ({
             key: contentType.id,
             text: contentType.name,
           }))}

@@ -19,6 +19,7 @@ export interface ICompilePostOptions {
   debt?: number;
   allowNull?: boolean;
   allowUnpublished?: boolean;
+  query?: any;
 }
 
 export interface ICompilePostParams {
@@ -96,19 +97,38 @@ export const retrievePostAndCompile = async ({ id, slugPath, versionId }: ICompi
 export const compilePostContainer = async (post: IPost, options?: ICompilePostOptions) => {
   const postRepository = getRepository(Post);
   const {allowUnpublished} = options;
+  const includeChildren = Boolean(options?.query?.includeChildren);
 
-  const childPosts = await postRepository.find({
-    relations: ['author', 'tags'],
+  if (!includeChildren) {
+    return compilePost(post, options);
+  }
+
+  const page = options?.query?.page ?? 1;
+  const perPage = options?.query?.perPage ?? 10;
+
+  const [childPosts, count] = await postRepository.findAndCount({
+    relations: ['author', 'tags', 'meta', 'contentType'],
+    skip: perPage * (page - 1),
+    take: perPage,
     where: {
       parent: post,
       ...(allowUnpublished ? {status: 'published'} : {})
     }
   });
 
+  const [postContainer, ...posts] = await Promise.all([
+    compilePost(post),
+    ...childPosts.map(post => compilePost(post)),
+  ]);
 
   return {
-    ...mapPostContainer(post),
-    posts: childPosts.map(mapPublicPostWithMeta)
+    ...postContainer,
+    posts,
+    paginate: {
+      pageSize: perPage,
+      current: page,
+      total: count,
+    },
   };
 }
 

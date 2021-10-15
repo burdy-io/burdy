@@ -1,6 +1,6 @@
 import Heading from '@admin/components/heading';
 import { composeWrappers } from '@admin/helpers/hoc';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import { useParams } from 'react-router';
 import PostsCommandBar from '../components/posts-command-bar';
 import PostsDeleteDialog from '../components/posts-delete-dialog';
@@ -11,7 +11,6 @@ import PostSettingsDialog from '../components/post-settings-dialog';
 import PostDuplicateDialog from '@admin/features/posts/components/post-duplicate-dialog';
 import PostPublishDialog from '@admin/features/posts/components/post-publish-dialog';
 import PostUnpublishDialog from '@admin/features/posts/components/post-unpublish-dialog';
-import {IPost} from "@shared/interfaces/model";
 
 const PostContainerPage = () => {
   const params = useParams<any>();
@@ -46,7 +45,8 @@ const PostContainerPage = () => {
       });
 
       const parent = await getPost.execute(params?.postId);
-      getOneContentType.execute(parent.contentTypeId);
+      const postContentTypeId = parseInt((parent.meta as any).postContentTypeId, 10);
+      getOneContentType.execute(postContentTypeId);
     })();
   }, [params?.parentId]);
 
