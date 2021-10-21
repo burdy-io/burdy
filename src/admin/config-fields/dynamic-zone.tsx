@@ -22,6 +22,7 @@ import ContentTypesComponentsSelectPanel
 import DynamicGroup from './dynamic-group';
 import { useExtendedFormContext } from '@admin/config-fields/dynamic-form';
 import classNames from 'classnames';
+import BackPanel from '@admin/components/back-panel';
 
 const theme = getTheme();
 
@@ -128,23 +129,18 @@ const DynamicZoneComponentImpl: React.FC<DynamicZoneComponentProps> = ({
           }}
         />
         {!narrow && <DynamicGroup field={getContentType?.result} name={name} />}
-        {narrow && <Panel
+        {narrow && <BackPanel
           isOpen={panelOpened}
           headerText={getContentType?.result?.name}
           isFooterAtBottom
+          isHiddenOnDismiss
+          onBack={() => setPanelOpened(false)}
           onDismiss={() => setPanelOpened(false)}
           type={PanelType.custom}
-
-          onRenderFooterContent={() => <DialogFooter>
-            <DefaultButton
-              onClick={() => setPanelOpened(false)}
-              text='Close'
-            />
-          </DialogFooter>}
           customWidth={400 as any}
         >
           <DynamicGroup field={getContentType?.result} name={name} />
-        </Panel>}
+        </BackPanel>}
       </LoadingBar>
     </div>
   );

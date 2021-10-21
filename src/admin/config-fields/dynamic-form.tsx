@@ -8,8 +8,9 @@ import React, {
 } from 'react';
 import {
   FormProvider,
-  useForm, useFormContext,
-  UseFormReturn
+  useForm,
+  useFormContext,
+  UseFormReturn,
 } from 'react-hook-form';
 import DynamicGroup from './dynamic-group';
 
@@ -71,11 +72,23 @@ interface IDynamicFormProps {
 }
 
 const DynamicForm = forwardRef<any, IDynamicFormProps>(
-  ({ field, name, defaultValues, onChange, disabled = false, narrow = false }, ref) => {
+  (
+    { field, name, defaultValues, onChange, disabled = false, narrow = false },
+    ref
+  ) => {
     const methods = useForm({
       mode: 'all',
+      shouldUnregister: true,
       defaultValues,
     });
+
+    useEffect(() => {
+      methods.watch((val) => {
+        if (onChange) {
+          onChange(val);
+        }
+      });
+    }, []);
 
     useImperativeHandle(
       ref,
@@ -86,10 +99,6 @@ const DynamicForm = forwardRef<any, IDynamicFormProps>(
       }),
       []
     );
-
-    useEffect(() => {
-      onChange(methods.getValues());
-    }, [JSON.stringify(methods.watch())]);
 
     return (
       <FormProvider {...methods}>
