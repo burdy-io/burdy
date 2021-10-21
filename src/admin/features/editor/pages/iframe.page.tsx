@@ -23,8 +23,6 @@ const IFramePage = () => {
   const history = useHistory();
   const location = useLocation();
 
-  const [, setValue] = useState(null);
-
   const [device, setDevice] = useState('desktop');
 
   const {
@@ -87,9 +85,6 @@ const IFramePage = () => {
           ref={formRef}
           device={device}
           menuOpened={menuOpened}
-          onChange={(val) => {
-            setValue(val);
-          }}
         />
       </div>
       <PostSettingsDialog

@@ -23,8 +23,6 @@ const HeadlessPage = () => {
   const history = useHistory();
   const location = useLocation();
 
-  const [value, setValue] = useState(null);
-
   const {
     getPost,
     getVersionsCount,
@@ -69,12 +67,7 @@ const HeadlessPage = () => {
     <div className="page-wrapper">
       <EditorCommandBar loading={loading} handleSubmit={handleSubmit} />
       <div className="page-content">
-        <HeadlessEditor
-          ref={formRef}
-          onChange={(val) => {
-            setValue(val);
-          }}
-        />
+        <HeadlessEditor ref={formRef} />
       </div>
       <PostSettingsDialog
         onDismiss={() => setStateData('updatePostOpen', false)}

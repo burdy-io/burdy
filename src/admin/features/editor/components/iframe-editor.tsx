@@ -390,7 +390,7 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
                   field={post?.contentType}
                   defaultValues={(post?.meta as any)?.content}
                   onChange={(val) => {
-                    onChange(val);
+                    onChange?.(val);
                     debounced(val);
                   }}
                 />
