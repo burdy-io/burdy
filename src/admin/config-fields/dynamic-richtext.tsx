@@ -3,17 +3,17 @@ import {convertFromRaw, EditorState} from 'draft-js';
 import RichtextContextProvider from '@admin/config-fields/dynamic-richtext.context';
 import {AssetsContextProvider} from '@admin/features/assets/context/assets.context';
 import 'draft-js/dist/Draft.css';
-import {useExtendedFormContext} from '@admin/config-fields/dynamic-form';
 import RichText from "@admin/config-fields/richtext/richtext";
 import {createLinkDecorator} from "@admin/config-fields/richtext/inline/draft-link-inline";
+import { get } from 'lodash';
 
 const DynamicRichText = ({field, name, control}) => {
-  const {getValues} = useExtendedFormContext();
   const defaultEditorState = useMemo(() => {
     let value: any = {};
     try {
-      value = JSON.parse(getValues(name));
-    } catch {
+      // eslint-disable-next-line no-underscore-dangle
+      value = JSON.parse(get(control._defaultValues, name));
+    } catch (err) {
       //
     }
 

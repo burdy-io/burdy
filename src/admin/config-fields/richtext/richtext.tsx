@@ -6,6 +6,7 @@ import { convertToRaw, DraftHandleValue, Editor, EditorState, Modifier, RichUtil
 import {Label, makeStyles} from "@fluentui/react";
 import RichtextToolbar from "@admin/config-fields/richtext/components/richtext-toolbar";
 import DraftImageBlock from "@admin/config-fields/richtext/blocks/draft-image-block";
+import { useDebounce, useDebouncedCallback } from 'use-debounce';
 
 const useStyles = makeStyles((theme) => ({
   editorToolbar: {
@@ -189,10 +190,14 @@ const RichText: React.FC<IDynamicTextProps> = ({field, name, control}) => {
         name={name}
         control={control}
         render={({field: controllerField}) => {
-          useEffect(() => {
+          const debounced = useDebouncedCallback((editorState) => {
             controllerField.onChange(
               JSON.stringify(convertToRaw(editorState.getCurrentContent()))
             );
+          }, 300);
+
+          useEffect(() => {
+            debounced(editorState);
           }, [name, editorState, forceUpdateState]);
 
           return (
