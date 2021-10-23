@@ -18,7 +18,7 @@ import React, {
 import DynamicForm from '@admin/config-fields/dynamic-form';
 import { useSnackbar } from '@admin/context/snackbar';
 import Empty from '@admin/components/empty';
-import { useLocation } from 'react-router';
+import {useLocation, useParams} from 'react-router';
 import queryString from 'query-string';
 import { usePosts } from '../../posts/context/posts.context';
 import classNames from 'classnames';
@@ -230,7 +230,7 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
         iframeRef.current.contentWindow.postMessage({
           source: 'burdy-post-edit',
           payload: compiled
-        });
+        }, '*');
       }
     } catch (err) {
       //
@@ -256,7 +256,6 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
   const fetchIframeData = async (post: IPost) => {
     try {
       const response = await getIFrameData.execute(post?.id, post?.versionId);
-      console.log(response);
       if (response) {
         setIframeSrc(response?.src);
       }
