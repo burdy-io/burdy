@@ -20,12 +20,11 @@ const ControlledPostTypesDropdown: React.FC<HookFormProps & IDropdownProps> = (
       type: 'page,post,hierarchical_post',
     });
   }, []);
-
   return (
     <ControlledDropdown
       {...props}
       options={(getContentTypes?.result ?? []).map((type) => ({
-        key: `${type.name}`,
+        key: `${type.id}`,
         text: type.name,
       }))}
     />

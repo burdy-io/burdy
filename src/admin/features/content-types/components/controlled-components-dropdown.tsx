@@ -23,7 +23,7 @@ const ControlledComponentsDropdown: React.FC<HookFormProps & IDropdownProps> = (
     <ControlledDropdown
       {...props}
       options={(getComponents?.result ?? []).map((component) => ({
-        key: `${component.name}`,
+        key: `${component.id}`,
         text: component.name,
       }))}
     />
