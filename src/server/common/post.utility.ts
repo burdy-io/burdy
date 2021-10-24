@@ -158,12 +158,17 @@ export const compilePost = async (post: IPost, options?: ICompilePostOptions) =>
       });
     }));
     const postsObj = {};
-    posts.forEach((post: any) => {
+
+    posts.filter(post => post).forEach((post: any) => {
       postsObj[post.slugPath] = post;
     });
 
     Object.keys(references).forEach(key => {
-      _.set(content, key, postsObj[references[key]]);
+      if (postsObj[references[key]]) {
+        _.set(content, key, postsObj[references[key]]);
+      } else {
+        _.unset(content, key);
+      }
     });
   }
   // Inject assets

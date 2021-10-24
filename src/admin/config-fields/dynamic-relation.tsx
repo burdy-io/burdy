@@ -31,12 +31,11 @@ const styles = mergeStyleSets({
 
 interface PostsListProps {
   posts: IPost[];
-  onReorder?: (posts: any[]) => void;
+  onPostsChange?: (posts: IPost[]) => void;
 }
 
-const PostsList: React.FC<PostsListProps> = ({ posts, onReorder }) => {
+const PostsList: React.FC<PostsListProps> = ({ posts, onPostsChange }) => {
   const { selection, getPosts } = usePosts();
-
   const [postsVal, setPostsVal] = useState([]);
 
   useEffect(() => {
@@ -48,6 +47,11 @@ const PostsList: React.FC<PostsListProps> = ({ posts, onReorder }) => {
       getPosts.reset();
     }
   }, [posts]);
+
+  useEffect(() => {
+    if (postsVal.length === 0) return;
+    onPostsChange?.(postsVal);
+  }, [postsVal]);
 
   useEffect(() => {
     const result = [...(getPosts?.result || [])];
@@ -167,7 +171,6 @@ interface DynamicRelationProps {
 const DynamicRelation: React.FC<DynamicRelationProps> = ({ field, name }) => {
   const { control, disabled } = useExtendedFormContext();
   const { selectedPosts } = usePosts();
-
   const [addPostOpen, setAddPostOpen] = useState(false);
 
   const selectedItem = useMemo(() => {
@@ -176,6 +179,7 @@ const DynamicRelation: React.FC<DynamicRelationProps> = ({ field, name }) => {
     }
     return undefined;
   }, [selectedPosts]);
+
   return (
     <Controller
       name={name}
@@ -271,10 +275,10 @@ const DynamicRelation: React.FC<DynamicRelationProps> = ({ field, name }) => {
 
             <PostsList
               posts={value}
-              onReorder={(data) => {
+              onPostsChange={(data) => {
                 onChange(
                   JSON.stringify((data || []).map((item) => ({
-                    id: item?.id,
+                    slugPath: item?.slugPath,
                   })))
                 );
               }}
