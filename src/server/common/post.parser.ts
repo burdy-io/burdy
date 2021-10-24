@@ -22,7 +22,7 @@ export const parseContent = (post: IPost, path?: string) => {
       const richtext = JSON.parse(content);
       Object.keys(richtext?.entityMap || {}).forEach(key => {
         if (richtext?.entityMap?.[key]?.type === 'IMAGE') {
-          assets[`${path}.entityMap.${key}.data`] = richtext?.entityMap?.[key]?.data?.id;
+          assets[`${path}.entityMap.${key}.data`] = richtext?.entityMap?.[key]?.data?.npath;
         }
       });
       return richtext;
@@ -35,7 +35,7 @@ export const parseContent = (post: IPost, path?: string) => {
     try {
       const parsed = JSON.parse(content);
       (parsed || []).forEach((asset, index) => {
-        assets[`${path}.${index}`] = asset?.id;
+        assets[`${path}.${index}`] = asset?.npath;
       });
       return parsed;
     } catch {
