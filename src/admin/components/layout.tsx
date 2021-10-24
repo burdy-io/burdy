@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import SideNav from '@admin/components/side-nav';
 import Header from '@admin/components/header';
 import { Redirect, Route, Switch } from 'react-router';
-import PostsPage from '@admin/features/posts/pages/posts.page';
 import SitesPage from '@admin/features/posts/pages/sites.page';
 import HeadlessEditorPage from '@admin/features/editor/pages/headless.page';
 import TagsPage from '@admin/features/tags/pages/tags.page';
@@ -115,18 +114,6 @@ const Layout = () => {
         path: '/sites',
         component: SitesPage,
         permissions: ['sites_list']
-      },
-      {
-        key: 'posts-editor',
-        path: '/posts/:contentTypeId/editor/:postId',
-        component: HeadlessEditorPage,
-        permissions: ['posts_update']
-      },
-      {
-        key: 'posts',
-        path: '/posts/:contentTypeId',
-        component: PostsPage,
-        permissions: ['posts_list']
       },
       {
         key: 'tags',
