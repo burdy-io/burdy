@@ -190,7 +190,7 @@ const ActionButtons: React.FC = () => {
       'IMAGE',
       'IMMUTABLE',
       {
-        npath: image.npath,
+        id: image.id,
         caption: '',
         align: 'center'
       }
