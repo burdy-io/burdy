@@ -167,18 +167,17 @@ export const compilePost = async (post: IPost, options?: ICompilePostOptions) =>
     });
   }
   // Inject assets
-  const assetsNpaths = _.uniq(Object.values(assetsRefs || {})).filter(npath => !!npath);
-  if (assetsNpaths?.length > 0) {
-    console.log(assetsNpaths);
+  const assetsIds = _.uniq(Object.values(assetsRefs || {})).filter(id => !!id);
+  if (assetsIds?.length > 0) {
     const assets = await assetRepository.find({
       relations: ['meta', 'tags'],
       where: {
-        npath: In(assetsNpaths)
+        id: In(assetsIds)
       }
     });
     const assetsObj = {};
     assets.forEach(asset => {
-      assetsObj[asset.npath] = mapPublicAsset(asset);
+      assetsObj[asset.id] = mapPublicAsset(asset);
     });
 
     Object.keys(assetsRefs).forEach(key => {

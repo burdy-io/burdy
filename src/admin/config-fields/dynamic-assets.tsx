@@ -37,8 +37,8 @@ const AssetTiles: React.FC<AssetTilesProps> = ({ assets }) => {
   useEffect(() => {
     const result = [...(getAssets?.result || [])];
     result.sort((a, b) => {
-      const aIndex = assets.findIndex((asset) => asset.npath == a.npath);
-      const bIndex = assets.findIndex((asset) => asset.npath == b.npath);
+      const aIndex = assets.findIndex((asset) => asset.id == a.id);
+      const bIndex = assets.findIndex((asset) => asset.id == b.id);
       return aIndex - bIndex;
     });
     setAssetsVal(result);
@@ -47,7 +47,7 @@ const AssetTiles: React.FC<AssetTilesProps> = ({ assets }) => {
   useEffect(() => {
     if (assets?.length > 0) {
       getAssets.execute({
-        npath: assets.map((asset) => asset?.npath).join(','),
+        id: assets.map((asset) => asset?.id).join(','),
       });
     } else {
       getAssets.reset();
@@ -117,7 +117,7 @@ const DynamicAssets: React.FC<DynamicAssetsProps> = ({
 
           const selectedItemIndex = useMemo(() => {
             return (value || []).findIndex(
-              (item) => item?.npath == selectedItem?.npath
+              (item) => item?.id == selectedItem?.id
             );
           }, [value, selectedItem]);
 
@@ -127,7 +127,7 @@ const DynamicAssets: React.FC<DynamicAssetsProps> = ({
             ];
 
             items.splice(selectedItemIndex + offset, 0, {
-              npath: selectedItem?.npath,
+              id: selectedItem?.id,
             });
 
             onChange(JSON.stringify(items));
@@ -156,7 +156,7 @@ const DynamicAssets: React.FC<DynamicAssetsProps> = ({
                 onChange(
                   JSON.stringify((value ?? []).filter((asset) =>
                     selectedAssets.every(
-                      (selected) => selected?.npath != asset?.npath
+                      (selected) => selected?.id != asset?.id
                     )
                   ))
                 );
@@ -208,10 +208,10 @@ const DynamicAssets: React.FC<DynamicAssetsProps> = ({
                 onSubmit={(assets) => {
                   onChange(JSON.stringify([
                     ...(value || []).filter(
-                      (val) => !assets.some((asset) => asset?.npath == val?.npath)
+                      (val) => !assets.some((asset) => asset?.id == val?.id)
                     ),
                     ...(assets || []).map((asset) => ({
-                      npath: asset?.npath,
+                      id: asset?.id,
                     })),
                   ]));
                   setAddAssetOpen(false);
