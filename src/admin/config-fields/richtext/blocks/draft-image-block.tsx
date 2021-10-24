@@ -52,7 +52,7 @@ const DraftImageBlock = (props: any) => {
   const contentBlock = props.block as ContentBlock;
   const selectionState = props.selection as SelectionState;
   const entityKey = contentBlock.getEntityAt(0);
-  const {id, caption, align} = contentState.getEntity(entityKey).getData();
+  const {npath, caption, align} = contentState.getEntity(entityKey).getData();
   const {setEditorProps, editorProps, setEditorState, editorState, forceUpdate} = useRichtext();
   const [captionValue, setCaptionValue] = useState<string>(caption ?? '');
   const [alignment, setAlignment] = useState(align ?? 'center');
@@ -142,7 +142,7 @@ const DraftImageBlock = (props: any) => {
       right: alignment === 'right'
     })}>
       <img
-        src={`/api/assets/${id}`} className={classes.image} alt=""
+        src={`/api/assets/single?npath=${npath}`} className={classes.image} alt=""
         onContextMenu={(e) => {
           setContextMenuTarget(e.nativeEvent)
           e.preventDefault();
