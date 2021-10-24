@@ -78,7 +78,7 @@ const FolderCell: React.FC<ExtendedTileGridItem> = ({
               children: item?.thumbnail ? (
                 <img
                   style={{ width: '100%', height: '100%' }}
-                  src={`${window.location.origin}/api/assets/${item.thumbnail}`}
+                  src={`${window.location.origin}/api/assets/single?npath=${item.thumbnail}`}
                   alt="placeholder"
                 />
               ) : null,
@@ -218,7 +218,7 @@ const MediaCell: React.FC<ExtendedTileGridItem> = ({
           width: '100%',
         }}
         alt="placeholder"
-        src={`/api/assets/${item.id}`}
+        src={`/api/assets/single?npath=${item.npath}`}
       />
     ),
   });
@@ -267,7 +267,7 @@ const SvgCell: React.FC<ExtendedTileGridItem> = ({
           width: '100%',
         }}
         alt="placeholder"
-        src={`/api/assets/${item.id}`}
+        src={`/api/assets/single?npath=${item.npath}`}
       />
     ),
   });
