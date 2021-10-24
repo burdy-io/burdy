@@ -27,7 +27,6 @@ const SideNav = () => {
   const { getContentTypes } = useSettings();
   const { filterPermissions } = useAuth();
   const location = useLocation();
-  const history = useHistory();
   const [expandedLinks, setExpandedLinks] = useStorageState<any>(
     'sideMenu-navExpanded',
     {}
@@ -47,10 +46,6 @@ const SideNav = () => {
 
   const groups = useMemo<INavLinkGroup[]>(() => {
     const tmpGroups = [];
-
-    const postsRepeater = (getContentTypes?.result ?? []).filter(
-      (contentType) => contentType.type === 'post'
-    );
 
     tmpGroups.push({
       links: filterPermissions([
@@ -80,29 +75,6 @@ const SideNav = () => {
           'data-cy': 'nav-sites',
           name: `Sites`,
           permissions: ['sites_list'],
-        },
-        {
-          key: 'posts',
-          name: `Posts`,
-          'data-cy': 'nav-posts',
-          permissions: ['posts_list'],
-          isExpanded: expandedLinks?.posts,
-          links:
-            postsRepeater.length === 0
-              ? [
-                  {
-                    key: 'empty',
-                    'data-cy': 'nav-posts-empty',
-                    name: 'No posts',
-                    disabled: true,
-                  },
-                ]
-              : postsRepeater.map((postType) => ({
-                  url: `/posts/${postType.id}`,
-                  key: `posts_${postType.id}`,
-                  'data-cy': `nav-posts-${postType.name}`,
-                  name: postType.name,
-                })),
         },
         {
           url: '/tags',

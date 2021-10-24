@@ -106,15 +106,7 @@ const PostsList: React.FC<PostsListProps> = ({ posts, onReorder }) => {
             }}
             title="Open in new tab"
             onClick={() => {
-              let url;
-              if (contentType?.type === 'post' && parentId) {
-                url = `/admin/sites/editor/${id}`;
-              } else if (contentType?.type === 'page') {
-                url = `/admin/sites/editor/${id}`;
-              } else {
-                url = `/admin/posts/${contentTypeId}/editor/${id}`;
-              }
-              window.open(url, '_blank');
+              window.open(`/admin/sites/editor/${id}`, '_blank');
             }}
           />
         ),
