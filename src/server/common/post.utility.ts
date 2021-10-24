@@ -147,11 +147,11 @@ export const compilePost = async (post: IPost, options?: ICompilePostOptions) =>
   const mappedPost = mapPublicPostWithMeta(post);
 
   // Inject references
-  const referencesIds = _.uniq(Object.values(references || {})).filter(id => !!id);
+  const referencesIds = _.uniq(Object.values(references || {})).filter(slugPath => Boolean(slugPath));
   if (referencesIds?.length > 0 && debt < MAX_DEBT) {
     // @ts-ignore
-    const posts = await Promise.all(referencesIds.map((id: number) => {
-      return retrievePostAndCompile({ id }, {
+    const posts = await Promise.all(referencesIds.map((slugPath: string) => {
+      return retrievePostAndCompile({ slugPath }, {
         ...(options || {}),
         allowNull: true,
         debt: debt + 1
@@ -159,7 +159,7 @@ export const compilePost = async (post: IPost, options?: ICompilePostOptions) =>
     }));
     const postsObj = {};
     posts.forEach((post: any) => {
-      postsObj[post.id] = post;
+      postsObj[post.slugPath] = post;
     });
 
     Object.keys(references).forEach(key => {
