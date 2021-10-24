@@ -14,6 +14,8 @@ export interface IFileDriver {
 
   createReadStream: (key: string, options?: any) => any;
   createWriteStream: (key: string, options?: any) => any;
+
+  uploadReadableStream?: (key: string, stream: any) => Promise<any>;
 }
 
 export default class FileDriver implements IFileDriver {
@@ -50,4 +52,7 @@ export default class FileDriver implements IFileDriver {
 
   createWriteStream = (key: string, options?: any) =>
     this.implementation.createWriteStream(key, options);
+
+  uploadReadableStream = (key: string, stream: any) =>
+    this.implementation.uploadReadableStream(key, stream);
 }

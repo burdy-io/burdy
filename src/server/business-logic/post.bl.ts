@@ -5,6 +5,7 @@ import { updateMeta } from '@server/common/orm-helpers';
 import Post from '@server/models/post.model';
 import { createPostVersion } from '@server/controllers/post.controller';
 import ContentType from '@server/models/content-type.model';
+import logger from '@shared/features/logger';
 
 const POST_FOLDER_TYPE = 'folder';
 
@@ -56,6 +57,7 @@ export const importPost = async ({
   const searchObj: any = {
     slugPath: post.slugPath,
   };
+  logger.info(`Importing ${post.slugPath}`);
 
   saved = await manager.findOne(Post, {
     relations: [
@@ -70,6 +72,7 @@ export const importPost = async ({
   });
 
   if (saved && !options?.force) {
+    logger.info(`Skipping ${post.slugPath}, exists.`);
     return;
   }
 
@@ -79,12 +82,14 @@ export const importPost = async ({
       (saved?.contentType?.name !== post.contentType?.name ||
         saved?.type !== post?.type))
   ) {
+    logger.info(`Skipping ${post.slugPath}, existing post either of type "folder" or not matching contentType.`);
     return;
   }
 
   if (saved) {
     await createPostVersion(manager.getRepository(Post), saved, user);
     await updateMeta(manager, Post, saved, post.meta);
+    logger.info(`Updating existing post ${post.slugPath} success.`);
     return saved;
   }
 
@@ -130,6 +135,7 @@ export const importPost = async ({
   };
 
   saved = await manager.save(Post, postObj);
+  logger.info(`Created new post ${post.slugPath}.`);
   return saved;
 };
 
@@ -153,6 +159,9 @@ export const importPosts = async ({
     }
     return 0;
   });
+  if (sorted?.length > 0) {
+    logger.info('Importing posts.');
+  }
   await async.eachLimit(sorted, 1, async (item, next) => {
     try {
       await importPost({
@@ -166,6 +175,9 @@ export const importPosts = async ({
       next(e);
     }
   });
+  if (sorted?.length > 0) {
+    logger.info('Importing posts successful.');
+  }
 };
 
 export const exportPosts = async ({

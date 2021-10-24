@@ -8,6 +8,7 @@ import PathUtil from '@scripts/util/path.util';
 import { v4 as uuidv4 } from 'uuid';
 import async from 'async';
 import { updateMeta } from '@server/common/orm-helpers';
+import logger from '@shared/features/logger';
 
 const FOLDER_MIME_TYPE = 'application/vnd.burdy.folder';
 
@@ -56,23 +57,46 @@ export const importAsset = async ({
 }: IImportAssets): Promise<IAsset | undefined> => {
   let saved;
   let document;
-
+  logger.info(`Importing asset: ${asset?.npath}, mimeType: ${asset.mimeType}.`);
   const writeFile = (asset: IAsset) => {
     return new Promise<string>((resolve, reject) => {
       const key = uuidv4();
-      const stream = FileDriver.getInstance().createWriteStream(key);
-      stream.on('close', () => {
-        return resolve(key);
-      });
 
-      fse
-        .createReadStream(
-          PathUtil.burdyRoot('export', 'content', asset.document)
-        )
-        .on('error', (err) => {
-          reject(err);
-        })
-        .pipe(stream);
+      const documentComponents = asset.document
+        .split('/')
+        .filter((cmp) => cmp?.length > 0);
+      const document = documentComponents.pop();
+      const readStream = fse.createReadStream(
+        PathUtil.burdyRoot('export', 'content', document)
+      );
+      logger.info(`Writing new file for ${asset.npath}, read document: ${document}.`);
+      if (FileDriver.getInstance().getName() === 's3') {
+        (FileDriver.getInstance() as any)
+          .uploadReadableStream(key, readStream)
+          .then(() => {
+            logger.info(`Writing new file for ${asset.npath} successful, document: ${key}, provider s3.`);
+            resolve(key);
+          })
+          .catch((err) => {
+            logger.error(`Writing new file for ${asset.npath} failed, provider s3.`);
+            logger.error(err);
+            reject(err);
+          });
+      } else {
+        const writeStream = FileDriver.getInstance().createWriteStream(key);
+        writeStream.on('close', () => {
+          logger.info(`Writing new file for ${asset.npath} successful, document: ${key}, provider fs.`);
+          return resolve(key);
+        });
+
+        readStream
+          .on('error', (err) => {
+            logger.error(`Writing new file for ${asset.npath} failed, provider fs.`);
+            logger.error(err);
+            reject(err);
+          })
+          .pipe(writeStream);
+      }
     });
   };
 
@@ -83,14 +107,17 @@ export const importAsset = async ({
     saved = await manager.findOne(Asset, searchObj);
 
     if (saved && !options?.force) {
+      logger.info(`Skipping ${asset.npath}, exists.`);
       return;
     }
 
     if (saved?.mimeType === FOLDER_MIME_TYPE) {
+      logger.info(`Skipping ${asset.npath}, folder exists.`);
       return;
     }
 
     if (saved) {
+      logger.info(`Updating ${asset.npath}, existing.`);
       document = await writeFile(asset);
       const stat = await FileDriver.getInstance().stat(document);
       if (!stat) throw new BadRequestError('invalid_file');
@@ -103,6 +130,7 @@ export const importAsset = async ({
       saved = await manager.save(Asset, saved);
 
       await updateMeta(manager, Asset, saved, asset.meta);
+      logger.info(`Updating ${asset.npath}, successful.`);
       return saved;
     }
 
@@ -132,6 +160,7 @@ export const importAsset = async ({
       assetObj.npath = name;
     }
 
+    logger.info(`Creating ${asset.npath}, mimeType: ${asset.mimeType}.`);
     if (asset?.mimeType !== FOLDER_MIME_TYPE) {
       document = await writeFile(asset);
       const stat = await FileDriver.getInstance().stat(document);
@@ -143,8 +172,11 @@ export const importAsset = async ({
     }
 
     saved = await manager.save(Asset, assetObj);
+    logger.info(`Creating ${asset.npath}, mimeType: ${asset.mimeType} successful.`);
     return saved;
   } catch (err) {
+    logger.info(`Creating asset ${asset.npath}, mimeType: ${asset.mimeType} failed.`);
+    logger.error(err);
     await FileDriver.getInstance().delete(document);
     throw err;
   }
@@ -192,8 +224,13 @@ export const exportAssets = async ({ entityManager }): Promise<IAsset> => {
   await fse.ensureDir(PathUtil.burdyRoot('export', 'content'));
   const writeFile = (asset) => {
     return new Promise<void>((resolve, reject) => {
+      const documentComponents = asset.document
+        .split('/')
+        .filter((cmp) => cmp?.length > 0);
+      const document = documentComponents.pop();
+
       const file = fse.createWriteStream(
-        PathUtil.burdyRoot('export', 'content', asset.document)
+        PathUtil.burdyRoot('export', 'content', document)
       );
       file.on('close', () => {
         return resolve();

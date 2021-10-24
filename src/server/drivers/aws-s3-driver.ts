@@ -3,6 +3,7 @@ import AWS from 'aws-sdk';
 import multer from 'multer';
 import multerS3 from 'multer-s3';
 import { v4 as uuidv4 } from 'uuid';
+import stream from 'stream';
 
 export default class AwsS3FileDriver implements IFileDriver {
   private provider = 's3';
@@ -41,10 +42,17 @@ export default class AwsS3FileDriver implements IFileDriver {
 
   getName = () => this.provider;
 
+  getKey = (key: string = '') => {
+    if (key.indexOf('/') > -1) {
+      return this.getPath(key.split('/').pop());
+    }
+    return this.getPath(key);
+  };
+
   write = async (key: string, data: any) => {
     await this.s3
       .putObject({
-        Key: key,
+        Key: this.getKey(key),
         Body: data,
         Bucket: this.bucket,
         CacheControl: 'no-cache',
@@ -60,7 +68,7 @@ export default class AwsS3FileDriver implements IFileDriver {
   stat = async (key: string): Promise<any> => {
     const head = await this.s3
       .headObject({
-        Key: key,
+        Key: this.getKey(key),
         Bucket: this.bucket,
       })
       .promise();
@@ -75,7 +83,7 @@ export default class AwsS3FileDriver implements IFileDriver {
     try {
       const obj = await this.s3
         .getObject({
-          Key: key,
+          Key: this.getKey(key),
           Bucket: this.bucket,
         })
         .promise();
@@ -88,19 +96,23 @@ export default class AwsS3FileDriver implements IFileDriver {
   createReadStream = (key: string, options: any) =>
     this.s3
       .getObject({
-        Key: key,
+        Key: this.getKey(key),
         Bucket: this.bucket,
         Range: options?.range,
       })
       .createReadStream();
 
-  createWriteStream = (key: string) =>
-    this.s3
-      .putObject({
-        Key: key,
-        Bucket: this.bucket,
-      })
-      .createWriteStream();
+  createWriteStream = (key: string) => {
+    const pass = new stream.PassThrough();
+    this.s3.upload({ Bucket: this.bucket, Key: this.getKey(key), Body: pass });
+    return pass;
+  };
+
+  uploadReadableStream = async (key: string, stream: any) => {
+    return this.s3
+      .upload({ Bucket: this.bucket, Key: this.getKey(key), Body: stream })
+      .promise();
+  };
 
   delete = async (params: string | string[]) => {
     if (params) {
@@ -110,14 +122,14 @@ export default class AwsS3FileDriver implements IFileDriver {
           Delete: { Objects: [] },
         };
 
-        params.forEach((Key) => {
-          deleteParams.Delete.Objects.push({ Key });
+        params.forEach((key) => {
+          deleteParams.Delete.Objects.push({ Key: this.getKey(key) });
         });
         return await this.s3.deleteObjects(deleteParams).promise();
       }
       return await this.s3
         .deleteObject({
-          Key: params,
+          Key: this.getKey(params),
           Bucket: this.bucket,
         })
         .promise();
@@ -130,7 +142,7 @@ export default class AwsS3FileDriver implements IFileDriver {
       .copyObject({
         Key: dest,
         Bucket: this.bucket,
-        CopySource: src,
+        CopySource: this.getKey(src),
       })
       .promise();
 

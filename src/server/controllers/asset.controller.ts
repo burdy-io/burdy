@@ -209,6 +209,10 @@ app.get(
   })
 );
 
+const getKeyName = (key: string = '') => {
+  return key.split('/').pop();
+};
+
 // Create folder, assets
 app.post(
   '/assets',
@@ -270,13 +274,13 @@ app.post(
         if (params?.mimeType !== FOLDER_MIME_TYPE) {
           if (!req.file) throw new BadRequestError('invalid_file');
           const stat = await FileDriver.getInstance().stat(
-            req?.file?.filename || req?.file?.key
+            req?.file?.filename || getKeyName(req?.file?.key)
           );
           if (!stat) throw new BadRequestError('invalid_file');
 
           if (IMAGE_MIME_TYPES.indexOf(params.mimeType) > -1) {
             const file = await FileDriver.getInstance().read(
-              req?.file?.filename || req?.file?.key
+              req?.file?.filename || getKeyName(req?.file?.key)
             );
             const dimensions = sizeOf(file);
             assetObj.meta = [
@@ -293,7 +297,7 @@ app.post(
 
           assetObj.provider = FileDriver.getInstance().getName();
           assetObj.contentLength = stat.contentLength;
-          assetObj.document = req?.file?.filename || req?.file?.key;
+          assetObj.document = req?.file?.filename || getKeyName(req?.file?.key);
         }
 
         asset = await tManager.save(Asset, assetObj);
@@ -301,7 +305,7 @@ app.post(
       return res.send(mapAsset(asset));
     } catch (err) {
       await FileDriver.getInstance().delete(
-        req?.file?.filename || req?.file?.key
+        req?.file?.filename || getKeyName(req?.file?.key)
       );
       throw err;
     }
