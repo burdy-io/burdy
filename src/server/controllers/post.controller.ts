@@ -69,6 +69,7 @@ app.get(
     const search = req?.query?.search;
     const parentId = req?.query?.parentId;
     const onlyOrphans = req?.query?.onlyOrphans;
+    const slug = req?.query?.slug;
 
     const postRepository = getRepository(Post);
 
@@ -86,6 +87,12 @@ app.get(
       qb.andWhere('post.id IN (:...ids)', {
         ids: (id as string).split(',')
       });
+    }
+
+    if (slug) {
+      qb.andWhere('post.slugPath IN (:...slugPaths)', {
+        slugPaths: (slug as string).split(','),
+      })
     }
 
     if (type) {

@@ -65,7 +65,7 @@ export const parseContent = (post: IPost, path?: string) => {
     try {
       const parsed = JSON.parse(content);
       (parsed || []).forEach((relation, index) => {
-        references[`${path}.${index}`] = relation?.id;
+        references[`${path}.${index}`] = relation?.slugPath;
       });
       return parsed;
     } catch {

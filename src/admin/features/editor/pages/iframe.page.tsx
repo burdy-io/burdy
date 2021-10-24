@@ -49,6 +49,18 @@ const IFramePage = () => {
   }, [post]);
 
   useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      const id = event.data?.post?.id;
+      if (!id || id === params?.postId) return;
+
+      history.push(`/sites/frame/${id}`);
+    }
+
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [params?.postId]);
+
+  useEffect(() => {
     getPost.execute(params?.postId, queryString.parse(location.search) as any);
   }, [params?.postId, location?.search]);
 
