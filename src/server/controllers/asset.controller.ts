@@ -3,11 +3,12 @@ import authMiddleware from '@server/middleware/auth.middleware';
 import asyncMiddleware from '@server/middleware/async.middleware';
 import async from 'async';
 import {
-  EntityManager, getConnection,
+  EntityManager,
+  getConnection,
   getManager,
   getRepository,
   getTreeRepository,
-  In
+  In,
 } from 'typeorm';
 import Asset from '@server/models/asset.model';
 import path from 'path';
@@ -18,7 +19,7 @@ import Tag from '@server/models/tag.model';
 import FileDriver from '@server/drivers/file.driver';
 import {
   getReplaceChildrenQuery,
-  updateMeta
+  updateMeta,
 } from '@server/common/orm-helpers';
 import { mapAsset } from '@server/common/mappers';
 
@@ -44,7 +45,7 @@ export const generateUniqueName = async (
   }
 
   const searchObj: any = {
-    name: proposedName
+    name: proposedName,
   };
   if (parent) {
     searchObj.parentId = parent;
@@ -72,11 +73,11 @@ const getParent = async (
         parent,
         name,
         mimeType: FOLDER_MIME_TYPE,
-        npath
+        npath,
       });
     } catch (err) {
       newParent = await manager.findOne(Asset, {
-        npath
+        npath,
       });
     }
 
@@ -110,29 +111,31 @@ app.get(
           .select([
             'id',
             databaseType === 'postgres' ? '"parentId"' : 'parentId',
-            databaseType === 'postgres' ? '"mimeType"' : 'mimeType'
+            databaseType === 'postgres' ? '"mimeType"' : 'mimeType',
           ])
           .from(Asset, 'thumbnail')
           .where('thumbnail.mimeType IN (:...mimeTypes)', {
-            mimeTypes: IMAGE_MIME_TYPES
+            mimeTypes: IMAGE_MIME_TYPES,
           }),
       'thumbnail',
-      databaseType === 'postgres' ? 'thumbnail."parentId" = asset.id' : 'thumbnail.parentId = asset.id'
+      databaseType === 'postgres'
+        ? 'thumbnail."parentId" = asset.id'
+        : 'thumbnail.parentId = asset.id'
     );
 
     qb.addSelect('thumbnail.id', 'asset_thumbnail');
 
     if (search?.length > 0) {
       qb.andWhere('asset.mimeType != :mimeType', {
-        mimeType: FOLDER_MIME_TYPE
+        mimeType: FOLDER_MIME_TYPE,
       }).andWhere('LOWER(asset.name) LIKE :search', {
-        search: `%${search.toLowerCase()}%`
+        search: `%${search.toLowerCase()}%`,
       });
     }
 
     if (mimeType?.length > 0) {
       qb.andWhere('asset.mimeType IN (:...mimeTypes)', {
-        mimeTypes: [...mimeType.split(','), FOLDER_MIME_TYPE]
+        mimeTypes: [...mimeType.split(','), FOLDER_MIME_TYPE],
       });
     }
 
@@ -163,8 +166,8 @@ app.get(
       asset = await assetTreeRepository.findOne({
         relations: ['tags'],
         where: {
-          id
-        }
+          id,
+        },
       });
       if (!asset) throw new BadRequestError('invalid_asset');
       ancestorsTree = await assetTreeRepository.findAncestorsTree(asset);
@@ -184,8 +187,8 @@ app.get(
     const asset = await assetRepository.findOne({
       relations: ['tags'],
       where: {
-        id: req.params.id
-      }
+        id: req.params.id,
+      },
     });
     if (!asset) throw new BadRequestError('invalid_asset');
 
@@ -205,6 +208,10 @@ app.get(
     res.send(content);
   })
 );
+
+const getKeyName = (key: string = '') => {
+  return key.split('/').pop();
+};
 
 // Create folder, assets
 app.post(
@@ -236,7 +243,7 @@ app.post(
         }
 
         const searchObj: any = {
-          name
+          name,
         };
         if (parent) {
           searchObj.parentId = parent.id;
@@ -254,7 +261,7 @@ app.post(
         const assetObj: any = {
           name,
           mimeType: params.mimeType,
-          author: req?.data?.user
+          author: req?.data?.user,
         };
 
         if (parent) {
@@ -267,30 +274,30 @@ app.post(
         if (params?.mimeType !== FOLDER_MIME_TYPE) {
           if (!req.file) throw new BadRequestError('invalid_file');
           const stat = await FileDriver.getInstance().stat(
-            req?.file?.filename || req?.file?.key
+            req?.file?.filename || getKeyName(req?.file?.key)
           );
           if (!stat) throw new BadRequestError('invalid_file');
 
           if (IMAGE_MIME_TYPES.indexOf(params.mimeType) > -1) {
             const file = await FileDriver.getInstance().read(
-              req?.file?.filename || req?.file?.key
+              req?.file?.filename || getKeyName(req?.file?.key)
             );
             const dimensions = sizeOf(file);
             assetObj.meta = [
               {
                 key: 'height',
-                value: dimensions.height
+                value: dimensions.height,
               },
               {
                 key: 'width',
-                value: dimensions.width
-              }
+                value: dimensions.width,
+              },
             ];
           }
 
           assetObj.provider = FileDriver.getInstance().getName();
           assetObj.contentLength = stat.contentLength;
-          assetObj.document = req?.file?.filename || req?.file?.key;
+          assetObj.document = req?.file?.filename || getKeyName(req?.file?.key);
         }
 
         asset = await tManager.save(Asset, assetObj);
@@ -298,7 +305,7 @@ app.post(
       return res.send(mapAsset(asset));
     } catch (err) {
       await FileDriver.getInstance().delete(
-        req?.file?.filename || req?.file?.key
+        req?.file?.filename || getKeyName(req?.file?.key)
       );
       throw err;
     }
@@ -311,7 +318,7 @@ app.put(
   asyncMiddleware(async (req, res) => {
     await req.validate(
       {
-        name: yup.string().required()
+        name: yup.string().required(),
       },
       'body'
     );
@@ -356,7 +363,7 @@ app.put(
     await req.validate(
       {
         alt: yup.string().max(256),
-        copyright: yup.string().max(256)
+        copyright: yup.string().max(256),
       },
       'body'
     );
@@ -366,8 +373,8 @@ app.put(
       const asset = await entityManager.findOne(Asset, {
         relations: ['meta'],
         where: {
-          id: req?.params?.id
-        }
+          id: req?.params?.id,
+        },
       });
       if (!asset) throw new BadRequestError('invalid_asset');
 
@@ -375,13 +382,13 @@ app.put(
       if (req?.body?.alt) {
         meta.push({
           key: 'alt',
-          value: req?.body?.alt
+          value: req?.body?.alt,
         });
       }
       if (req?.body?.copyright) {
         meta.push({
           key: 'copyright',
-          value: req?.body?.copyright
+          value: req?.body?.copyright,
         });
       }
 
@@ -390,8 +397,8 @@ app.put(
       if (Array.isArray(req?.body?.tags)) {
         const tags = await tManager.getRepository(Tag).find({
           where: {
-            id: In(req?.body?.tags.map((tag) => tag?.id).filter((id) => !!id))
-          }
+            id: In(req?.body?.tags.map((tag) => tag?.id).filter((id) => !!id)),
+          },
         });
         asset.tags = tags;
       }
@@ -429,7 +436,7 @@ app.delete(
       });
 
       return tManager.delete(Asset, {
-        id: In(toDeleteAssets.map((asset) => asset.id))
+        id: In(toDeleteAssets.map((asset) => asset.id)),
       });
     });
 
@@ -460,7 +467,7 @@ app.get(
       const file = FileDriver.getInstance().createReadStream(asset.document, {
         range: videoRange,
         start,
-        end
+        end,
       });
 
       const head = {
@@ -468,7 +475,10 @@ app.get(
         'Accept-Ranges': 'bytes',
         'Content-Length': chunksize,
         'Content-Type': asset.mimeType,
-        'Cache-Control': process.env.ASSETS_CACHE_CONTROL?.length > 0 ? process.env.ASSETS_CACHE_CONTROL : 'no-cache'
+        'Cache-Control':
+          process.env.ASSETS_CACHE_CONTROL?.length > 0
+            ? process.env.ASSETS_CACHE_CONTROL
+            : 'no-cache',
       };
 
       res.writeHead(206, head);
@@ -477,7 +487,10 @@ app.get(
       const head = {
         'Content-Length': asset.contentLength,
         'Content-Type': asset.mimeType,
-        'Cache-Control': process.env.ASSETS_CACHE_CONTROL?.length > 0 ? process.env.ASSETS_CACHE_CONTROL : 'no-cache'
+        'Cache-Control':
+          process.env.ASSETS_CACHE_CONTROL?.length > 0
+            ? process.env.ASSETS_CACHE_CONTROL
+            : 'no-cache',
       };
       res.writeHead(200, head);
       FileDriver.getInstance().createReadStream(asset.document).pipe(res);

@@ -8,7 +8,7 @@ export type TLogType = {
   data: any;
 };
 
-const logLevel = process.env.LOG_LEVEL || 'error';
+const logLevel = process.env.LOG_LEVEL || 'info';
 const logPath = process.env.LOG_PATH
   ? path.resolve(process.env.LOG_PATH)
   : PathUtil.burdyRoot('logs');

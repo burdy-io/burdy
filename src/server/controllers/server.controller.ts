@@ -1,15 +1,17 @@
 import express from 'express';
-import {getManager, getRepository} from 'typeorm';
+import { getManager, getRepository } from 'typeorm';
 import SiteSettings from '@server/models/site-settings.model';
 import User from '@server/models/user.model';
 import asyncMiddleware from '@server/middleware/async.middleware';
 import BadRequestError from '@server/errors/bad-request-error';
-import {UserStatus} from '@shared/interfaces/model';
+import { UserStatus } from '@shared/interfaces/model';
 import Group from '@server/models/group.model';
 import Validators from '@shared/validators';
-import {getEnhancedRepository} from '@server/common/orm-helpers';
-import {getExpires, sign} from '@server/common/jwt';
+import { getEnhancedRepository } from '@server/common/orm-helpers';
+import { getExpires, sign } from '@server/common/jwt';
 import UserSession from '@server/models/user-session.model';
+import { exportContent, importContent } from '@server/business-logic/server.bl';
+import authMiddleware from '@server/middleware/auth.middleware';
 
 const app = express();
 
@@ -19,7 +21,7 @@ app.get(
     const siteSettingsRepository = getRepository(SiteSettings);
 
     const initiated = await siteSettingsRepository.findOne({
-      where: {key: 'initiated'},
+      where: { key: 'initiated' },
     });
 
     if (initiated) throw new BadRequestError('site_initiated');
@@ -37,7 +39,7 @@ app.post(
     const userSessionRepository = getRepository(UserSession);
 
     const [initiated, userCount] = await Promise.all([
-      siteSettingsRepository.findOne({where: {key: 'initiated'}}),
+      siteSettingsRepository.findOne({ where: { key: 'initiated' } }),
       userRepository.count(),
     ]);
 
@@ -50,10 +52,10 @@ app.post(
       lastName: Validators.lastName(),
     });
 
-    const {email, password, firstName, lastName} = req.body;
+    const { email, password, firstName, lastName } = req.body;
 
     const adminGroup = await groupRepository.findOne({
-      where: {name: 'Admin'},
+      where: { name: 'Admin' },
     });
 
     let user = await userRepository.create({
@@ -67,15 +69,14 @@ app.post(
     await user.setPassword(password);
 
     let siteSettings = siteSettingsRepository.create([
-      {key: 'initiated', value: true},
-      {key: 'adminEmail', value: email},
+      { key: 'initiated', value: true },
+      { key: 'adminEmail', value: email },
     ]);
 
     let token;
     await getManager().transaction(async (entityManager) => {
       user = await entityManager.save(user);
       siteSettings = await entityManager.save(siteSettings);
-
 
       const userSession = await entityManager.save(
         userSessionRepository.create({
@@ -95,7 +96,30 @@ app.post(
       });
     });
 
-    res.send({user, token});
+    res.send({ user, token });
+  })
+);
+
+app.post(
+  '/export',
+  authMiddleware(['all']),
+  asyncMiddleware(async (req, res) => {
+    await exportContent();
+    res.send('ok');
+  })
+);
+
+app.post(
+  '/import',
+  authMiddleware(['all']),
+  asyncMiddleware(async (req, res) => {
+    await importContent({
+      user: req?.data?.user,
+      options: {
+        force: req?.query?.force as string,
+      },
+    });
+    res.send('ok');
   })
 );
 

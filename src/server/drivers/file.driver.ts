@@ -4,6 +4,7 @@ import FileSystemDriver from '@server/drivers/file-system-driver';
 export interface IFileDriver {
   getUpload: () => any;
   getName: () => string;
+  getPath: (key: string) => string;
 
   copy: (src: string, dest: string) => Promise<any>;
   write: (key: string, content: any) => Promise<any>;
@@ -13,6 +14,8 @@ export interface IFileDriver {
 
   createReadStream: (key: string, options?: any) => any;
   createWriteStream: (key: string, options?: any) => any;
+
+  uploadReadableStream?: (key: string, stream: any) => Promise<any>;
 }
 
 export default class FileDriver implements IFileDriver {
@@ -36,6 +39,7 @@ export default class FileDriver implements IFileDriver {
   }
 
   getUpload = () => this.implementation.getUpload();
+  getPath = (key: string) => this.implementation.getPath(key);
   getName = () => this.implementation.getName();
   copy = (src: string, dest: string) => this.implementation.copy(src, dest);
   write = (key: string, content: any) => this.implementation.write(key, content);
@@ -48,4 +52,7 @@ export default class FileDriver implements IFileDriver {
 
   createWriteStream = (key: string, options?: any) =>
     this.implementation.createWriteStream(key, options);
+
+  uploadReadableStream = (key: string, stream: any) =>
+    this.implementation.uploadReadableStream(key, stream);
 }
