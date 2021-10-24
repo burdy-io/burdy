@@ -58,8 +58,6 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
         onClick: () => {
           if (post?.type === 'post' && post?.parentId) {
             history.push(`/sites/post-container/${post.parentId}`);
-          } else if (params?.contentTypeId) {
-            history.push(`/posts/${params?.contentTypeId}`);
           } else {
             history.push({
               pathname: '/sites',
