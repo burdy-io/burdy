@@ -102,7 +102,7 @@ app.post(
 
 app.post(
   '/export',
-  // authMiddleware(),
+  authMiddleware(['all']),
   asyncMiddleware(async (req, res) => {
     await exportContent();
     res.send('ok');
@@ -111,7 +111,7 @@ app.post(
 
 app.post(
   '/import',
-  // authMiddleware(),
+  authMiddleware(['all']),
   asyncMiddleware(async (req, res) => {
     await importContent({
       user: req?.data?.user,
