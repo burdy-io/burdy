@@ -203,7 +203,7 @@ const DynamicRelation: React.FC<DynamicRelationProps> = ({ field, name }) => {
           ];
 
           items.splice(selectedItemIndex + offset, 0, {
-            id: selectedItem?.slugPath,
+            slugPath: selectedItem?.slugPath,
           });
 
           onChange(JSON.stringify(items));
