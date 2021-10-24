@@ -37,7 +37,7 @@ export const isPostPublished = (post?: IPost) => {
   return false;
 }
 
-const createPostVersion = async (
+export const createPostVersion = async (
   postRepository: Repository<Post>,
   post: IPost,
   author: IUser
