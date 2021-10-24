@@ -20,6 +20,7 @@ app.get(
   asyncMiddleware(async (req, res) => {
     const contentTypeRepository = getRepository(ContentType);
     const id = req?.query?.id;
+    const name = req?.query?.name;
     const search = req?.query?.search;
     const type = req?.query?.type;
 
@@ -30,6 +31,12 @@ app.get(
 
     if (id) {
       qb.andWhereInIds((id as string).split(','));
+    }
+
+    if (name) {
+      qb.andWhere('contentType.name IN (:...names)', {
+        names: (name as string).split(',')
+      });
     }
 
     if (search?.length > 0) {
@@ -206,6 +213,33 @@ app.get(
     res.send(mapped);
   })
 );
+
+app.get(
+  '/content-types/single',
+  authMiddleware(),
+  asyncMiddleware(async (req, res) => {
+    const name = req?.query?.name;
+
+    const contentTypeRepository = getRepository(ContentType);
+
+    const qb = contentTypeRepository
+      .createQueryBuilder('contentType')
+      .leftJoinAndSelect('contentType.author', 'author')
+      .leftJoinAndSelect('author.meta', 'author.meta');
+
+    if (name) {
+      qb.andWhere('contentType.name = :name', {
+        name
+      })
+    }
+
+    const contentType = await qb.getOne();
+
+    if (!contentType) throw new BadRequestError('invalid_content_type');
+
+    res.send(mapContentType(contentType));
+  })
+)
 
 app.get(
   '/content-types/:contentTypeId',

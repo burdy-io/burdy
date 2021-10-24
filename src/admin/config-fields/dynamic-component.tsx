@@ -14,19 +14,19 @@ interface DynamicComponentProps {
 }
 
 const DynamicComponent: React.FC<DynamicComponentProps> = ({ field, name }) => {
-  const { getContentType } = useContentTypes();
+  const { getSingleContentType } = useContentTypes();
 
   useEffect(() => {
     if (field?.component) {
-      getContentType.execute(field?.component);
+      getSingleContentType.execute({ name: field?.component });
     }
   }, [field?.component]);
 
   return (
     <>
       {field?.label?.length > 0 && <Label>{field?.label}</Label>}
-      <LoadingBar loading={getContentType?.loading}>
-        <DynamicGroup field={getContentType?.result} name={name} />
+      <LoadingBar loading={getSingleContentType?.loading}>
+        <DynamicGroup field={getSingleContentType?.result} name={name} />
       </LoadingBar>
     </>
   );
