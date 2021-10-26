@@ -13,6 +13,7 @@ import { IUser } from '@shared/interfaces/model';
 import logger from '@shared/features/logger';
 import rimraf from 'rimraf';
 import { mapPost } from '@server/common/mappers';
+import { exportTags, importTags } from '@server/business-logic/tags.bl';
 
 export const exportContent = async () => {
   await getManager().transaction(async (entityManager) => {
@@ -20,6 +21,7 @@ export const exportContent = async () => {
       rimraf(PathUtil.burdyRoot('export'), resolve)
     );
 
+    const tags = await exportTags({ entityManager });
     const contentTypes = await exportContentTypes({ entityManager });
     const assets = await exportAssets({ entityManager });
     const posts = await exportPosts({ entityManager });
@@ -27,6 +29,7 @@ export const exportContent = async () => {
     await fse.writeFile(
       PathUtil.burdyRoot('export', 'content.json'),
       JSON.stringify({
+        tags,
         assets,
         contentTypes,
         posts: posts.map(mapPost),
@@ -59,9 +62,16 @@ export const importContent = async ({
       throw new InternalServerError('import_failed');
     }
 
+    const tags = content?.tags || [];
     const assets = content?.assets || [];
     const contentTypes = content?.contentTypes || [];
     const posts = content?.posts || [];
+
+    await importTags({
+      entityManager,
+      tags,
+      user,
+    });
 
     await importContentTypes({
       entityManager,
