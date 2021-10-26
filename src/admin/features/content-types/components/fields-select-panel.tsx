@@ -178,7 +178,6 @@ const FieldsSelectPanel: React.FC<IFieldsSelectPanelProps> = ({
   );
 
   const handleSubmit = (e) => {
-    console.log(e);
     onSubmit(e);
   };
 

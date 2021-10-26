@@ -56,7 +56,6 @@ const FieldsConfigurePanel: React.FC<IFieldsConfigurePanelProps> = ({
   }, [isOpen]);
 
   const onSave = () => {
-    console.log('save');
     methods.handleSubmit((data) => {
       const obj: any = {
         type,
