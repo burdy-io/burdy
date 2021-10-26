@@ -21,14 +21,14 @@ import path from 'path';
 import DeferPromise from 'defer-promise';
 
 interface IExportContentParams {
-  output: string;
-  force: boolean;
+  output?: string;
+  force?: boolean;
 }
 
 export const exportContent = async ({
   output,
-  force,
-}: IExportContentParams) => {
+  force = false,
+}: IExportContentParams = {}) => {
   await getManager().transaction(async (entityManager) => {
     await (async () => {
       if (!output) return;
