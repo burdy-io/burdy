@@ -59,7 +59,7 @@ export const importTag = async ({
 
   if (saved) {
     logger.info(`Skipping ${tag.slugPath}, exists.`);
-    return;
+    return saved;
   }
 
   let parent;

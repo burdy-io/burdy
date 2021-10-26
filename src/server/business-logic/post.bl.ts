@@ -6,6 +6,7 @@ import Post from '@server/models/post.model';
 import { createPostVersion } from '@server/controllers/post.controller';
 import ContentType from '@server/models/content-type.model';
 import logger from '@shared/features/logger';
+import { importTag } from '@server/business-logic/tags.bl';
 
 const POST_FOLDER_TYPE = 'folder';
 
@@ -73,7 +74,7 @@ export const importPost = async ({
 
   if (saved && !options?.force) {
     logger.info(`Skipping ${post.slugPath}, exists.`);
-    return;
+    return saved;
   }
 
   if (
@@ -83,12 +84,28 @@ export const importPost = async ({
         saved?.type !== post?.type))
   ) {
     logger.info(`Skipping ${post.slugPath}, existing post either of type "folder" or not matching contentType.`);
-    return;
+    return saved;
+  }
+
+  let tags;
+  if (post?.tags?.length > 0) {
+    tags = await Promise.all(post?.tags.map(async(tag) => {
+      const imported = await importTag({
+        manager,
+        tag,
+        user
+      });
+      return imported;
+    }));
   }
 
   if (saved) {
     await createPostVersion(manager.getRepository(Post), saved, user);
     await updateMeta(manager, Post, saved, post.meta);
+    if (tags?.length > 0) {
+      saved.tags = tags;
+      await manager.save(Post, saved);
+    }
     logger.info(`Updating existing post ${post.slugPath} success.`);
     return saved;
   }
@@ -127,6 +144,7 @@ export const importPost = async ({
     type: post.type,
     contentType,
     parent,
+    tags,
     author: user,
     meta: (post.meta || []).map((item) => ({
       key: item.key,

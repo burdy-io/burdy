@@ -108,12 +108,12 @@ export const importAsset = async ({
 
     if (saved && !options?.force) {
       logger.info(`Skipping ${asset.npath}, exists.`);
-      return;
+      return saved;
     }
 
     if (saved?.mimeType === FOLDER_MIME_TYPE) {
       logger.info(`Skipping ${asset.npath}, folder exists.`);
-      return;
+      return saved;
     }
 
     if (saved) {
