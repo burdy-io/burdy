@@ -1,4 +1,4 @@
-import { ControlledTextField } from '@admin/components/rhf-components';
+import {ControlledTextField} from '@admin/components/rhf-components';
 import {
   DefaultButton,
   Dialog,
@@ -9,10 +9,10 @@ import {
   PrimaryButton,
   Stack,
 } from '@fluentui/react';
-import React, { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { useTags } from '../context/tags.context';
-import { slugRegex, slugRegexMessage } from '@shared/validators';
+import React, {useEffect} from 'react';
+import {useForm} from 'react-hook-form';
+import {useTags} from '../context/tags.context';
+import {slugRegex, slugRegexMessage} from '@shared/validators';
 
 interface ITagUpdateDialogProps {
   isOpen?: boolean;
@@ -21,13 +21,13 @@ interface ITagUpdateDialogProps {
 }
 
 const TagUpdateDialog: React.FC<ITagUpdateDialogProps> = ({
-  isOpen,
-  onDismiss,
-  onUpdated,
-}) => {
-  const { updateTag, selectedTags } = useTags();
+                                                            isOpen,
+                                                            onDismiss,
+                                                            onUpdated,
+                                                          }) => {
+  const {updateTag, selectedTags} = useTags();
 
-  const { control, handleSubmit, reset } = useForm({
+  const {control, handleSubmit, reset} = useForm({
     mode: 'all',
   });
 
@@ -47,6 +47,10 @@ const TagUpdateDialog: React.FC<ITagUpdateDialogProps> = ({
     }
   }, [updateTag?.result]);
 
+  const submit = handleSubmit((data) => {
+    updateTag.execute(selectedTags?.[0]?.id, data);
+  });
+
   return (
     <Dialog
       hidden={!isOpen}
@@ -56,55 +60,54 @@ const TagUpdateDialog: React.FC<ITagUpdateDialogProps> = ({
         title: `Update ${selectedTags?.[0]?.name}`,
       }}
       modalProps={{
-        styles: { main: { maxWidth: 500 } },
+        styles: {main: {maxWidth: 500}},
       }}
     >
-      <Stack
-        tokens={{
-          childrenGap: 8,
-        }}
-      >
-        {updateTag.error?.message && (
-          <MessageBar messageBarType={MessageBarType.error}>
-            {updateTag.error.message}
-          </MessageBar>
-        )}
-        <ControlledTextField
-          rules={{
-            required: 'Name is required',
+      <form onSubmit={submit}>
+        <Stack
+          tokens={{
+            childrenGap: 8,
           }}
-          name="name"
-          label="Name"
-          control={control}
-          data-cy="tags-update-name"
-        />
-        <ControlledTextField
-          name="slug"
-          label="Slug"
-          control={control}
-          rules={{
-            required: 'Slug is required',
-            pattern: {
-              value: slugRegex,
-              message: slugRegexMessage,
-            }
-          }}
-          data-cy="tags-update-slug"
-        />
-      </Stack>
-      <DialogFooter>
-        <DefaultButton onClick={onDismiss} text="Cancel" />
-        <PrimaryButton
-          onClick={() => {
-            handleSubmit((data) => {
-              updateTag.execute(selectedTags?.[0]?.id, data);
-            })();
-          }}
-          text="Update"
-          disabled={updateTag?.loading}
-          data-cy="tags-update-submit"
-        />
-      </DialogFooter>
+        >
+          {updateTag.error?.message && (
+            <MessageBar messageBarType={MessageBarType.error}>
+              {updateTag.error.message}
+            </MessageBar>
+          )}
+          <ControlledTextField
+            rules={{
+              required: 'Name is required',
+            }}
+            name="name"
+            label="Name"
+            control={control}
+            data-cy="tags-update-name"
+            autoFocus
+          />
+          <ControlledTextField
+            name="slug"
+            label="Slug"
+            control={control}
+            rules={{
+              required: 'Slug is required',
+              pattern: {
+                value: slugRegex,
+                message: slugRegexMessage,
+              }
+            }}
+            data-cy="tags-update-slug"
+          />
+        </Stack>
+        <DialogFooter>
+          <DefaultButton onClick={onDismiss} text="Cancel"/>
+          <PrimaryButton
+            type="submit"
+            text="Update"
+            disabled={updateTag?.loading}
+            data-cy="tags-update-submit"
+          />
+        </DialogFooter>
+      </form>
     </Dialog>
   );
 };
