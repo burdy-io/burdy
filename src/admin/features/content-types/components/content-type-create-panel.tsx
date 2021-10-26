@@ -112,14 +112,10 @@ const ContentTypeCreatePanel: React.FC<IContentTypeCreatePanelProps> = ({
             }}
           />
           <ControlledDropdown
-            defaultValue="post"
+            defaultValue="page"
             control={control}
             data-cy="contentTypes-add-type"
             options={[
-              {
-                key: 'post',
-                text: 'Post',
-              },
               {
                 key: 'page',
                 text: 'Page',

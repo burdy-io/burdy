@@ -16,6 +16,7 @@ import { mapPost } from '@server/common/mappers';
 import ConsoleOutput from "@scripts/util/console-output.util";
 import archiver from 'archiver'
 import DeferPromise from 'defer-promise';
+import { exportTags, importTags } from '@server/business-logic/tags.bl';
 
 interface IExportContentParams {
   output: string;
@@ -41,6 +42,7 @@ export const exportContent = async ({output, force}: IExportContentParams) => {
       await new Promise((resolve) => rimraf(output, resolve));
     }
 
+    const tags = await exportTags({ entityManager });
     const contentTypes = await exportContentTypes({ entityManager });
     const assets = await exportAssets({ entityManager });
     const posts = await exportPosts({ entityManager });
@@ -49,6 +51,7 @@ export const exportContent = async ({output, force}: IExportContentParams) => {
     await fse.ensureDir(PathUtil.burdyRoot('export'));
 
     await Promise.all([
+      fse.writeFile(PathUtil.burdyRoot('export', 'tags.json'), JSON.stringify(tags)),
       fse.writeFile(PathUtil.burdyRoot('export', 'contentTypes.json'), JSON.stringify(contentTypes)),
       fse.writeFile(PathUtil.burdyRoot('export', 'assets.json'), JSON.stringify(assets)),
       fse.writeFile(PathUtil.burdyRoot('export', 'posts.json'), JSON.stringify(posts.map(mapPost)))
@@ -101,9 +104,16 @@ export const importContent = async ({
       throw new InternalServerError('import_failed');
     }
 
+    const tags = content?.tags || [];
     const assets = content?.assets || [];
     const contentTypes = content?.contentTypes || [];
     const posts = content?.posts || [];
+
+    await importTags({
+      entityManager,
+      tags,
+      user,
+    });
 
     await importContentTypes({
       entityManager,
