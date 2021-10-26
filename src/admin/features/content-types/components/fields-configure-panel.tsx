@@ -56,6 +56,7 @@ const FieldsConfigurePanel: React.FC<IFieldsConfigurePanelProps> = ({
   }, [isOpen]);
 
   const onSave = () => {
+    console.log('save');
     methods.handleSubmit((data) => {
       const obj: any = {
         type,
@@ -105,6 +106,7 @@ const FieldsConfigurePanel: React.FC<IFieldsConfigurePanelProps> = ({
                   name='label'
                   label='Label'
                   data-cy='contentTypes-fieldsConfig-label'
+                  autoFocus
                 />
                 <ControlledTextField
                   defaultValue={field?.name ?? ''}

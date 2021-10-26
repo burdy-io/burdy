@@ -1,4 +1,4 @@
-import { ControlledTextField } from '@admin/components/rhf-components';
+import {ControlledTextField} from '@admin/components/rhf-components';
 import {
   DefaultButton,
   Dialog,
@@ -9,11 +9,11 @@ import {
   PrimaryButton,
   Stack,
 } from '@fluentui/react';
-import React, { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { useTags } from '../context/tags.context';
+import React, {useEffect} from 'react';
+import {useForm} from 'react-hook-form';
+import {useTags} from '../context/tags.context';
 import slugify from 'slugify';
-import { slugRegex, slugRegexMessage } from '@shared/validators';
+import {slugRegex, slugRegexMessage} from '@shared/validators';
 
 interface ITagCreateDialogProps {
   isOpen?: boolean;
@@ -23,14 +23,14 @@ interface ITagCreateDialogProps {
 }
 
 const TagCreateDialog: React.FC<ITagCreateDialogProps> = ({
-  isOpen,
-  defaultValues,
-  onDismiss,
-  onCreated,
-}) => {
-  const { createTag, selectedTags } = useTags();
+                                                            isOpen,
+                                                            defaultValues,
+                                                            onDismiss,
+                                                            onCreated,
+                                                          }) => {
+  const {createTag, selectedTags} = useTags();
 
-  const { control, handleSubmit, reset, formState, watch, setValue } = useForm({
+  const {control, handleSubmit, reset, formState, watch, setValue} = useForm({
     mode: 'all',
   });
 
@@ -57,6 +57,13 @@ const TagCreateDialog: React.FC<ITagCreateDialogProps> = ({
     }
   }, [createTag?.result]);
 
+  const submit = handleSubmit((data) => {
+    createTag.execute({
+      ...data,
+      parentId: selectedTags?.[0]?.id,
+    });
+  });
+
   return (
     <Dialog
       hidden={!isOpen}
@@ -66,58 +73,55 @@ const TagCreateDialog: React.FC<ITagCreateDialogProps> = ({
         title: !selectedTags?.[0]?.id ? 'Create namespace' : 'Create tag',
       }}
       modalProps={{
-        styles: { main: { maxWidth: 500 } },
+        styles: {main: {maxWidth: 500}},
       }}
     >
-      <Stack
-        tokens={{
-          childrenGap: 8,
-        }}
-      >
-        {createTag.error?.message && (
-          <MessageBar messageBarType={MessageBarType.error}>
-            {createTag.error.message}
-          </MessageBar>
-        )}
-        <ControlledTextField
-          rules={{
-            required: 'Name is required',
+      <form onSubmit={submit}>
+        <Stack
+          tokens={{
+            childrenGap: 8,
           }}
-          name="name"
-          label="Name"
-          control={control}
-          data-cy="tags-create-name"
-        />
-        <ControlledTextField
-          name="slug"
-          label="Slug"
-          control={control}
-          rules={{
-            required: 'Slug is required',
-            pattern: {
-              value: slugRegex,
-              message: slugRegexMessage,
-            }
-          }}
-          data-cy="tags-create-slug"
-        />
-      </Stack>
-      <DialogFooter>
-        <DefaultButton onClick={onDismiss} text="Cancel" />
-        <PrimaryButton
-          onClick={() => {
-            handleSubmit((data) => {
-              createTag.execute({
-                ...data,
-                parentId: selectedTags?.[0]?.id,
-              });
-            })();
-          }}
-          text="Create"
-          disabled={createTag?.loading}
-          data-cy="tags-create-submit"
-        />
-      </DialogFooter>
+        >
+          {createTag.error?.message && (
+            <MessageBar messageBarType={MessageBarType.error}>
+              {createTag.error.message}
+            </MessageBar>
+          )}
+          <ControlledTextField
+            rules={{
+              required: 'Name is required',
+            }}
+            name="name"
+            label="Name"
+            control={control}
+            data-cy="tags-create-name"
+            autoFocus
+            autoComplete="off"
+          />
+          <ControlledTextField
+            name="slug"
+            label="Slug"
+            control={control}
+            rules={{
+              required: 'Slug is required',
+              pattern: {
+                value: slugRegex,
+                message: slugRegexMessage,
+              }
+            }}
+            data-cy="tags-create-slug"
+          />
+        </Stack>
+        <DialogFooter>
+          <DefaultButton onClick={onDismiss} text="Cancel"/>
+          <PrimaryButton
+            type="submit"
+            text="Create"
+            disabled={createTag?.loading}
+            data-cy="tags-create-submit"
+          />
+        </DialogFooter>
+      </form>
     </Dialog>
   );
 };
