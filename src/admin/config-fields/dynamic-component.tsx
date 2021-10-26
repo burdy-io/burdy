@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
-import { Label } from '@fluentui/react';
+import { Label, Separator } from '@fluentui/react';
 import { composeWrappers } from '@admin/helpers/hoc';
 import {
   ContentTypesContextProvider,
-  useContentTypes,
+  useContentTypes
 } from '@admin/features/content-types/context/content-types.context';
 import LoadingBar from '@admin/components/loading-bar';
 import DynamicGroup from './dynamic-group';
@@ -24,7 +24,11 @@ const DynamicComponent: React.FC<DynamicComponentProps> = ({ field, name }) => {
 
   return (
     <>
-      {field?.label?.length > 0 && <Label>{field?.label}</Label>}
+      {field?.label?.length > 0 &&
+      <div>
+        <Label>{field?.label}</Label>
+        <Separator />
+      </div>}
       <LoadingBar loading={getSingleContentType?.loading}>
         <DynamicGroup field={getSingleContentType?.result} name={name} />
       </LoadingBar>
@@ -33,5 +37,5 @@ const DynamicComponent: React.FC<DynamicComponentProps> = ({ field, name }) => {
 };
 
 export default composeWrappers({
-  contentTypesContext: ContentTypesContextProvider,
+  contentTypesContext: ContentTypesContextProvider
 })(DynamicComponent);

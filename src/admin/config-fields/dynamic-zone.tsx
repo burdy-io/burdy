@@ -132,6 +132,7 @@ const DynamicZoneComponentImpl: React.FC<DynamicZoneComponentProps> = ({
         {narrow && <BackPanel
           isOpen={panelOpened}
           headerText={getSingleContentType?.result?.name}
+          isBlocking={false}
           isFooterAtBottom
           isHiddenOnDismiss
           onBack={() => setPanelOpened(false)}
@@ -221,7 +222,7 @@ const DynamicZone: React.FC<DynamicZoneProps> = ({ field, name }) => {
                           }}
                           disableDown={index >= fields?.length - 1}
                           disableUp={index === 0}
-                          name={`${name}.[${index}]`}
+                          name={`${name}[${index}]`}
                           component={(formField as any)?.component}
                           field={{
                             fields: field?.fields

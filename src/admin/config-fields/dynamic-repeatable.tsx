@@ -132,7 +132,7 @@ const DynamicRepeatable: React.FC<DynamicRepeatableProps> = ({
                           </Stack>
                         </div>
                         <DynamicGroup
-                          name={`${name || ''}.[${index}]`}
+                          name={`${name || ''}[${index}]`}
                           field={{
                             fields: field?.fields,
                           }}

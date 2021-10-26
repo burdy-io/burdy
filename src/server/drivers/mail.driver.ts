@@ -11,19 +11,10 @@ const mailDriver: IMailDriver = {
 
 const connectMailDriver = async () => {
   try {
-    let transport = await Hooks.applyFilters('mail/options', null);
+    const transport = await Hooks.applyFilters('mail/options', null);
 
     if (!transport) {
-      const testAccount = await nodemailer.createTestAccount();
-      transport = {
-        host: testAccount.smtp.host,
-        port: testAccount.smtp.port,
-        secure: testAccount.smtp.secure,
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass
-        }
-      }
+      return;
     }
 
     mailDriver.transporter = nodemailer.createTransport(transport);
@@ -40,6 +31,10 @@ const connectMailDriver = async () => {
 
 const sendMail = async (options: Mail.Options) => {
   try {
+    if (!mailDriver?.transporter) {
+      logger.error('Email provider not set');
+      return;
+    }
     options = await Hooks.applyFilters('mail/send', options);
     const result = await mailDriver.transporter.sendMail(options);
     await Hooks.doAction('mail/dispatched', result);

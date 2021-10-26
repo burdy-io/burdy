@@ -4,10 +4,10 @@ import {
   mergeStyleSets,
   Pivot,
   PivotItem,
-  Stack,
+  Separator,
+  Stack
 } from '@fluentui/react';
 import DynamicField from './dynamic-field';
-import { useExtendedFormContext } from '@admin/config-fields/dynamic-form';
 
 const styles = mergeStyleSets({
   hide: {
@@ -105,7 +105,10 @@ const DynamicGroup: React.FC<DynamicGroupProps> = ({ field, name }) => {
 
   return (
     <>
-      {field?.label?.length > 0 && <Label>{field?.label}</Label>}
+      {field?.label?.length > 0 && <div>
+        <Label>{field?.label}</Label>
+        <Separator />
+      </div>}
       {tabs?.length > 0 && (
         <>
           <Tabs
