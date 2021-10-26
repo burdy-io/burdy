@@ -26,11 +26,13 @@ import { slugRegex, slugRegexMessage } from '@shared/validators';
 interface IContentTypeCreatePanelProps {
   isOpen?: boolean;
   onDismiss?: () => void;
+  defaultType?: string;
   onCreated?: (contentType?: any) => void;
 }
 
 const ContentTypeCreatePanel: React.FC<IContentTypeCreatePanelProps> = ({
   isOpen,
+  defaultType,
   onDismiss,
   onCreated,
 }) => {
@@ -75,7 +77,9 @@ const ContentTypeCreatePanel: React.FC<IContentTypeCreatePanelProps> = ({
         >
           Create
         </PrimaryButton>
-        <DefaultButton onClick={onDismiss} data-cy="contentTypes-add-cancel">Cancel</DefaultButton>
+        <DefaultButton onClick={onDismiss} data-cy="contentTypes-add-cancel">
+          Cancel
+        </DefaultButton>
       </Stack>
     ),
     [field?.fields]
@@ -108,11 +112,11 @@ const ContentTypeCreatePanel: React.FC<IContentTypeCreatePanelProps> = ({
               pattern: {
                 value: slugRegex,
                 message: slugRegexMessage,
-              }
+              },
             }}
           />
           <ControlledDropdown
-            defaultValue="page"
+            defaultValue={defaultType && defaultType !== 'all' ? defaultType : 'page'}
             control={control}
             data-cy="contentTypes-add-type"
             options={[
@@ -131,7 +135,7 @@ const ContentTypeCreatePanel: React.FC<IContentTypeCreatePanelProps> = ({
               {
                 key: 'hierarchical_post',
                 text: 'Hierarchical Post',
-              }
+              },
             ]}
             name="type"
             label="Type"
