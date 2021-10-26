@@ -58,6 +58,20 @@ const exportContentTypes = async () => {
   require(ctScriptPath);
 }
 
+const importExport = async () => {
+  process.env.NODE_ENV = process.env.NODE_ENV ?? 'development';
+
+  const script = PathUtil.cache('import-export', 'main.js');
+
+  await require('@scripts/import-export').default({
+    force: false,
+    action: 'export',
+    output: 'hello.zip'
+  });
+
+  require(script);
+}
+
 // Initial program setup
 program.storeOptionsAsProperties(false).allowUnknownOption(true);
 
@@ -83,6 +97,7 @@ program.command('start').description('Start your Burdy application').action(star
 program.command('build').description('Build your Burdy application').action(build);
 program.command('dev').description('Develop your Burdy server').action(dev);
 program.command('db').allowUnknownOption(true).helpOption(false).description('Run TypeORM commands').action(db);
+program.command('export').action(importExport);
 
 const contentTypeCommands = program.command('ct').description('Content type helpers')
 contentTypeCommands
