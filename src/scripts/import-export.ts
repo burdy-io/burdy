@@ -5,7 +5,7 @@ import {compilerRun} from '@scripts/util/webpack.util';
 import config from '@shared/features/config';
 import {webpackServerConfigure} from '../webpack.config';
 
-const scriptImportExport = async ({action = 'import', output = 'hello.zip', force = true}) => {
+const scriptImportExport = async ({action = 'import', file, force = false}) => {
   const buildDirectory = PathUtil.cache('import-export');
 
   await rimraf(buildDirectory, (error) => error && console.log(error));
@@ -18,7 +18,7 @@ const scriptImportExport = async ({action = 'import', output = 'hello.zip', forc
     webpackConfig.plugins.push(
       new webpack.DefinePlugin({
         ACTION: JSON.stringify(action),
-        OUTPUT: JSON.stringify(output),
+        FILE: JSON.stringify(file),
         FORCE: JSON.stringify(force)
       })
     );

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import chalk from 'chalk';
-import {Command} from 'commander';
+import {Argument, Command, Option} from 'commander';
 import fs from 'fs-extra';
 import packageJSON from '../package.json';
 import PathUtil from "@scripts/util/path.util";
@@ -58,15 +58,15 @@ const exportContentTypes = async () => {
   require(ctScriptPath);
 }
 
-const importExport = async () => {
+const importExport = async (file: string, options: any) => {
   process.env.NODE_ENV = process.env.NODE_ENV ?? 'development';
 
   const script = PathUtil.cache('import-export', 'main.js');
 
   await require('@scripts/import-export').default({
-    force: false,
-    action: 'export',
-    output: 'hello.zip'
+    force: options?.force,
+    action: process.argv[2],
+    file
   });
 
   require(script);
@@ -97,7 +97,15 @@ program.command('start').description('Start your Burdy application').action(star
 program.command('build').description('Build your Burdy application').action(build);
 program.command('dev').description('Develop your Burdy server').action(dev);
 program.command('db').allowUnknownOption(true).helpOption(false).description('Run TypeORM commands').action(db);
-program.command('export').action(importExport);
+program.command('export')
+  .addArgument(new Argument('<file>', 'name of the export file (zip).').argOptional())
+  .addOption(new Option('-f, --force', 'force overwrite existing file during export').default(false))
+  .action(importExport);
+
+program.command('import')
+  .addArgument(new Argument('<file>', 'input file to be restored.').argOptional())
+  .addOption(new Option('-f, --force', 'force overwrite existing file during export').default(false))
+  .action(importExport);
 
 const contentTypeCommands = program.command('ct').description('Content type helpers')
 contentTypeCommands
