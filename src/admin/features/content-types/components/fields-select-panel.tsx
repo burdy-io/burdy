@@ -20,6 +20,7 @@ import {
   useContentTypes,
 } from '../context/content-types.context';
 import FieldsConfigurePanel from './fields-configure-panel';
+import {IContentType} from "@shared/interfaces/model";
 
 const theme = getTheme();
 
@@ -33,6 +34,12 @@ const styles = mergeStyleSets({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  infoCell: {
+    display: 'flex',
+    alignItems: 'center',
+    fontSize: 15,
+    height: '100%'
+  }
 });
 
 interface IFieldsSelectPanelProps {
@@ -50,28 +57,15 @@ const FieldsSelectPanel: React.FC<IFieldsSelectPanelProps> = ({
   error,
 }) => {
   const { getFields } = useContentTypes();
-
-  const [fieldOpen, setFieldOpen] = useState(false);
-
-  const [selectedItems, setSelectedItems] = useState(null);
+  const [selectedItem, setSelectedItem] = useState<IContentType|null>(null);
   const [search, setSearch] = useState('');
-
-  const selection = useMemo(
-    () =>
-      new Selection<any>({
-        onSelectionChanged: () => {
-          setSelectedItems(selection.getSelection());
-        },
-      }),
-    []
-  );
 
   useEffect(() => {
     if (isOpen) {
       setSearch('');
       getFields.execute();
     } else {
-      setFieldOpen(false);
+      setSelectedItem(null);
     }
   }, [isOpen]);
 
@@ -130,19 +124,10 @@ const FieldsSelectPanel: React.FC<IFieldsSelectPanelProps> = ({
   const Footer = useCallback(
     () => (
       <Stack horizontal tokens={{ childrenGap: 10 }}>
-        <PrimaryButton
-          disabled={!(selectedItems?.length > 0)}
-          onClick={() => {
-            setFieldOpen(true);
-          }}
-          data-cy="contentTypes-fieldsSelect-config"
-        >
-          Configure
-        </PrimaryButton>
-        <DefaultButton onClick={onDismiss} data-cy="contentTypes-fieldsSelect-cancel">Cancel</DefaultButton>
+        <DefaultButton onClick={onDismiss} data-cy="contentTypes-fieldsSelect-cancel">Back</DefaultButton>
       </Stack>
     ),
-    [isOpen, selectedItems]
+    []
   );
 
   const columns = useMemo<IColumn[]>(
@@ -150,15 +135,15 @@ const FieldsSelectPanel: React.FC<IFieldsSelectPanelProps> = ({
       {
         key: 'icon',
         name: '',
-        minWidth: 25,
-        maxWidth: 25,
+        minWidth: 40,
+        maxWidth: 40,
         onRender: ({ iconProps }) => (
           <div
             className={styles.iconCell}
             style={{
-              height: 20,
-              width: 20,
-              fontSize: 12,
+              height: 40,
+              width: 40,
+              fontSize: 16,
               backgroundColor: theme.palette.neutralLight,
               display: 'flex',
               justifyContent: 'center',
@@ -176,6 +161,9 @@ const FieldsSelectPanel: React.FC<IFieldsSelectPanelProps> = ({
         minWidth: 100,
         maxWidth: 180,
         isPadded: true,
+        onRender: ({name}) => (
+          <div className={styles.infoCell}>{name}</div>
+        )
       },
       {
         key: 'description',
@@ -204,33 +192,37 @@ const FieldsSelectPanel: React.FC<IFieldsSelectPanelProps> = ({
       data-cy="contentTypes-fieldsSelect"
     >
       <SearchBox
-        disabled={getFields.loading}
         placeholder="Search components..."
         onChange={(_event, newValue) => setSearch(newValue)}
+        autoFocus
       />
       <ShimmeredDetailsList
         setKey="items"
         groups={groups}
         items={components}
         columns={columns}
-        selectionMode={SelectionMode.single}
-        selection={selection}
+        selectionMode={SelectionMode.none}
         enableShimmer={getFields.loading}
         ariaLabelForShimmer="Content is being fetched"
         ariaLabelForGrid="Item details"
+        onRenderRow={(props, defaultRender) => (
+          <div onClick={() => setSelectedItem(props?.item)}>
+            {defaultRender(props)}
+          </div>
+        )}
       />
 
       <FieldsConfigurePanel
-        isOpen={fieldOpen}
-        type={(selectedItems ?? [])?.[0]?.type}
-        onDismiss={() => setFieldOpen(false)}
+        isOpen={Boolean(selectedItem)}
+        type={selectedItem?.type}
+        onDismiss={() => setSelectedItem(null)}
         onSubmit={handleSubmit}
-        component={selectedItems?.[0]?.id}
+        component={selectedItem?.id as any}
         error={error}
       />
     </Panel>
   );
-};
+}
 
 export default composeWrappers({
   contentTypesContext: ContentTypesContextProvider,

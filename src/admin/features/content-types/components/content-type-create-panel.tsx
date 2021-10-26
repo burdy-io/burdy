@@ -107,6 +107,7 @@ const ContentTypeCreatePanel: React.FC<IContentTypeCreatePanelProps> = ({
             name="name"
             label="Name"
             data-cy="contentTypes-add-name"
+            autoFocus
             rules={{
               required: 'Name is required',
               pattern: {
