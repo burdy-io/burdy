@@ -12,10 +12,9 @@ import {
   Text,
 } from '@fluentui/react';
 import { useUsers } from '@admin/features/users/context/users.context';
-import { userMeta, userPersonaText } from '@admin/helpers/misc';
+import {formatDate, userPersonaText} from '@admin/helpers/misc';
 import { useHistory } from 'react-router';
 import { Link } from '@admin/components/links';
-import { format } from 'date-fns';
 
 const useStyles = makeStyles({
   userList: {
@@ -136,7 +135,7 @@ const UserList: React.FC<IUserListProps> = ({
         name: 'Created At',
         minWidth: 200,
         onRender: ({ createdAt }: IUser) => (
-          <div>{format(new Date(createdAt), 'yyyy.MM.dd hh:mm')}</div>
+          <div>{formatDate(createdAt)}</div>
         ),
       },
     ],
