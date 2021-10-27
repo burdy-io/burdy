@@ -12,6 +12,8 @@ import {
 import React, { useMemo } from 'react';
 import Empty from './empty';
 import { ColumnsViewContextProvider, useColumns } from './columns.context';
+import {useHistory} from "react-router";
+import queryString from "query-string";
 
 const theme = getTheme();
 
@@ -61,6 +63,7 @@ const styles = mergeStyleSets({
     padding: '4px 6px',
     boxSizing: 'border-box',
     borderBottom: `1px solid ${theme.semanticColors.bodyDivider}`,
+    userSelect: 'none',
     selectors: {
       '&:hover': {
         background: theme.semanticColors.bodyBackgroundHovered,
@@ -135,6 +138,7 @@ const styles = mergeStyleSets({
 
 const Item = ({ item }) => {
   const { selection, ancestorsObj, selectedItems } = useColumns();
+  const history = useHistory();
 
   const isSelected = selection.isKeySelected(item.key);
   const isParent = ancestorsObj[item.id];
@@ -149,6 +153,15 @@ const Item = ({ item }) => {
         selection.setAllSelected(false);
         selection.setKeySelected(item.key, true, false);
         evt.stopPropagation();
+      }}
+      onDoubleClick={() => {
+        if (item.actionType !== 'sites' || item.type === 'folder') return;
+
+        if (item.type === 'hierarchical_post') {
+          history.push(`/sites/post-container/${item.id}`);
+        } else {
+          history.push(`/sites/editor/${item.id}`);
+        }
       }}
       data-cy="columns-view-item"
     >
