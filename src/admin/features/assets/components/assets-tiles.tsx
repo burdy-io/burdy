@@ -25,7 +25,7 @@ import { getFileTypeIconProps } from '@fluentui/react-file-type-icons';
 import { IAsset } from '@shared/interfaces/model';
 import { humanFileSize } from '@admin/helpers/utility';
 import AssetsDropzone from '@admin/features/assets/components/assets-dropzone';
-import { FOLDER_MIME_TYPE, IMAGE_MIME_TYPES } from '../context/assets.context';
+import {FOLDER_MIME_TYPE, IMAGE_MIME_TYPES, useAssets} from '../context/assets.context';
 
 const useStyles = makeStyles((theme) => ({
   tile: {
@@ -54,6 +54,7 @@ const FolderCell: React.FC<ExtendedTileGridItem> = ({
   ...props
 }) => {
   const styles = useStyles();
+  const {assetSrc} = useAssets();
 
   const folderCover = (
     <FolderCover
@@ -78,7 +79,7 @@ const FolderCell: React.FC<ExtendedTileGridItem> = ({
               children: item?.thumbnail ? (
                 <img
                   style={{ width: '100%', height: '100%' }}
-                  src={`${window.location.origin}/api/assets/single?npath=${item.thumbnail}`}
+                  src={assetSrc(item)}
                   alt="placeholder"
                 />
               ) : null,
@@ -172,6 +173,7 @@ const MediaCell: React.FC<ExtendedTileGridItem> = ({
 }) => {
   const heightMeta = item.meta.find((meta: any) => meta.key === 'height');
   const widthMeta = item.meta.find((meta: any) => meta.key === 'width');
+  const {assetSrc} = useAssets();
 
   const width = widthMeta ? Number(widthMeta?.value) : 0;
   const height = heightMeta ? Number(heightMeta?.value) : 0;
@@ -218,7 +220,7 @@ const MediaCell: React.FC<ExtendedTileGridItem> = ({
           width: '100%',
         }}
         alt="placeholder"
-        src={`/api/assets/single?npath=${item.npath}`}
+        src={assetSrc(item)}
       />
     ),
   });
@@ -230,6 +232,7 @@ const SvgCell: React.FC<ExtendedTileGridItem> = ({
                                                      selection,
                                                      ...props
                                                    }) => {
+  const {assetSrc} = useAssets();
   const tile = (
     <Tile
       role="gridcell"
@@ -267,7 +270,7 @@ const SvgCell: React.FC<ExtendedTileGridItem> = ({
           width: '100%',
         }}
         alt="placeholder"
-        src={`/api/assets/single?npath=${item.npath}`}
+        src={assetSrc(item)}
       />
     ),
   });

@@ -1,4 +1,5 @@
 import { IUser } from '@shared/interfaces/model';
+import {format} from "date-fns";
 
 const userMeta = (user: IUser, key: string) =>
   user?.meta?.find((meta) => meta.key === key)?.value;
@@ -28,4 +29,13 @@ const convertModelArrayToObject = <T>(
   return object;
 };
 
-export { userMeta, userPersonaText, ModelObject, convertModelArrayToObject };
+const formatDate = (date: Date|string) => {
+  if (!date) return undefined;
+
+  if (typeof date === 'string')
+    date = new Date(date);
+
+  return format(date, 'yyyy.MM.dd hh:mm');
+}
+
+export { userMeta, userPersonaText, ModelObject, convertModelArrayToObject, formatDate };
