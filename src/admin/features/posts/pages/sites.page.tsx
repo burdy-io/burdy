@@ -149,6 +149,7 @@ const SitesPage = () => {
                     }
                     return {
                       ...item,
+                      actionType: 'sites',
                       title: item?.name,
                       helper: item?.slug,
                       key: item.id,
