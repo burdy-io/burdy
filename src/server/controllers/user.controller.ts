@@ -22,11 +22,25 @@ import async from 'async';
 import Validators from '@shared/validators';
 import { hasPermissions } from '@shared/features/permissions';
 import Hooks from "@shared/features/hooks";
+import SiteSettings from "@server/models/site-settings.model";
 
 const app = express();
 
 app.get(
   '/loggedIn',
+  asyncMiddleware(async (req, res, next) => {
+    const siteSettingsRepository = getRepository(SiteSettings);
+
+    const initiated = await siteSettingsRepository.findOne({
+      where: { key: 'initiated' },
+    });
+
+    if (!initiated) {
+      throw new BadRequestError('not_initiated');
+    }
+
+    return next();
+  }),
   authMiddleware(),
   asyncMiddleware(async (req, res) => {
     const { user } = req.data;

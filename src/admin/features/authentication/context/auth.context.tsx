@@ -4,6 +4,8 @@ import { useAsyncCallback, UseAsyncReturn } from 'react-async-hook';
 import { useHistory } from 'react-router';
 import apiAxios, { useApiCallback } from '@admin/helpers/api';
 
+export type AuthStatuses = 'authenticated' | 'needs-init' | 'unauthenticated';
+
 interface AuthContextInterface {
   user: IUser;
   logIn: UseAsyncReturn<
@@ -23,8 +25,9 @@ interface AuthContextInterface {
   >;
   filterPermissions: (list: any[]) => any[];
   hasPermission: (list?: string[]) => boolean;
-  needsInit: boolean;
   loading: boolean;
+  authStatus: AuthStatuses;
+  setAuthStatus: (status: AuthStatuses) => void;
 }
 
 const AuthContext = createContext<AuthContextInterface>({} as any);
@@ -33,6 +36,7 @@ const AuthContextProvider = ({ children }) => {
   const [user, setUser] = useState(undefined);
   const [loading, setLoading] = useState(true);
   const history = useHistory();
+  const [authStatus, setAuthStatus] = useState<AuthStatuses>('unauthenticated');
 
   const logIn = useApiCallback(async ({ email, password }) => {
     const response = await apiAxios.post('/login', { email, password });
@@ -40,6 +44,10 @@ const AuthContextProvider = ({ children }) => {
     history.replace('/');
     return response;
   });
+
+  useEffect(() => {
+    setAuthStatus(user ? 'authenticated' : 'unauthenticated');
+  }, [user]);
 
   const logOut = useApiCallback(async () => {
     const response = await apiAxios.post('/logout');
@@ -52,8 +60,19 @@ const AuthContextProvider = ({ children }) => {
     try {
       const res = await apiAxios.get('/loggedIn');
       setUser(res?.data);
+      setAuthStatus('authenticated');
     } catch (e) {
-      // silent
+      const { status } = e.response;
+
+      if (user) {
+        setUser(undefined);
+      }
+
+      if (status === 401) {
+        setAuthStatus('unauthenticated');
+      } else if (status === 400) {
+        setAuthStatus('needs-init');
+      }
     }
   });
 
@@ -65,15 +84,6 @@ const AuthContextProvider = ({ children }) => {
     apiAxios.post('/forgot/verify', { token, password })
   );
 
-  const needsInit = useAsyncCallback(async () => {
-    try {
-      await apiAxios.get('/init');
-      return true;
-    } catch (e) {
-      return false;
-    }
-  });
-
   const init = useApiCallback(async (data) => {
     const res = await apiAxios.post('/init', data);
     setUser(res?.data?.user);
@@ -84,7 +94,7 @@ const AuthContextProvider = ({ children }) => {
   const load = useAsyncCallback(async () => {
     setLoading(true);
 
-    await Promise.all([loggedIn.execute(), needsInit.execute()]);
+    await Promise.all([loggedIn.execute()]);
 
     setLoading(false);
   });
@@ -149,11 +159,12 @@ const AuthContextProvider = ({ children }) => {
         logOut,
         forgot,
         forgotVerify,
-        needsInit: needsInit.result,
         init,
         updatePassword,
         filterPermissions,
         hasPermission,
+        authStatus,
+        setAuthStatus
       }}
     >
       {children}
