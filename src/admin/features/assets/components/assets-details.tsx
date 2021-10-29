@@ -50,6 +50,7 @@ const useStyles = makeStyles((theme) => ({
   },
   previewImage: {
     maxHeight: 256,
+    maxWidth: '100%',
     marginRight: 'auto',
     border: `1px solid ${theme.palette.neutralLight}`
   }

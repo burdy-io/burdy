@@ -8,37 +8,37 @@ import {
   Stack,
 } from '@fluentui/react';
 import React, { useEffect, useMemo } from 'react';
-import { useHistory, useParams } from 'react-router';
+import { useHistory, useLocation } from 'react-router';
 import queryString from 'query-string';
 import { usePosts } from '../../posts/context/posts.context';
 import { useAuth } from '@admin/features/authentication/context/auth.context';
 
 export interface EditorCommandBarProps {
   handleSubmit: any;
-  displayDevice?: boolean;
-  displayToggleMenu?: boolean;
+  editor?: string;
   toggleMenu?: (val: boolean) => void;
   menuOpened?: boolean;
   device?: string;
   onDeviceChange?: (device: string) => void;
   loading?: boolean;
+  enableEditor?: boolean;
 }
 
 const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
   handleSubmit,
+  editor,
   device,
   onDeviceChange,
-  displayDevice,
-  displayToggleMenu,
   menuOpened,
   toggleMenu,
   loading,
+  enableEditor
 }) => {
   const { getPost, post, setStateData, stateData, getVersionsCount } =
     usePosts();
 
   const history = useHistory();
-  const params = useParams<any>();
+  const location = useLocation();
 
   const { filterPermissions } = useAuth();
 
@@ -68,7 +68,43 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
       },
     ];
 
-    if (displayDevice && !loading) {
+    if (enableEditor && !loading) {
+      items.push({
+        key: 'switchEditor',
+        text: editor === 'preview' ? 'Preview' : 'Headless',
+        iconProps: {iconName: 'ChangeEntitlements'},
+        subMenuProps: {
+          items: [
+            {
+              key: 'headless',
+              text: 'Headless',
+              onClick: () => {
+                history.push({
+                  search: queryString.stringify({
+                    ...(queryString.parse(location.search) || {}),
+                    editor: undefined
+                  })
+                });
+              }
+            },
+            {
+              key: 'preview',
+              text: 'Preview',
+              onClick: () => {
+                history.push({
+                  search: queryString.stringify({
+                    ...(queryString.parse(location.search) || {}),
+                    editor: 'preview'
+                  })
+                });
+              }
+            }
+          ]
+        }
+      })
+    }
+
+    if (enableEditor && editor === 'preview' && !loading) {
       items.push({
         key: 'deviceSize',
         onRender: () => {
@@ -113,7 +149,7 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
     }
 
     return items;
-  }, [getPost?.result, device, loading]);
+  }, [getPost?.result, device, loading, editor, location]);
 
   const farToolbarItems = useMemo<ICommandBarItemProps[]>(() => {
     if (loading) {
@@ -187,9 +223,12 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
           iconProps: { iconName: 'Cancel' },
           onClick: () => {
             history.push({
-              search: 'action=version_canceled',
+              search: queryString.stringify({
+                ...(queryString.parse(location.search) || {}),
+                versionId: undefined,
+                action: undefined
+              })
             });
-            window.location.reload();
           },
         },
       ];
@@ -255,7 +294,7 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
         },
       });
     }
-    if (displayToggleMenu) {
+    if (enableEditor && editor === 'preview') {
       items.push({
         key: 'toggle',
         'data-cy': 'editor-commandBar-toggle-menu',
@@ -267,7 +306,7 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
       },)
     }
     return items;
-  }, [getPost?.result, post, loading, stateData, getVersionsCount?.result, menuOpened]);
+  }, [getPost?.result, post, editor, loading, stateData, getVersionsCount?.result, menuOpened]);
 
   return (
     <CommandBar

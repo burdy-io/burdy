@@ -1,7 +1,7 @@
 import {
   CommandBar,
   ICommandBarItemProps,
-  NeutralColors, PrimaryButton,
+  NeutralColors,
   SearchBox,
 } from '@fluentui/react';
 import React, {useMemo} from 'react';
@@ -10,7 +10,7 @@ import {useDebouncedCallback} from 'use-debounce';
 import {useAuth} from '@admin/features/authentication/context/auth.context';
 import {usePosts} from '../context/posts.context';
 
-const enableIframeEditor = process.env.PUBLIC_ENABLE_IFRAME_EDITOR === 'true';
+const enablePreviewEditor = process.env.PUBLIC_ENABLE_PREVIEW_EDITOR === 'true';
 
 const PostsCommandBar = () => {
   const history = useHistory();
@@ -63,23 +63,41 @@ const PostsCommandBar = () => {
             setStateData('createPostOpen', true);
           },
         },
-        {
-          key: 'edit',
-          text: 'Edit',
-          'data-cy': 'post-commandBar-edit',
-          disabled: selectedPosts?.length !== 1,
-          iconProps: {iconName: 'Edit'},
-          permissions: ['posts_update'],
-          onClick: () => {
-            if (additionalData?.parentId) {
+        enablePreviewEditor ? {
+            key: 'edit',
+            text: 'Edit',
+            disabled:
+              selectedPosts?.length !== 1,
+            iconProps: { iconName: 'Edit' },
+            split: true,
+            permissions: ['sites_update'],
+            subMenuProps: {
+              items: [
+                {
+                  key: 'preview',
+                  text: 'Preview',
+                  onClick: () => {
+                    history.push(
+                      `/sites/editor/${selectedPosts?.[0]?.id}?editor=preview`
+                    );
+                  },
+                },
+              ],
+            },
+            onClick: () => {
               history.push(`/sites/editor/${selectedPosts?.[0]?.id}`);
-            } else {
-              history.push(
-                `/posts/${selectedPosts?.[0]?.contentTypeId}/editor/${selectedPosts?.[0]?.id}`
-              );
-            }
+            },
+          } : {
+            key: 'edit',
+            text: 'Edit',
+            disabled:
+              selectedPosts?.length !== 1,
+            iconProps: { iconName: 'Edit' },
+            permissions: ['sites_update'],
+            onClick: () => {
+              history.push(`/sites/editor/${selectedPosts?.[0]?.id}`);
+            },
           },
-        },
         {
           key: 'settings',
           text: 'Settings',
@@ -147,27 +165,6 @@ const PostsCommandBar = () => {
           },
         },
       ]))
-
-      if (enableIframeEditor) {
-        const index = commandBarItems.findIndex(item => item.key === 'edit');
-        if (index > -1) {
-          commandBarItems.splice(index, 0, {
-            key: 'editFrame',
-            text: 'Customize',
-            iconProps: { iconName: 'Edit' },
-            permissions: ['posts_update'],
-            onRender: () => {
-              return <div style={{ display: 'flex', alignItems: 'center', margin: '0 4px' }}>
-                <PrimaryButton onClick={() => {
-                  history.push(`/sites/frame/${selectedPosts?.[0]?.id}`);
-                }}>
-                  Customize
-                </PrimaryButton>
-              </div>;
-            }
-          });
-        }
-      }
 
       return commandBarItems;
     },
