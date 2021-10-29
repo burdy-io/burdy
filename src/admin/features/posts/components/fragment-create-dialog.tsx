@@ -10,7 +10,7 @@ import {
   PostsContextProvider,
   usePosts,
 } from '@admin/features/posts/context/posts.context';
-import { composeWrappers } from '@admin/helpers/hoc';
+import {composeWrappers} from '@admin/helpers/hoc';
 import {
   DefaultButton,
   Dialog,
@@ -21,17 +21,17 @@ import {
   PrimaryButton,
   Stack,
 } from '@fluentui/react';
-import React, { useEffect, useMemo } from 'react';
-import { Control, useForm } from 'react-hook-form';
+import React, {useEffect, useMemo} from 'react';
+import {Control, useForm} from 'react-hook-form';
 import slugify from 'slugify';
-import { slugRegex, slugRegexMessage } from '@shared/validators';
+import {slugRegex, slugRegexMessage} from '@shared/validators';
 
 interface ISelectParentProps {
   control: Control;
 }
 
-const SelectParentImpl: React.FC<ISelectParentProps> = ({ control }) => {
-  const { getPosts } = usePosts();
+const SelectParentImpl: React.FC<ISelectParentProps> = ({control}) => {
+  const {getPosts} = usePosts();
   const pages = useMemo(() => {
     return [
       {
@@ -76,15 +76,15 @@ interface IFragmentCreateDialogProps {
 }
 
 const FragmentCreateDialog: React.FC<IFragmentCreateDialogProps> = ({
-  isOpen,
-  defaultValues,
-  onDismiss,
-  onCreated,
-}) => {
-  const { createPost } = usePosts();
-  const { getContentTypes } = useContentTypes();
+                                                                      isOpen,
+                                                                      defaultValues,
+                                                                      onDismiss,
+                                                                      onCreated,
+                                                                    }) => {
+  const {createPost} = usePosts();
+  const {getContentTypes} = useContentTypes();
 
-  const { control, handleSubmit, reset, formState, watch, setValue } = useForm({
+  const {control, handleSubmit, reset, formState, watch, setValue} = useForm({
     mode: 'all',
   });
 
@@ -116,6 +116,13 @@ const FragmentCreateDialog: React.FC<IFragmentCreateDialogProps> = ({
     }
   }, [createPost?.result]);
 
+  const submit = handleSubmit((data) => {
+    createPost.execute({
+      ...data,
+      type: 'fragment',
+    });
+  });
+
   return (
     <Dialog
       hidden={!isOpen}
@@ -125,70 +132,65 @@ const FragmentCreateDialog: React.FC<IFragmentCreateDialogProps> = ({
         title: 'Create fragment',
       }}
       modalProps={{
-        styles: { main: { maxWidth: 500 } },
+        styles: {main: {maxWidth: 500}},
       }}
     >
-      <Stack
-        tokens={{
-          childrenGap: 8,
-        }}
-      >
-        {createPost.error?.message && (
-          <MessageBar messageBarType={MessageBarType.error}>
-            {createPost.error.message}
-          </MessageBar>
-        )}
-        <ControlledTextField
-          rules={{
-            required: 'Name is required',
+      <form onSubmit={submit}>
+        <Stack
+          tokens={{
+            childrenGap: 8,
           }}
-          name="name"
-          label="Name"
-          control={control}
-        />
-        <ControlledTextField
-          name="slug"
-          label="Slug"
-          control={control}
-          rules={{
-            required: 'Slug is required',
-            pattern: {
-              value: slugRegex,
-              message: slugRegexMessage,
-            }
-          }}
-        />
-        <ControlledDropdown
-          disabled={getContentTypes?.loading}
-          name="contentTypeId"
-          label="Content Type"
-          control={control}
-          rules={{
-            required: 'Content type is required',
-          }}
-          placeHolder="Select Content Type"
-          options={(getContentTypes?.result ?? []).map((contentType) => ({
-            key: contentType.id,
-            text: contentType.name,
-          }))}
-        />
-        <SelectParent control={control} />
-      </Stack>
-      <DialogFooter>
-        <DefaultButton onClick={onDismiss} text="Cancel" />
-        <PrimaryButton
-          onClick={() => {
-            handleSubmit((data) => {
-              createPost.execute({
-                ...data,
-                type: 'fragment',
-              });
-            })();
-          }}
-          text="Create"
-          disabled={createPost?.loading || getContentTypes?.loading}
-        />
-      </DialogFooter>
+        >
+          {createPost.error?.message && (
+            <MessageBar messageBarType={MessageBarType.error}>
+              {createPost.error.message}
+            </MessageBar>
+          )}
+          <ControlledTextField
+            rules={{
+              required: 'Name is required',
+            }}
+            name="name"
+            label="Name"
+            control={control}
+          />
+          <ControlledTextField
+            name="slug"
+            label="Slug"
+            control={control}
+            rules={{
+              required: 'Slug is required',
+              pattern: {
+                value: slugRegex,
+                message: slugRegexMessage,
+              }
+            }}
+          />
+          <ControlledDropdown
+            disabled={getContentTypes?.loading}
+            name="contentTypeId"
+            label="Content Type"
+            control={control}
+            rules={{
+              required: 'Content type is required',
+            }}
+            placeHolder="Select Content Type"
+            options={(getContentTypes?.result ?? []).map((contentType) => ({
+              key: contentType.id,
+              text: contentType.name,
+            }))}
+          />
+          <SelectParent control={control}/>
+        </Stack>
+        <DialogFooter>
+          <DefaultButton onClick={onDismiss} text="Cancel"/>
+          <PrimaryButton
+            type="submit"
+            text="Create"
+            disabled={createPost?.loading || getContentTypes?.loading}
+          />
+        </DialogFooter>
+      </form>
     </Dialog>
   );
 };
