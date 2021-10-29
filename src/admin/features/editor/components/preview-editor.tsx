@@ -21,6 +21,7 @@ import PostDetails from '@admin/features/posts/components/post-details';
 import { IPost } from '@shared/interfaces/model';
 import DynamicGroup from '@admin/config-fields/dynamic-group';
 import { FormProvider } from 'react-hook-form';
+import { useHistory } from 'react-router';
 
 const theme = getTheme();
 
@@ -192,11 +193,13 @@ const PreviewEditor = ({
   menuOpened = true,
   message,
 }) => {
-  const { post, compilePost, getPreviewData, setPost, getPost } = usePosts();
+  const { post, compilePost, getPreviewData } = usePosts();
 
   const iframeRef = useRef(null);
   const [selectedTab, setSelectedTab] = useState(null);
   const [iframeSrc, setIframeSrc] = useState<string>();
+
+  const history = useHistory();
 
   const debounced = useDebouncedCallback(async (val) => {
     try {
@@ -230,8 +233,7 @@ const PreviewEditor = ({
     const handler = (event: MessageEvent) => {
       const id = event.data?.post?.id;
       if (!id || id === post?.id) return;
-      setPost(null);
-      getPost.execute(id);
+      history.push(`/sites/editor/${id}`);
     };
 
     window.addEventListener('message', handler);
