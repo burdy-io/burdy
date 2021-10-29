@@ -58,7 +58,7 @@ const PostsCommandBar = () => {
           text: 'New',
           'data-cy': 'post-commandBar-new',
           iconProps: {iconName: 'Add'},
-          permissions: ['posts_create'],
+          permissions: ['sites_create'],
           onClick: () => {
             setStateData('createPostOpen', true);
           },
@@ -105,7 +105,7 @@ const PostsCommandBar = () => {
           disabled:
             selectedPosts?.length !== 1 || selectedPosts?.[0]?.type === 'site',
           iconProps: {iconName: 'Settings'},
-          permissions: ['posts_update'],
+          permissions: ['sites_update'],
           onClick: () => {
             setStateData('updatePostOpen', true);
           },
@@ -117,7 +117,7 @@ const PostsCommandBar = () => {
           disabled:
             selectedPosts?.length !== 1,
           iconProps: {iconName: 'Copy'},
-          permissions: ['posts_create'],
+          permissions: ['sites_create'],
           onClick: () => {
             setStateData('copyPostsOpen', true);
           },
@@ -128,7 +128,7 @@ const PostsCommandBar = () => {
           'data-cy': 'post-commandBar-delete',
           disabled: selectedPosts?.length === 0,
           iconProps: {iconName: 'Delete'},
-          permissions: ['posts_delete'],
+          permissions: ['sites_delete'],
           onClick: () => {
             setStateData('deletePostsOpen', true);
           },
@@ -139,7 +139,7 @@ const PostsCommandBar = () => {
           'data-cy': 'post-commandBar-publish',
           disabled: selectedPosts?.length === 0,
           iconProps: {iconName: 'WebPublish'},
-          permissions: ['posts_update'],
+          permissions: ['sites_publish'],
           onClick: () => {
             setStateData('publishPostOpen', true);
           },
@@ -150,7 +150,7 @@ const PostsCommandBar = () => {
           'data-cy': 'post-commandBar-unpublish',
           disabled: selectedPosts?.length === 0,
           iconProps: {iconName: 'UnpublishContent'},
-          permissions: ['posts_update'],
+          permissions: ['sites_publish'],
           onClick: () => {
             setStateData('unpublishPostOpen', true);
           },

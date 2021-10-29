@@ -63,18 +63,18 @@ const SideNav = () => {
           permissions: ['assets_list'],
         },
         {
-          url: '/content-types',
-          key: 'content-types',
-          'data-cy': 'nav-content-types',
-          name: 'Content Types',
-          permissions: ['content_types_list'],
-        },
-        {
           url: '/sites',
           key: 'sites',
           'data-cy': 'nav-sites',
           name: `Sites`,
           permissions: ['sites_list'],
+        },
+        {
+          url: '/content-types',
+          key: 'content-types',
+          'data-cy': 'nav-content-types',
+          name: 'Content Types',
+          permissions: ['content_types_list'],
         },
         {
           url: '/tags',
@@ -107,10 +107,6 @@ const SideNav = () => {
   const selectedKey = useMemo(() => {
     if (location.pathname.includes('/sites')) {
       return 'sites';
-    }
-
-    if (location.pathname.includes('/posts')) {
-      return `posts_${location.pathname.split('/')?.[2]}`;
     }
 
     const flatLinks = groups.flatMap((g) => g.links);

@@ -50,41 +50,23 @@ const DefaultPermissions: IPermission[] = [
     children: [
       {
         id: 'sites_list',
-        name: 'List sites/pages/fragments',
+        name: 'List sites/pages/posts/fragments',
       },
       {
         id: 'sites_create',
-        name: 'Create sites/pages/fragments',
+        name: 'Create sites/pages/posts/fragments',
       },
       {
         id: 'sites_update',
-        name: 'Update sites/pages/fragments',
+        name: 'Update sites/pages/posts/fragments',
+      },
+      {
+        id: 'sites_publish',
+        name: 'Publish/Unpublish sites/pages/posts/fragments',
       },
       {
         id: 'sites_delete',
-        name: 'Delete sites/pages/fragments',
-      },
-    ],
-  },
-  {
-    id: 'posts',
-    name: 'Posts',
-    children: [
-      {
-        id: 'posts_list',
-        name: 'List posts',
-      },
-      {
-        id: 'posts_create',
-        name: 'Create posts',
-      },
-      {
-        id: 'posts_update',
-        name: 'Update posts',
-      },
-      {
-        id: 'posts_delete',
-        name: 'Delete posts',
+        name: 'Delete sites/pages/posts/fragments',
       },
     ],
   },
