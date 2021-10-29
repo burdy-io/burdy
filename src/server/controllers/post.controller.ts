@@ -688,9 +688,8 @@ app.delete(
   })
 );
 
-
 app.get(
-  '/posts/iframe/:postId',
+  '/posts/preview/:postId',
   authMiddleware(),
   asyncMiddleware(async (req, res) => {
     const id = req?.params?.postId;
@@ -702,15 +701,15 @@ app.get(
     const token = sign({
       postId: post.id,
       userId: req?.data?.user?.id,
-    }, process.env.IFRAME_TOKEN_EXPIRES || 1800);
+    }, process.env.PREVIEW_TOKEN_EXPIRES || 1800);
 
-    const data = await Hooks.applyFilters('posts/iframe/data', {
+    const data = await Hooks.applyFilters('posts/preview/data', {
       post,
       data: {
-        baseUrl: process.env.IFRAME_BASE_URL,
+        baseUrl: process.env.PREVIEW_BASE_URL,
         token
       },
-      src: `${process.env.IFRAME_BASE_URL}/${post?.slugPath}?${queryString.stringify({versionId, token})}`
+      src: `${process.env.PREVIEW_BASE_URL}/${post?.slugPath}?${queryString.stringify({versionId, token})}`
     });
 
     return res.send(data);

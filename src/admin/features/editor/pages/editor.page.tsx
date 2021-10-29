@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { composeWrappers } from '@admin/helpers/hoc';
 import { useHistory, useLocation, useParams } from 'react-router';
 import { useSnackbar } from '@admin/context/snackbar';
@@ -6,7 +6,7 @@ import { MessageBarType } from '@fluentui/react';
 import queryString from 'query-string';
 import {
   PostsContextProvider,
-  usePosts
+  usePosts,
 } from '../../posts/context/posts.context';
 import EditorCommandBar from '../components/editor-command-bar';
 import PostPublishDialog from '../../posts/components/post-publish-dialog';
@@ -16,14 +16,17 @@ import ContentTypeUpdatePanel from '../../content-types/components/content-type-
 import PostVersionsSelectPanel from '../../posts/components/post-versions-select-panel';
 import PostVersionsDeleteDialog from '../../posts/components/post-versions-delete-dialog';
 import PostVersionsRestoreDialog from '../../posts/components/post-versions-restore-dialog';
-import IFrameEditor from '@admin/features/editor/components/iframe-editor';
+import { useForm } from 'react-hook-form';
+import PreviewEditor from '@admin/features/editor/components/preview-editor';
+import HeadlessEditor from '@admin/features/editor/components/headless-editor';
 
-const IFramePage = () => {
+const enablePreviewEditor = process.env.PUBLIC_ENABLE_PREVIEW_EDITOR === 'true';
+
+const EditorPage = () => {
   const params = useParams<any>();
   const history = useHistory();
   const location = useLocation();
-
-  const [device, setDevice] = useState('desktop');
+  const search = queryString.parse(location?.search);
 
   const {
     getPost,
@@ -32,72 +35,130 @@ const IFramePage = () => {
     stateData,
     setStateData,
     post,
-    setPost
+    setPost,
   } = usePosts();
 
-  const formRef = useRef(null);
-
+  const [device, setDevice] = useState('desktop');
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState(null);
+  const [enableEditor, setEnableEditor] = useState<boolean>();
   const { openSnackbar } = useSnackbar();
 
+  const [editorType, setEditorType] = useState(() => {
+    return search?.editor === 'preview' ? 'preview' : 'headless';
+  });
   const [menuOpened, setMenuOpened] = useState(true);
+
+  const methods = useForm({
+    mode: 'all',
+    shouldUnregister: true,
+  });
+
+  useEffect(() => {
+    let id;
+    if (search?.action) {
+      setMessage(search?.action);
+      id = setTimeout(() => {
+        setMessage(null);
+        const search = queryString.parse(window?.location?.search);
+        history.push({
+          search: queryString.stringify({
+            ...(search || {}),
+            action: undefined
+          })
+        });
+      }, 5000);
+    } else {
+      setMessage(null);
+    }
+    return () => {
+      if (id) {
+        clearTimeout(id);
+      }
+    };
+  }, [search?.action]);
 
   useEffect(() => {
     if (post) {
+      methods.reset((post?.meta as any)?.content);
       setLoading(false);
+      if (
+        post?.type === 'page' ||
+        post?.type === 'post' ||
+        post?.type === 'hierarchical_post'
+      ) {
+        setEnableEditor(!!enablePreviewEditor);
+      }
     }
-  }, [post]);
+  }, [post?.id, post?.versionId]);
 
   useEffect(() => {
-    const handler = (event: MessageEvent) => {
-      const id = event.data?.post?.id;
-      if (!id || id === params?.postId) return;
-
-      history.push(`/sites/frame/${id}`);
-    }
-
-    window.addEventListener('message', handler);
-    return () => window.removeEventListener('message', handler);
-  }, [params?.postId]);
+    setPost(null);
+    setLoading(true);
+    getPost.execute(params?.postId, {
+      versionId: search.versionId,
+    });
+  }, [params?.postId, search.versionId]);
 
   useEffect(() => {
-    getPost.execute(params?.postId, queryString.parse(location.search) as any);
-  }, [params?.postId, location?.search]);
+    if (post) {
+      methods.reset(methods.getValues());
+      if (search?.editor === 'preview') {
+        setEditorType('preview');
+      } else {
+        setEditorType('headless');
+      }
+    }
+  }, [search?.editor]);
+
+  useEffect(() => {
+    if (updatePostContent?.result) {
+      openSnackbar({
+        message: 'Post updated successfully',
+        messageBarType: MessageBarType.success,
+      });
+    }
+  }, [updatePostContent?.result]);
 
   const handleSubmit = () => {
-    const form = formRef.current?.getForm();
-    form.handleSubmit(
+    methods.handleSubmit(
       (data) => {
         updatePostContent.execute(post?.id, data);
       },
       () => {
         openSnackbar({
           message: 'Form has errors',
-          messageBarType: MessageBarType.severeWarning
+          messageBarType: MessageBarType.severeWarning,
         });
       }
     )();
   };
 
   return (
-    <div className='page-wrapper'>
+    <div className="page-wrapper">
       <EditorCommandBar
-        displayDevice
+        loading={loading}
+        handleSubmit={handleSubmit}
         device={device}
         onDeviceChange={(device) => {
           setDevice(device);
         }}
-        loading={loading}
-        handleSubmit={handleSubmit}
-        displayToggleMenu
+        enableEditor={enableEditor}
         menuOpened={menuOpened}
-        toggleMenu={setMenuOpened} />
-      <div className='page-content'>
-        <IFrameEditor
-          ref={formRef}
-          device={device}
-          menuOpened={menuOpened}
-        />
+        toggleMenu={setMenuOpened}
+        editor={editorType}
+      />
+      <div className="page-content">
+        {enableEditor && editorType === 'preview' ? (
+          <PreviewEditor
+            methods={methods}
+            device={device}
+            menuOpened={menuOpened}
+            message={message}
+          />
+        ) : (
+          <HeadlessEditor methods={methods} message={message} />
+        )}
       </div>
       <PostSettingsDialog
         onDismiss={() => setStateData('updatePostOpen', false)}
@@ -132,7 +193,7 @@ const IFramePage = () => {
         onUpdated={(data) => {
           setPost({
             ...post,
-            contentType: data
+            contentType: data,
           });
           setStateData('updateContentTypeOpen', false);
         }}
@@ -143,12 +204,21 @@ const IFramePage = () => {
         onDismiss={() => setStateData('versionsOpen', false)}
         onSelect={(post) => {
           history.push({
-            search: queryString.stringify({ versionId: post?.id })
+            search: queryString.stringify({
+              ...(queryString.parse(location.search) || {}),
+              versionId: post?.id,
+            }),
           });
-          window.location.reload();
           setStateData('versionsOpen', false);
         }}
         onUpdate={() => {
+          getVersionsCount.execute(post?.id);
+          setLoading(true);
+          setPost(null);
+          getPost.execute(params?.postId);
+          setStateData('versionsOpen', false);
+        }}
+        onDelete={() => {
           getVersionsCount.execute(post?.id);
         }}
       />
@@ -159,9 +229,12 @@ const IFramePage = () => {
         onDeleted={() => {
           setStateData('versionsDeleteOpen', false);
           history.push({
-            search: 'action=version_deleted'
+            search: queryString.stringify({
+              ...(queryString.parse(location.search) || {}),
+              versionId: undefined,
+              action: 'version_deleted',
+            }),
           });
-          window.location.reload();
         }}
       />
       <PostVersionsRestoreDialog
@@ -171,9 +244,13 @@ const IFramePage = () => {
         onRestored={() => {
           setStateData('versionRestoreOpen', false);
           history.push({
-            search: 'action=version_restored'
+            search: queryString.stringify({
+              ...(queryString.parse(location.search) || {}),
+              versionId: undefined,
+              action: 'version_restored',
+            }),
           });
-          window.location.reload();
+          setStateData('versionRestoreOpen', false);
         }}
       />
     </div>
@@ -181,5 +258,5 @@ const IFramePage = () => {
 };
 
 export default composeWrappers({
-  postsContext: PostsContextProvider
-})(IFramePage);
+  postsContext: PostsContextProvider,
+})(EditorPage);

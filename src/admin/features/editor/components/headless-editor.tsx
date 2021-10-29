@@ -7,20 +7,13 @@ import {
   Shimmer,
   ShimmerElementType
 } from '@fluentui/react';
-import React, {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState
-} from 'react';
+import React from 'react';
 import PostDetails from '@admin/features/posts/components/post-details';
-import DynamicForm from '@admin/config-fields/dynamic-form';
-import { useSnackbar } from '@admin/context/snackbar';
+import { FormHelperContextProvider } from '@admin/config-fields/dynamic-form';
 import Empty from '@admin/components/empty';
-import { useLocation } from 'react-router';
-import queryString from 'query-string';
 import { usePosts } from '../../posts/context/posts.context';
+import DynamicGroup from '@admin/config-fields/dynamic-group';
+import { FormProvider } from 'react-hook-form';
 
 const theme = getTheme();
 
@@ -45,8 +38,8 @@ const styles = mergeStyleSets({
     boxSizing: 'border-box'
   },
   side: {
-    maxWidth: 270,
-    minWidth: 270,
+    maxWidth: 380,
+    minWidth: 380,
     flexGrow: 1,
     height: '100%',
     overflowY: 'auto',
@@ -79,73 +72,22 @@ const styles = mergeStyleSets({
   }
 });
 
-const HeadlessEditor = forwardRef<any, any>(({ onChange }, ref) => {
-  const { post, updatePostContent } = usePosts();
-
-  const formRef = useRef(null);
-
-  const [message, setMessage] = useState(null);
-
-  const [loaded, setLoaded] = useState(false);
-
-  const { openSnackbar } = useSnackbar();
-
-  const location = useLocation();
-
-  useImperativeHandle(
-    ref,
-    () => ({
-      getForm() {
-        return formRef?.current?.getForm();
-      }
-    }),
-    []
-  );
-
-  useEffect(() => {
-    const search = queryString.parse(location.search) as any;
-    let id;
-    if (search?.action) {
-      setMessage(search?.action);
-      id = setTimeout(() => {
-        setMessage(null);
-      }, 5000);
-    }
-    return () => {
-      if (id) {
-        clearTimeout(id);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (post) {
-      setLoaded(true);
-    }
-  }, [post]);
-
-  useEffect(() => {
-    if (updatePostContent?.result) {
-      openSnackbar({
-        message: 'Post updated successfully',
-        messageBarType: MessageBarType.success
-      });
-    }
-  }, [updatePostContent?.result]);
+const HeadlessEditor = ({ methods, message }) => {
+  const { post } = usePosts();
 
   return (
     <div className={styles.mainWrapper}>
       <div className={styles.content}>
         <div className={`${styles.editor}`}>
-          <LoadingBar loading={!loaded}>
+          <LoadingBar loading={!post?.id}>
             {post?.contentType?.fields?.length > 0 && (
-              <DynamicForm
-                ref={formRef}
-                disabled={!!post?.versionId}
-                field={post?.contentType}
-                defaultValues={(post?.meta as any)?.content}
-                onChange={onChange}
-              />
+              <FormProvider {...methods}>
+                <FormHelperContextProvider
+                  disabled={!!post?.versionId}
+                >
+                  <DynamicGroup field={post?.contentType} />
+                </FormHelperContextProvider>
+              </FormProvider>
             )}
 
             {!(post?.contentType?.fields?.length > 0) && (
@@ -189,11 +131,11 @@ const HeadlessEditor = forwardRef<any, any>(({ onChange }, ref) => {
               </MessageBar>
             </div>
           )}
-          <PostDetails loading={!post} post={post} />
+          <PostDetails loading={!post?.id} post={post} />
         </div>
       </div>
     </div>
   );
-});
+};
 
 export default HeadlessEditor;

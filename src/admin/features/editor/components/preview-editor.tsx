@@ -1,30 +1,33 @@
 import LoadingBar from '@admin/components/loading-bar';
 import {
-  getTheme, IconButton,
+  getTheme,
+  IconButton,
   mergeStyleSets,
   MessageBar,
-  MessageBarType, Pivot, PivotItem,
+  MessageBarType,
+  Pivot,
+  PivotItem,
   Shimmer,
   ShimmerElementType,
   Stack
 } from '@fluentui/react';
 import React, {
-  forwardRef,
   useEffect,
-  useImperativeHandle, useMemo,
+  useMemo,
   useRef,
   useState
 } from 'react';
-import DynamicForm from '@admin/config-fields/dynamic-form';
-import { useSnackbar } from '@admin/context/snackbar';
+import {
+  FormHelperContextProvider
+} from '@admin/config-fields/dynamic-form';
 import Empty from '@admin/components/empty';
-import {useLocation, useParams} from 'react-router';
-import queryString from 'query-string';
 import { usePosts } from '../../posts/context/posts.context';
 import classNames from 'classnames';
 import { useDebouncedCallback } from 'use-debounce';
 import PostDetails from '@admin/features/posts/components/post-details';
 import { IPost } from '@shared/interfaces/model';
+import DynamicGroup from '@admin/config-fields/dynamic-group';
+import { FormProvider } from 'react-hook-form';
 
 const theme = getTheme();
 
@@ -33,7 +36,7 @@ interface TabsItemProps {
   name?: string;
 }
 
-interface TabsProps {
+type TabsProps = {
   items: TabsItemProps[];
   loading?: boolean;
   onSelected: (e: string) => void;
@@ -190,31 +193,12 @@ const styles = mergeStyleSets({
   }
 });
 
-const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuOpened = true }, ref) => {
-  const { post, updatePostContent, compilePost, getIFrameData } = usePosts();
+const PreviewEditor = ({ methods, device = 'desktop', menuOpened = true, message }) => {
+  const { post, compilePost, getPreviewData } = usePosts();
 
   const iframeRef = useRef(null);
-  const formRef = useRef(null);
   const [selectedTab, setSelectedTab] = useState(null);
   const [iframeSrc, setIframeSrc] = useState<string>();
-
-  const [message, setMessage] = useState(null);
-
-  const [loaded, setLoaded] = useState(false);
-
-  const { openSnackbar } = useSnackbar();
-
-  const location = useLocation();
-
-  useImperativeHandle(
-    ref,
-    () => ({
-      getForm() {
-        return formRef?.current?.getForm();
-      }
-    }),
-    []
-  );
 
   const debounced = useDebouncedCallback(async (val) => {
     try {
@@ -227,10 +211,13 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
       });
 
       if (iframeRef?.current) {
-        iframeRef.current.contentWindow.postMessage({
-          source: 'burdy-post-edit',
-          payload: compiled
-        }, '*');
+        iframeRef.current.contentWindow.postMessage(
+          {
+            source: 'burdy-post-edit',
+            payload: compiled
+          },
+          '*'
+        );
       }
     } catch (err) {
       //
@@ -238,24 +225,14 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
   }, 500);
 
   useEffect(() => {
-    const search = queryString.parse(location.search) as any;
-    let id;
-    if (search?.action) {
-      setMessage(search?.action);
-      id = setTimeout(() => {
-        setMessage(null);
-      }, 5000);
-    }
-    return () => {
-      if (id) {
-        clearTimeout(id);
-      }
-    };
+    methods.watch((val) => {
+      debounced(val);
+    });
   }, []);
 
-  const fetchIframeData = async (post: IPost) => {
+  const fetchPreviewData = async (post: IPost) => {
     try {
-      const response = await getIFrameData.execute(post?.id, post?.versionId);
+      const response = await getPreviewData.execute(post?.id, post?.versionId);
       if (response) {
         setIframeSrc(response?.src);
       }
@@ -266,21 +243,9 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
 
   useEffect(() => {
     if (post) {
-      setLoaded(true);
-      if (!iframeSrc) {
-        fetchIframeData(post);
-      }
+      fetchPreviewData(post);
     }
-  }, [post]);
-
-  useEffect(() => {
-    if (updatePostContent?.result) {
-      openSnackbar({
-        message: 'Post updated successfully',
-        messageBarType: MessageBarType.success
-      });
-    }
-  }, [updatePostContent?.result]);
+  }, [post?.id]);
 
   const tabs = useMemo(() => {
     const tmpTabs = [
@@ -308,31 +273,33 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
   return (
     <div className={styles.mainWrapper}>
       <div className={styles.content}>
-        <div className={`${styles.editor} ${classNames({
-          [styles.browserTablet]: device === 'tablet',
-          [styles.browserMobile]: device === 'mobile'
-        })}`}>
-          <LoadingBar loading={!loaded}>
+        <div
+          className={`${styles.editor} ${classNames({
+            [styles.browserTablet]: device === 'tablet',
+            [styles.browserMobile]: device === 'mobile'
+          })}`}
+        >
+          <LoadingBar loading={!post?.id}>
             <div className={styles.urlBar}>
-              <div className={styles.urlBarSearch}>
-                {pageUrl}
-              </div>
+              <div className={styles.urlBarSearch}>{pageUrl}</div>
               <div>
                 <IconButton
-                  iconProps={{iconName: 'OpenInNewTab'}}
+                  iconProps={{ iconName: 'OpenInNewTab' }}
                   onClick={() => window.open(iframeSrc, '_blank')}
                 />
               </div>
             </div>
             <div className={styles.iframeWrapper}>
-              {iframeSrc && <iframe
-                title='burdy-editor'
-                id='burdy-editor'
-                className={styles.iframe}
-                ref={iframeRef}
-                src={iframeSrc}
-                style={{ width: '1px', minWidth: '100%' }}
-              />}
+              {iframeSrc && (
+                <iframe
+                  title='burdy-editor'
+                  id='burdy-editor'
+                  className={styles.iframe}
+                  ref={iframeRef}
+                  src={iframeSrc}
+                  style={{ width: '1px', minWidth: '100%' }}
+                />
+              )}
             </div>
           </LoadingBar>
         </div>
@@ -377,22 +344,17 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
               </MessageBar>
             </div>
           )}
-          <div
-            className={`${selectedTab === 'editor' ? '' : styles.hide}`}
-          >
-            <LoadingBar loading={!loaded}>
+          <div className={`${selectedTab === 'editor' ? '' : styles.hide}`}>
+            <LoadingBar loading={!post?.id}>
               {post?.contentType?.fields?.length > 0 && (
-                <DynamicForm
-                  ref={formRef}
-                  disabled={!!post?.versionId}
-                  narrow
-                  field={post?.contentType}
-                  defaultValues={(post?.meta as any)?.content}
-                  onChange={(val) => {
-                    onChange?.(val);
-                    debounced(val);
-                  }}
-                />
+                <FormProvider {...methods}>
+                  <FormHelperContextProvider
+                    disabled={!!post?.versionId}
+                    narrow
+                  >
+                    <DynamicGroup field={post?.contentType} />
+                  </FormHelperContextProvider>
+                </FormProvider>
               )}
 
               {!(post?.contentType?.fields?.length > 0) && (
@@ -400,15 +362,13 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
               )}
             </LoadingBar>
           </div>
-          <div
-            className={`${selectedTab === 'details' ? '' : styles.hide}`}
-          >
-            <PostDetails loading={!loaded} post={post} />
+          <div className={`${selectedTab === 'details' ? '' : styles.hide}`}>
+            <PostDetails loading={!post?.id} post={post} />
           </div>
         </div>
       </div>
     </div>
   );
-});
+};
 
-export default IFrameEditor;
+export default PreviewEditor;

@@ -16,11 +16,11 @@ import {
   PostsContextProvider,
   usePosts,
 } from '@admin/features/posts/context/posts.context';
-import { getMetaValue } from '@admin/helpers/utility';
 import { IPost } from '@shared/interfaces/model';
-import { useHistory } from 'react-router';
+import { useHistory, useLocation } from 'react-router';
 import PostVersionsRestoreDialog from './post-versions-restore-dialog';
 import PostVersionsDeleteDialog from './post-versions-delete-dialog';
+import queryString from 'query-string';
 
 const PostVersionsCommandBar = () => {
   const { getPosts, selectedPosts, setStateData, stateData } = usePosts();
@@ -69,6 +69,7 @@ interface PostVersionsSelectPanelProps {
   onDismiss?: () => void;
   onSelect?: (post?: IPost) => void;
   onUpdate?: () => void;
+  onDelete?: () => void;
 }
 
 const PostVersionsSelectPanel: React.FC<PostVersionsSelectPanelProps> = ({
@@ -77,11 +78,13 @@ const PostVersionsSelectPanel: React.FC<PostVersionsSelectPanelProps> = ({
   selectionMode,
   onSelect,
   onUpdate,
+  onDelete,
   post,
 }) => {
   const { getVersions, selectedPosts, selection, stateData, setStateData } =
     usePosts();
 
+  const location = useLocation();
   const history = useHistory();
 
   useEffect(() => {
@@ -157,11 +160,19 @@ const PostVersionsSelectPanel: React.FC<PostVersionsSelectPanelProps> = ({
       <PostVersionsDeleteDialog
         isOpen={stateData?.versionsDeleteOpen}
         onDismiss={() => setStateData('versionsDeleteOpen', false)}
-        onDeleted={() => {
+        onDeleted={(deleted) => {
           setStateData('versionsDeleteOpen', false);
           getVersions.execute(post?.id);
-          if (onUpdate) {
-            onUpdate();
+          onDelete();
+          if ((deleted || []).indexOf(post?.versionId) > -1 && onUpdate) {
+            history.push({
+              search: queryString.stringify({
+                ...(queryString.parse(location.search) || {}),
+                versionId: undefined,
+                action: 'version_deleted',
+              }),
+            });
+            onDismiss();
           }
         }}
       />
@@ -171,9 +182,14 @@ const PostVersionsSelectPanel: React.FC<PostVersionsSelectPanelProps> = ({
         onRestored={() => {
           setStateData('versionRestoreOpen', false);
           history.push({
-            search: 'action=version_restored',
+            search: queryString.stringify({
+              ...(queryString.parse(location.search) || {}),
+              action: 'version_restored',
+            }),
           });
-          window.location.reload();
+          if (onUpdate) {
+            onUpdate();
+          }
         }}
       />
     </Panel>
