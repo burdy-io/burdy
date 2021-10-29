@@ -15,13 +15,19 @@ export default class AwsS3FileDriver implements IFileDriver {
   private s3: any;
 
   constructor() {
-    this.s3 = new AWS.S3({
+    const options: AWS.S3.Types.ClientConfiguration = {
       region: this.region,
       credentials: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       },
-    });
+    }
+
+    if (process.env.AWS_S3_ENDPOINT) {
+      options.endpoint = new AWS.Endpoint(process.env.AWS_S3_ENDPOINT);
+    }
+
+    this.s3 = new AWS.S3(options);
   }
 
   getPath = (key: string) => `${this.dir}/${key}`;
