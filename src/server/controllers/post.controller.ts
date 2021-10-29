@@ -169,7 +169,7 @@ app.post(
           contentType = await transactionManager.findOne(ContentType, {
             where: {
               id: params.contentTypeId,
-              type: In(['post', 'page', 'fragment', 'hierarchical_post'])
+              type: In(['post', 'page', 'fragment'])
             }
           });
           if (!contentType) throw new BadRequestError('invalid_content_type');
@@ -260,7 +260,7 @@ app.post(
             .leftJoinAndSelect('post.meta', 'meta')
             .leftJoinAndSelect('post.tags', 'tags')
             .where('post.type IN (:...types)', {
-              types: ['folder', 'page', 'fragment', 'hierarchical_post', 'post']
+              types: ['folder', 'page', 'fragment', 'post']
             })
             .andWhere(new Brackets((subQb) => {
               subQb

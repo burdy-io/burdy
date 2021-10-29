@@ -17,7 +17,7 @@ const ControlledPostTypesDropdown: React.FC<HookFormProps & IDropdownProps> = (
 
   useEffect(() => {
     getContentTypes.execute({
-      type: 'page,post,hierarchical_post',
+      type: 'page,post',
     });
   }, []);
 

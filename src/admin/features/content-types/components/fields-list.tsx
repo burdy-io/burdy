@@ -142,7 +142,7 @@ const FieldsList: React.FC<IFieldsListProps> = ({ field, isRoot }) => {
     }
 
     if (!getContentTypes?.result && !getContentTypes?.loading) {
-      getContentTypes.execute({ type: 'page,post,hierarchical_post' });
+      getContentTypes.execute({ type: 'page,post' });
     }
   }, []);
 

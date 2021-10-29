@@ -109,8 +109,8 @@ const CreateHierarchicalPostDialog: React.FC<ICreateHierarchicalPostProps> = ({
     if (isOpen) {
       (async () => {
         const [pageTypes, postTypes] = await Promise.all([
-          getContentTypes.execute({type: 'page'}),
-          getContentTypes.execute({type: 'hierarchical_post'}),
+          getContentTypes.execute({ type: 'page' }),
+          getContentTypes.execute({ type: 'post' }),
         ]);
 
         setPageContentTypes(pageTypes);

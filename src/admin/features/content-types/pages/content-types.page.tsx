@@ -44,8 +44,8 @@ const ContentTypesPage = () => {
       key: 'component'
     },
     {
-      name: 'Hierarchical Posts',
-      key: 'hierarchical_post'
+      name: 'Posts',
+      key: 'post'
     },
     {
       name: 'Fragments',
