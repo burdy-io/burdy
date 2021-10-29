@@ -109,8 +109,8 @@ const CreateHierarchicalPostDialog: React.FC<ICreateHierarchicalPostProps> = ({
     if (isOpen) {
       (async () => {
         const [pageTypes, postTypes] = await Promise.all([
-          getContentTypes.execute({ type: 'page' }),
-          getContentTypes.execute({ type: 'hierarchical_post' }),
+          getContentTypes.execute({type: 'page'}),
+          getContentTypes.execute({type: 'hierarchical_post'}),
         ]);
 
         setPageContentTypes(pageTypes);
@@ -125,6 +125,13 @@ const CreateHierarchicalPostDialog: React.FC<ICreateHierarchicalPostProps> = ({
     }
   }, [createPost?.result]);
 
+  const submit = handleSubmit((data) => {
+    createPost.execute({
+      ...data,
+      type: 'hierarchical_post',
+    });
+  });
+
   return (
     <Dialog
       hidden={!isOpen}
@@ -137,81 +144,76 @@ const CreateHierarchicalPostDialog: React.FC<ICreateHierarchicalPostProps> = ({
         styles: {main: {maxWidth: 500}},
       }}
     >
-      <Stack
-        tokens={{
-          childrenGap: 8,
-        }}
-      >
-        {createPost.error?.message && (
-          <MessageBar messageBarType={MessageBarType.error}>
-            {createPost.error.message}
-          </MessageBar>
-        )}
-        <ControlledTextField
-          rules={{
-            required: 'Name is required',
+      <form onSubmit={submit}>
+        <Stack
+          tokens={{
+            childrenGap: 8,
           }}
-          name="name"
-          label="Name"
-          control={control}
-        />
-        <ControlledTextField
-          name="slug"
-          label="Slug"
-          control={control}
-          rules={{
-            required: 'Slug is required',
-            pattern: {
-              value: slugRegex,
-              message: slugRegexMessage,
-            }
-          }}
-        />
-        <ControlledDropdown
-          disabled={getContentTypes?.loading}
-          name="contentTypeId"
-          label="Page Type"
-          control={control}
-          rules={{
-            required: 'Page type is required',
-          }}
-          placeHolder="Select Page Type"
-          options={pageContentTypes.map((contentType) => ({
-            key: contentType.id,
-            text: contentType.name,
-          }))}
-        />
-        <ControlledDropdown
-          disabled={getContentTypes?.loading}
-          name="meta.postContentTypeId"
-          label="Post Type"
-          control={control}
-          rules={{
-            required: 'Post type is required',
-          }}
-          placeHolder="Select Post Type"
-          options={postContentTypes.map((contentType) => ({
-            key: contentType.id,
-            text: contentType.name,
-          }))}
-        />
-        <SelectParent control={control}/>
-      </Stack>
-      <DialogFooter>
-        <DefaultButton onClick={onDismiss} text="Cancel"/>
-        <PrimaryButton
-          onClick={() => {
-            handleSubmit((data) => {
-              createPost.execute({
-                ...data,
-                type: 'hierarchical_post',
-              });
-            })();
-          }}
-          text="Create"
-          disabled={createPost?.loading || getContentTypes?.loading}
-        />
-      </DialogFooter>
+        >
+          {createPost.error?.message && (
+            <MessageBar messageBarType={MessageBarType.error}>
+              {createPost.error.message}
+            </MessageBar>
+          )}
+          <ControlledTextField
+            rules={{
+              required: 'Name is required',
+            }}
+            name="name"
+            label="Name"
+            control={control}
+          />
+          <ControlledTextField
+            name="slug"
+            label="Slug"
+            control={control}
+            rules={{
+              required: 'Slug is required',
+              pattern: {
+                value: slugRegex,
+                message: slugRegexMessage,
+              }
+            }}
+          />
+          <ControlledDropdown
+            disabled={getContentTypes?.loading}
+            name="contentTypeId"
+            label="Page Type"
+            control={control}
+            rules={{
+              required: 'Page type is required',
+            }}
+            placeHolder="Select Page Type"
+            options={pageContentTypes.map((contentType) => ({
+              key: contentType.id,
+              text: contentType.name,
+            }))}
+          />
+          <ControlledDropdown
+            disabled={getContentTypes?.loading}
+            name="meta.postContentTypeId"
+            label="Post Type"
+            control={control}
+            rules={{
+              required: 'Post type is required',
+            }}
+            placeHolder="Select Post Type"
+            options={postContentTypes.map((contentType) => ({
+              key: contentType.id,
+              text: contentType.name,
+            }))}
+          />
+          <SelectParent control={control}/>
+        </Stack>
+        <DialogFooter>
+          <DefaultButton onClick={onDismiss} text="Cancel"/>
+          <PrimaryButton
+            type="submit"
+            text="Create"
+            disabled={createPost?.loading || getContentTypes?.loading}
+          />
+        </DialogFooter>
+      </form>
     </Dialog>
   );
 };
