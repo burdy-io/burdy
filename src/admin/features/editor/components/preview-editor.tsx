@@ -9,17 +9,10 @@ import {
   PivotItem,
   Shimmer,
   ShimmerElementType,
-  Stack
+  Stack,
 } from '@fluentui/react';
-import React, {
-  useEffect,
-  useMemo,
-  useRef,
-  useState
-} from 'react';
-import {
-  FormHelperContextProvider
-} from '@admin/config-fields/dynamic-form';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { FormHelperContextProvider } from '@admin/config-fields/dynamic-form';
 import Empty from '@admin/components/empty';
 import { usePosts } from '../../posts/context/posts.context';
 import classNames from 'classnames';
@@ -40,7 +33,7 @@ type TabsProps = {
   items: TabsItemProps[];
   loading?: boolean;
   onSelected: (e: string) => void;
-}
+};
 
 const Tabs: React.FC<TabsProps> = ({ items, onSelected, loading }) => {
   const [selectedKey, setSelectedKey] = useState(null);
@@ -61,7 +54,7 @@ const Tabs: React.FC<TabsProps> = ({ items, onSelected, loading }) => {
         <Stack
           horizontal
           style={{ height: '100%' }}
-          verticalAlign='center'
+          verticalAlign="center"
           tokens={{ childrenGap: 10 }}
         >
           <Shimmer
@@ -80,7 +73,7 @@ const Tabs: React.FC<TabsProps> = ({ items, onSelected, loading }) => {
         <Pivot
           selectedKey={selectedKey}
           headersOnly
-          aria-label='Basic Pivot'
+          aria-label="Basic Pivot"
           onLinkClick={(item) => {
             setSelectedKey(item?.props?.itemKey);
           }}
@@ -100,7 +93,7 @@ const Tabs: React.FC<TabsProps> = ({ items, onSelected, loading }) => {
 
 const styles = mergeStyleSets({
   card: {
-    margin: 24
+    margin: 24,
   },
   mainWrapper: {
     display: 'flex',
@@ -108,7 +101,7 @@ const styles = mergeStyleSets({
     alignItems: 'flex-start',
     width: '100%',
     height: '100%',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
   },
   content: {
     flexGrow: 1,
@@ -116,7 +109,7 @@ const styles = mergeStyleSets({
     overflowY: 'auto',
     position: 'relative',
     padding: 24,
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
   },
   side: {
     maxWidth: 380,
@@ -125,7 +118,7 @@ const styles = mergeStyleSets({
     height: '100%',
     overflowY: 'auto',
     position: 'relative',
-    boxShadow: theme.effects.elevation16
+    boxShadow: theme.effects.elevation16,
   },
   cardHeading: {
     padding: '0 14px',
@@ -133,7 +126,7 @@ const styles = mergeStyleSets({
     display: 'flex',
     position: 'relative',
     height: 44,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   editor: {
     boxShadow: theme.effects.elevation16,
@@ -144,24 +137,24 @@ const styles = mergeStyleSets({
     marginRight: 'auto',
     height: '100%',
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
   browserMobile: {
-    maxWidth: '375px'
+    maxWidth: '375px',
   },
   browserTablet: {
-    maxWidth: '768px'
+    maxWidth: '768px',
   },
   iframeWrapper: {
     flex: 1,
-    overflowY: 'auto'
+    overflowY: 'auto',
   },
   urlBar: {
     backgroundColor: theme.palette.neutralLight,
     display: 'flex',
     alignItems: 'center',
     height: 40,
-    padding: '0 10px'
+    padding: '0 10px',
   },
   urlBarSearch: {
     backgroundColor: theme.palette.white,
@@ -171,7 +164,7 @@ const styles = mergeStyleSets({
     display: 'flex',
     alignItems: 'center',
     height: 28,
-    fontWeight: 600
+    fontWeight: 600,
   },
   iframe: {
     display: 'block',
@@ -179,22 +172,27 @@ const styles = mergeStyleSets({
     height: '100%',
     width: '100%',
     border: '0px none',
-    overflow: 'auto'
+    overflow: 'auto',
   },
   messages: {
     marginLeft: 'auto',
     marginRight: 'auto',
     marginBottom: 12,
     maxWidth: 960,
-    width: '100%'
+    width: '100%',
   },
   hide: {
-    display: 'none !important'
-  }
+    display: 'none !important',
+  },
 });
 
-const PreviewEditor = ({ methods, device = 'desktop', menuOpened = true, message }) => {
-  const { post, compilePost, getPreviewData } = usePosts();
+const PreviewEditor = ({
+  methods,
+  device = 'desktop',
+  menuOpened = true,
+  message,
+}) => {
+  const { post, compilePost, getPreviewData, setPost, getPost } = usePosts();
 
   const iframeRef = useRef(null);
   const [selectedTab, setSelectedTab] = useState(null);
@@ -206,15 +204,15 @@ const PreviewEditor = ({ methods, device = 'desktop', menuOpened = true, message
         ...post,
         meta: {
           ...(post?.meta || {}),
-          content: val
-        }
+          content: val,
+        },
       });
 
       if (iframeRef?.current) {
         iframeRef.current.contentWindow.postMessage(
           {
             source: 'burdy-post-edit',
-            payload: compiled
+            payload: compiled,
           },
           '*'
         );
@@ -228,6 +226,16 @@ const PreviewEditor = ({ methods, device = 'desktop', menuOpened = true, message
     methods.watch((val) => {
       debounced(val);
     });
+
+    const handler = (event: MessageEvent) => {
+      const id = event.data?.post?.id;
+      if (!id || id === post?.id) return;
+      setPost(null);
+      getPost.execute(id);
+    };
+
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
   }, []);
 
   const fetchPreviewData = async (post: IPost) => {
@@ -251,12 +259,12 @@ const PreviewEditor = ({ methods, device = 'desktop', menuOpened = true, message
     const tmpTabs = [
       {
         name: 'editor',
-        label: 'Editor'
+        label: 'Editor',
       },
       {
         name: 'details',
-        label: 'Details'
-      }
+        label: 'Details',
+      },
     ];
     return tmpTabs;
   }, [post]);
@@ -276,7 +284,7 @@ const PreviewEditor = ({ methods, device = 'desktop', menuOpened = true, message
         <div
           className={`${styles.editor} ${classNames({
             [styles.browserTablet]: device === 'tablet',
-            [styles.browserMobile]: device === 'mobile'
+            [styles.browserMobile]: device === 'mobile',
           })}`}
         >
           <LoadingBar loading={!post?.id}>
@@ -292,8 +300,8 @@ const PreviewEditor = ({ methods, device = 'desktop', menuOpened = true, message
             <div className={styles.iframeWrapper}>
               {iframeSrc && (
                 <iframe
-                  title='burdy-editor'
-                  id='burdy-editor'
+                  title="burdy-editor"
+                  id="burdy-editor"
                   className={styles.iframe}
                   ref={iframeRef}
                   src={iframeSrc}
@@ -316,7 +324,7 @@ const PreviewEditor = ({ methods, device = 'desktop', menuOpened = true, message
             <Tabs
               items={tabs.map((tab) => ({
                 key: tab.name,
-                name: tab.label
+                name: tab.label,
               }))}
               onSelected={(e) => setSelectedTab(e)}
             />
@@ -358,7 +366,7 @@ const PreviewEditor = ({ methods, device = 'desktop', menuOpened = true, message
               )}
 
               {!(post?.contentType?.fields?.length > 0) && (
-                <Empty compact title='No fields defined' />
+                <Empty compact title="No fields defined" />
               )}
             </LoadingBar>
           </div>
