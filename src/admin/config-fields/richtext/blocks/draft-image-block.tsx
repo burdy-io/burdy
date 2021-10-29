@@ -135,7 +135,6 @@ const DraftImageBlock = (props: any) => {
     }
   ], [theme, alignment, contentState, selectionState, setEditorState, editorState]);
 
-
   return (
     <div className={classNames(classes.container, {
       left: alignment === 'left',

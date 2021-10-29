@@ -1,6 +1,7 @@
 import { unflatten } from '@server/common/object';
 import { IPost } from '@shared/interfaces/model';
 import _ from 'lodash';
+import { getAssetsSrc } from '@server/common/mappers';
 
 export const parseContent = (post: IPost, path?: string) => {
   const metaObjFlattened = {};
@@ -17,12 +18,12 @@ export const parseContent = (post: IPost, path?: string) => {
     return content === 'true' || content === true;
   }
 
-  const parseRichtext = (content, path) => {
+  const parseRichtext = (content) => {
     try {
       const richtext = JSON.parse(content);
       Object.keys(richtext?.entityMap || {}).forEach(key => {
-        if (richtext?.entityMap?.[key]?.type === 'IMAGE') {
-          assets[`${path}.entityMap.${key}.data`] = richtext?.entityMap?.[key]?.data?.npath;
+        if (richtext?.entityMap?.[key]?.type === 'IMAGE' && richtext?.entityMap?.[key]?.data?.npath) {
+          richtext.entityMap[key].data.src = getAssetsSrc(richtext.entityMap[key].data.npath);
         }
       });
       return richtext;
@@ -95,7 +96,7 @@ export const parseContent = (post: IPost, path?: string) => {
             groupContent[contentKey] = parseGroup(content?.[contentKey], newPath);
             break;
           case 'richtext':
-            groupContent[contentKey] = parseRichtext(content?.[contentKey], newPath);
+            groupContent[contentKey] = parseRichtext(content?.[contentKey]);
             break;
           case 'zone':
             groupContent[contentKey] = parseZone(content?.[contentKey], newPath);

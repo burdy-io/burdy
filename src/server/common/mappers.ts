@@ -2,6 +2,12 @@ import Hooks from '@shared/features/hooks';
 import { unflatten } from '@server/common/object';
 import { parseInternalMetaContent } from '@server/common/post.parser';
 
+export const getAssetsSrc = (npath: string) => {
+  return `${
+    process.env.BURDY_HOST?.length > 0 ? process.env.BURDY_HOST : ''
+  }/api/uploads/${npath}`;
+};
+
 Hooks.addSyncFilter(
   'assets/public-mapping',
   (asset) => {
@@ -19,7 +25,9 @@ Hooks.addSyncFilter(
       meta,
       mimeType: asset.mimeType,
       tags: mapPublicTags(asset.tags),
-      src: `${process.env.BURDY_HOST?.length > 0 ? process.env.BURDY_HOST : ''}/api/uploads/${asset.npath}`
+      src: `${
+        process.env.BURDY_HOST?.length > 0 ? process.env.BURDY_HOST : ''
+      }/api/uploads/${asset.npath}`,
     };
   },
   { id: 'resolve', priority: 10 }
@@ -35,7 +43,7 @@ export const mapAsset = (asset) => {
   return {
     ...asset,
     author: mapUser(asset.author),
-    tags: mapTags(asset.tags)
+    tags: mapTags(asset.tags),
   };
 };
 
@@ -45,7 +53,7 @@ export const mapPost = (post) => {
     ...post,
     author: mapUser(post.author),
     tags: mapTags(post.tags),
-    contentType: mapContentType(post.contentType)
+    contentType: mapContentType(post.contentType),
   };
 };
 
@@ -58,9 +66,9 @@ export const mapPostContainer = (post) => {
     slugPath: post.slugPath,
     type: post.type,
     contentType: mapContentType(post.contentType),
-    tags: mapTags(post.tags)
-  }
-}
+    tags: mapTags(post.tags),
+  };
+};
 
 export const mapPostWithMeta = (post) => {
   if (!post) return undefined;
@@ -70,7 +78,7 @@ export const mapPostWithMeta = (post) => {
     contentType: mapContentType(post.contentType),
     author: mapUser(post.author),
     meta: parseInternalMetaContent(post),
-    tags: mapTags(post.tags)
+    tags: mapTags(post.tags),
   };
 };
 
@@ -92,7 +100,7 @@ export const mapPublicPostWithMeta = (post) => {
     contentType: mapContentType(post.contentType),
     author: mapPublicUser(post.author),
     meta: unflatten(meta || {}),
-    tags: mapPublicTags(post.tags)
+    tags: mapPublicTags(post.tags),
   };
 };
 
@@ -107,7 +115,7 @@ export const mapContentType = (contentType) => {
   return {
     ...contentType,
     author: mapUser(contentType?.author),
-    fields
+    fields,
   };
 };
 
@@ -121,7 +129,7 @@ export const mapPublicUser = (user) => {
   if (!user) return undefined;
   return {
     firstName: user?.firstName,
-    lastName: user?.lastName
+    lastName: user?.lastName,
   };
 };
 
@@ -129,7 +137,7 @@ export const mapTag = (tag) => {
   if (!tag) return undefined;
   return {
     ...tag,
-    author: mapUser(tag.author)
+    author: mapUser(tag.author),
   };
 };
 
@@ -146,7 +154,7 @@ export const mapPublicTag = (tag) => {
     slugPath: tag.slugPath,
     parent: tag.parent,
     id: tag.id,
-    author: mapPublicUser(tag.author)
+    author: mapPublicUser(tag.author),
   };
 };
 
