@@ -5,15 +5,15 @@ import Forgot from '@admin/features/authentication/content/forgot';
 import ForgotVerify from '@admin/features/authentication/content/forgot-verify';
 import { useAuth } from '@admin/features/authentication/context/auth.context';
 import Welcome from '@admin/features/authentication/content/welcome';
-import {Redirect, Route, Switch, useLocation} from 'react-router';
+import {Route, Switch} from 'react-router';
 
 const Authentication = () => {
-  const { needsInit } = useAuth();
+  const { authStatus } = useAuth();
 
   return (
     <Switch>
-      {needsInit && [<Route path="/init" component={Welcome} exact />]}
-      {!needsInit && [
+      {authStatus === 'needs-init' && [<Route path="/init" component={Welcome} exact />]}
+      {authStatus === 'unauthenticated' && [
         <Route path="/login" component={LogIn} exact />,
         <Route path="/forgot" component={Forgot} exact />,
         <Route path="/forgot-verify/:token" component={ForgotVerify} exact />,

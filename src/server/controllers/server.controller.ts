@@ -15,21 +15,6 @@ import authMiddleware from '@server/middleware/auth.middleware';
 
 const app = express();
 
-app.get(
-  '/init',
-  asyncMiddleware(async (req, res) => {
-    const siteSettingsRepository = getRepository(SiteSettings);
-
-    const initiated = await siteSettingsRepository.findOne({
-      where: { key: 'initiated' },
-    });
-
-    if (initiated) throw new BadRequestError('site_initiated');
-
-    res.send();
-  })
-);
-
 app.post(
   '/init',
   asyncMiddleware(async (req, res) => {
