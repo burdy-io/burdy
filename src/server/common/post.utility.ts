@@ -174,7 +174,6 @@ export const compilePost = async (post: IPost, options?: ICompilePostOptions) =>
   // Inject assets
   const assetsNpaths = _.uniq(Object.values(assetsRefs || {})).filter(npath => !!npath);
   if (assetsNpaths?.length > 0) {
-    console.log(assetsNpaths);
     const assets = await assetRepository.find({
       relations: ['meta', 'tags'],
       where: {

@@ -6,7 +6,7 @@ import { convertToRaw, DraftHandleValue, Editor, EditorState, Modifier, RichUtil
 import {Label, makeStyles} from "@fluentui/react";
 import RichtextToolbar from "@admin/config-fields/richtext/components/richtext-toolbar";
 import DraftImageBlock from "@admin/config-fields/richtext/blocks/draft-image-block";
-import { useDebounce, useDebouncedCallback } from 'use-debounce';
+import { useDebouncedCallback } from 'use-debounce';
 
 const useStyles = makeStyles((theme) => ({
   editorToolbar: {

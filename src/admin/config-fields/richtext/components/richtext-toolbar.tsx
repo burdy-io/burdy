@@ -191,6 +191,9 @@ const ActionButtons: React.FC = () => {
       'IMMUTABLE',
       {
         npath: image.npath,
+        name: image.name,
+        mimeType: image.mimeType,
+        meta: image.meta,
         caption: '',
         align: 'center'
       }
