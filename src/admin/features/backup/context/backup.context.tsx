@@ -5,8 +5,8 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import { UseAsyncReturn } from 'react-async-hook';
-import { IBackup, IContentType, IUser } from '@shared/interfaces/model';
+import { useAsyncCallback, UseAsyncReturn } from 'react-async-hook';
+import { IBackup } from '@shared/interfaces/model';
 import apiAxios, { useApiCallback } from '@admin/helpers/api';
 import ExtendedSelection, {
   ItemsOrKeys,
@@ -14,6 +14,25 @@ import ExtendedSelection, {
 } from '@admin/helpers/selection';
 import { SelectionMode } from '@fluentui/react';
 import { ModelState, useModelState } from '@admin/helpers/hooks';
+import { v4 as uuid } from 'uuid';
+import axios from 'axios';
+
+type Arrayable<T> = T | T[];
+
+interface IFileWithData {
+  file: File;
+  data?: any;
+}
+
+interface IUpload {
+  status?: 'uploading' | 'done';
+  name?: string;
+  progress?: number;
+}
+
+interface IUploads {
+  [key: string]: IUpload;
+}
 
 export interface IBackupContext {
   list: UseAsyncReturn<IBackup[], []>;
@@ -26,6 +45,9 @@ export interface IBackupContext {
 
   selectedBackups: IBackup[];
   selection: ExtendedSelection<IBackup>;
+
+  upload: UseAsyncReturn<any, [Arrayable<IFileWithData>]>;
+  uploads: IUploads;
 
   backupState: ModelState<IBackup>;
   backups: IBackup[];
@@ -44,6 +66,8 @@ const BackupContextProvider: React.FC<IBackupContextProviderProps> = ({
   defaultSelectedBackups = [],
 }) => {
   const [selectedBackups, setSelectedBackups] = useState<IBackup[]>([]);
+  const [uploads, setUploads] = useState<IUploads>({});
+
   const selection = useSelection<IBackup>({
     onSelectionChanged: () => {
       setSelectedBackups(selection.getSelection());
@@ -99,6 +123,58 @@ const BackupContextProvider: React.FC<IBackupContextProviderProps> = ({
     })
   );
 
+  const upload = useAsyncCallback(
+    async (filesWithData: Arrayable<IFileWithData>) => {
+      if (!Array.isArray(filesWithData)) {
+        filesWithData = [filesWithData];
+      }
+
+      const promises = filesWithData.map<Promise<void>>((fileWithData) =>
+        (async () => {
+          const { file } = fileWithData;
+          const id = uuid();
+          const formData = new FormData();
+          const name = (file as any)?.path || (file as any)?.webkitRelativePath || file?.name || id;
+
+          setUploads((prevState) => ({
+            ...prevState,
+            [id]: {
+              name,
+              progress: 0,
+              status: 'uploading',
+            },
+          }));
+
+          const onUploadProgress = (progressEvent) => {
+            const progress = Math.round(
+              (progressEvent.loaded / progressEvent.total) * 100
+            );
+            setUploads((prevState) => ({
+              ...prevState,
+              [id]: {
+                ...((prevState || {})[id] || {}),
+                status: 'uploading',
+                progress,
+              },
+            }));
+          };
+
+          formData.append('file', file);
+
+          await axios.post('/api/backups/import', formData, { onUploadProgress });
+          setUploads(({[id]: _, ...state}) => state);
+        })()
+      );
+
+      await Promise.all(promises);
+
+      // Now lets diff the state
+      const response = await axios.get('/api/backups');
+      backupState.setArrayState(response.data);
+      return response?.data;
+    }
+  );
+
   return (
     <BackupContext.Provider
       value={{
@@ -112,6 +188,8 @@ const BackupContextProvider: React.FC<IBackupContextProviderProps> = ({
         selection,
         backupState,
         backups: backupState.arrayState,
+        upload,
+        uploads
       }}
     >
       {children}

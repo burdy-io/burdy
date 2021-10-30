@@ -1,9 +1,11 @@
 import {
-  BaseEntity, Column, CreateDateColumn,
+  BaseEntity,
+  Column,
+  CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import {IBackup, IBackupState} from "@shared/interfaces/model";
+import { IBackup, IBackupState } from '@shared/interfaces/model';
 
 @Entity()
 export default class Backup extends BaseEntity implements IBackup {
@@ -13,10 +15,10 @@ export default class Backup extends BaseEntity implements IBackup {
   @CreateDateColumn()
   createdAt: Date;
 
-  @Column()
+  @Column({ nullable: true })
   document: string;
 
-  @Column('simple-array', {nullable: true})
+  @Column('simple-array', { nullable: true })
   includes: string[] | null;
 
   @Column()
