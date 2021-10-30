@@ -76,7 +76,7 @@ const BackupContextProvider: React.FC<IBackupContextProviderProps> = ({
   });
 
   const download = useCallback((id: number) => {
-    window.open(`/backups/download/${id}`, '_blank');
+    window.open(`${apiAxios.defaults.baseURL}/backups/download/${id}`, '_blank');
   }, []);
 
   return (
