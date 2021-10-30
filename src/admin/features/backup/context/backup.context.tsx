@@ -1,10 +1,19 @@
-import React, {createContext, useCallback, useContext, useEffect, useState} from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import { UseAsyncReturn } from 'react-async-hook';
 import { IBackup, IContentType, IUser } from '@shared/interfaces/model';
 import apiAxios, { useApiCallback } from '@admin/helpers/api';
-import ExtendedSelection, { ItemsOrKeys, useSelection } from '@admin/helpers/selection';
+import ExtendedSelection, {
+  ItemsOrKeys,
+  useSelection,
+} from '@admin/helpers/selection';
 import { SelectionMode } from '@fluentui/react';
-import {ModelState, useModelState} from "@admin/helpers/hooks";
+import { ModelState, useModelState } from '@admin/helpers/hooks';
 
 export interface IBackupContext {
   list: UseAsyncReturn<IBackup[], []>;
@@ -12,6 +21,8 @@ export interface IBackupContext {
   create: UseAsyncReturn<IBackup, [partial: Partial<IBackup>]>;
   download: (id: number) => void;
   remove: UseAsyncReturn<null, [id: number]>;
+
+  restore: UseAsyncReturn<any, [id: number, force?: boolean]>;
 
   selectedBackups: IBackup[];
   selection: ExtendedSelection<IBackup>;
@@ -52,7 +63,6 @@ const BackupContextProvider: React.FC<IBackupContextProviderProps> = ({
     setSelectedBackups(selection.getSelection());
   }, [backupState.arrayState]);
 
-
   const list = useApiCallback(async () => {
     const response = await apiAxios.get('/backups');
     backupState.setArrayState(response.data);
@@ -76,8 +86,18 @@ const BackupContextProvider: React.FC<IBackupContextProviderProps> = ({
   });
 
   const download = useCallback((id: number) => {
-    window.open(`${apiAxios.defaults.baseURL}/backups/download/${id}`, '_blank');
+    window.open(
+      `${apiAxios.defaults.baseURL}/backups/download/${id}`,
+      '_blank'
+    );
   }, []);
+
+  const restore = useApiCallback(async (id: number, force = false) =>
+    apiAxios.post(`/backups/restore`, {
+      id,
+      force,
+    })
+  );
 
   return (
     <BackupContext.Provider
@@ -87,10 +107,11 @@ const BackupContextProvider: React.FC<IBackupContextProviderProps> = ({
         remove,
         create,
         download,
+        restore,
         selectedBackups,
         selection,
         backupState,
-        backups: backupState.arrayState
+        backups: backupState.arrayState,
       }}
     >
       {children}

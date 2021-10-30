@@ -1,19 +1,19 @@
 import express from 'express';
 import authMiddleware from '@server/middleware/auth.middleware';
 import asyncMiddleware from '@server/middleware/async.middleware';
-import {getEnhancedRepository} from '@server/common/orm-helpers';
+import { getEnhancedRepository } from '@server/common/orm-helpers';
 import Backup from '@server/models/backup.model';
-import {getManager} from "typeorm";
-import {v4 as uuid} from 'uuid';
-import {IBackupState} from "@shared/interfaces/model";
-import FileDriver from "@server/drivers/file.driver";
-import {runAsync} from "@server/common/async";
-import {exportContent} from "@server/business-logic/server.bl";
-import PathUtil from "@scripts/util/path.util";
+import { getManager } from 'typeorm';
+import { v4 as uuid } from 'uuid';
+import { IBackupState } from '@shared/interfaces/model';
+import FileDriver from '@server/drivers/file.driver';
+import { runAsync } from '@server/common/async';
+import { exportContent, importContent } from '@server/business-logic/server.bl';
+import PathUtil from '@scripts/util/path.util';
 import fs from 'fs-extra';
 import DeferPromise from 'defer-promise';
-import NotFoundError from "@server/errors/not-found-error";
-import BadRequestError from "@server/errors/bad-request-error";
+import NotFoundError from '@server/errors/not-found-error';
+import BadRequestError from '@server/errors/bad-request-error';
 
 const app = express();
 
@@ -29,12 +29,55 @@ app.get(
 );
 
 app.post(
+  '/backups/restore',
+  authMiddleware(['all']),
+  asyncMiddleware(async (req, res) => {
+    const { user } = req.data;
+    const { id, force } = req.body;
+
+    const backupRepository = getEnhancedRepository(Backup);
+    const backup = await backupRepository.findOne({ where: { id } });
+
+    if (!backup) throw new NotFoundError('not_found');
+
+    await backupRepository.remove(backup);
+
+    // todo prevent parallel calls
+    const path = PathUtil.burdyRoot('import.zip');
+
+    const readStream = FileDriver.getInstance().createReadStream(backup.document) as fs.ReadStream;
+    const writeStream = fs.createWriteStream(path);
+
+    const deferred = DeferPromise<void>();
+
+    writeStream.on('close', deferred.resolve);
+    writeStream.on('error', deferred.reject);
+    readStream.on('error', deferred.reject);
+
+    readStream.pipe(writeStream);
+
+    await deferred.resolve();
+
+
+    await importContent({user, file: path, options: {force}});
+
+    if (await fs.pathExists(path)) {
+      await fs.remove(path);
+    }
+
+    res.send();
+  })
+);
+
+app.post(
   '/backups',
   authMiddleware(['all']),
   asyncMiddleware(async (req, res) => {
     await getManager().transaction(async (entityManager) => {
       const backupRepository = getEnhancedRepository(Backup, entityManager);
-      const pendingBackups = await backupRepository.count({ where: { state: IBackupState.PENDING } });
+      const pendingBackups = await backupRepository.count({
+        where: { state: IBackupState.PENDING },
+      });
 
       if (pendingBackups > 0) throw new BadRequestError('backup_running');
 
@@ -51,10 +94,12 @@ app.post(
 
         try {
           await fs.ensureDir(PathUtil.burdyRoot('backups'));
-          await exportContent({output: fsOutput });
+          await exportContent({ output: fsOutput });
           const fsReader = fs.createReadStream(fsOutput);
 
-          const fileDriverWriter = FileDriver.getInstance().createWriteStream(backup.document) as fs.WriteStream;
+          const fileDriverWriter = FileDriver.getInstance().createWriteStream(
+            backup.document
+          ) as fs.WriteStream;
           const deferred = DeferPromise<void>();
 
           fileDriverWriter.on('close', deferred.resolve);
@@ -76,7 +121,7 @@ app.post(
       });
 
       res.send(backupModel);
-    })
+    });
   })
 );
 
@@ -85,20 +130,27 @@ app.get(
   authMiddleware(['all']),
   asyncMiddleware(async (req, res) => {
     const backupRepository = getEnhancedRepository(Backup);
-    const backup = await backupRepository.findOne({ where: { id: req.params?.id } });
+    const backup = await backupRepository.findOne({
+      where: { id: req.params?.id },
+    });
 
     if (!backup) throw new NotFoundError('not_found');
 
-    if (backup.state === IBackupState.PENDING) throw new BadRequestError('backup_pending');
+    if (backup.state === IBackupState.PENDING)
+      throw new BadRequestError('backup_pending');
 
-    const readStream = FileDriver.getInstance().createReadStream(backup.document) as fs.ReadStream;
+    const readStream = FileDriver.getInstance().createReadStream(
+      backup.document
+    ) as fs.ReadStream;
 
-    res.attachment(`export-${backup.name}-${backup.createdAt.toISOString()}.zip`);
+    res.attachment(
+      `export-${backup.name}-${backup.createdAt.toISOString()}.zip`
+    );
     res.contentType('application/zip');
 
     readStream.on('end', () => {
       res.end();
-    })
+    });
 
     readStream.pipe(res);
   })
