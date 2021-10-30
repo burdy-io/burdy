@@ -75,7 +75,7 @@ const ContentTypesCommandBar = () => {
           key: 'import',
           text: 'Import',
           'data-cy': 'contentTypes-commandBar-import',
-          iconProps: { iconName: 'Import' },
+          iconProps: { iconName: 'Upload' },
           permissions: ['content_types_update'],
           onClick: () => {
             setStateData('importContentTypesOpen', true);
@@ -86,7 +86,7 @@ const ContentTypesCommandBar = () => {
           text: 'Export',
           'data-cy': 'contentTypes-commandBar-export',
           disabled: !(selectedContentTypes?.length > 0),
-          iconProps: { iconName: 'Export' },
+          iconProps: { iconName: 'Download' },
           onClick: () => {
             window.open(
               `/api/content-types/export?${queryString.stringify({

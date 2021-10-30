@@ -98,7 +98,7 @@ const BackupCommandBar = () => {
           setOpenImport(true);
         },
         iconProps: {
-          iconName: 'Import',
+          iconName: 'Upload',
         },
       },
       {
