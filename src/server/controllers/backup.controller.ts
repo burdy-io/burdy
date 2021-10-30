@@ -14,6 +14,7 @@ import NotFoundError from "@server/errors/not-found-error";
 import BadRequestError from "@server/errors/bad-request-error";
 import fse from 'fs-extra';
 import logger from '@shared/features/logger';
+import { driverToFs, fsToDriver } from '@server/common/fs-helpers';
 
 const app = express();
 
@@ -77,24 +78,7 @@ app.post(
     const backup = await backupRepository.findOne({ where: { id } });
     if (!backup) throw new NotFoundError('not_found');
 
-    const writeFile = (document: string): Promise<string> => {
-      return new Promise<string>((resolve, reject) => {
-        const path = PathUtil.burdyRoot('import.zip');
-        const file = fse.createWriteStream(path);
-        file.on('close', () => {
-          return resolve(path);
-        });
-        FileDriver.getInstance()
-          .createReadStream(document)
-          .on('error', (err) => {
-            console.log(err);
-            reject(err);
-          })
-          .pipe(file);
-      });
-    };
-
-    const file = await writeFile(backup.document);
+    const file = await driverToFs(backup.document, PathUtil.burdyRoot('import.zip'));
     await importContent({user, file, options: {force}});
 
     if (await fse.pathExists(file)) {
@@ -126,41 +110,6 @@ app.post(
 
       const backupModel = await backupRepository.save(backup);
 
-      const writeFile = (file: string): Promise<string> => {
-        return new Promise((resolve, reject) => {
-          const key = `export-${backup.name}`;
-          const readStream = fse.createReadStream(file);
-          logger.info(`Writing new backup file for ${file}.`);
-          if (FileDriver.getInstance().getName() === 's3') {
-            (FileDriver.getInstance() as any)
-              .uploadReadableStream(key, readStream)
-              .then(() => {
-                logger.info(`Writing new backup ${file} successful, document: ${key}, provider s3.`);
-                resolve(key);
-              })
-              .catch((err) => {
-                logger.error(`Writing new backup ${file} failed, provider s3.`);
-                logger.error(err);
-                reject(err);
-              });
-          } else {
-            const writeStream = FileDriver.getInstance().createWriteStream(key);
-            writeStream.on('close', () => {
-              logger.info(`Writing new backup for ${file} successful, document: ${key}, provider fs.`);
-              return resolve(key);
-            });
-
-            readStream
-              .on('error', (err) => {
-                logger.error(`Writing new backup for ${file} failed, provider fs.`);
-                logger.error(err);
-                reject(err);
-              })
-              .pipe(writeStream);
-          }
-        })
-      }
-
       runAsync(async () => {
         const fsOutput = PathUtil.burdyRoot('backups', `${backup.name}.zip`);
 
@@ -169,7 +118,7 @@ app.post(
           await fse.ensureDir(PathUtil.burdyRoot('backups'));
           await exportContent({output: fsOutput });
 
-          const key = await writeFile(fsOutput);
+          const key = await fsToDriver(fsOutput, `export-${backup.name}`);
 
           backup.state = IBackupState.READY;
           backup.document = key;
