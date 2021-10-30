@@ -6,7 +6,7 @@ import { MessageBarType } from '@fluentui/react';
 import queryString from 'query-string';
 import {
   PostsContextProvider,
-  usePosts,
+  usePosts
 } from '../../posts/context/posts.context';
 import EditorCommandBar from '../components/editor-command-bar';
 import PostPublishDialog from '../../posts/components/post-publish-dialog';
@@ -35,7 +35,7 @@ const EditorPage = () => {
     stateData,
     setStateData,
     post,
-    setPost,
+    setPost
   } = usePosts();
 
   const [device, setDevice] = useState('desktop');
@@ -44,14 +44,12 @@ const EditorPage = () => {
   const [enableEditor, setEnableEditor] = useState<boolean>();
   const { openSnackbar } = useSnackbar();
 
-  const [editorType, setEditorType] = useState(() => {
-    return search?.editor === 'preview' ? 'preview' : 'headless';
-  });
+  const [editorType, setEditorType] = useState(null);
   const [menuOpened, setMenuOpened] = useState(true);
 
   const methods = useForm({
     mode: 'all',
-    shouldUnregister: true,
+    shouldUnregister: true
   });
 
   useEffect(() => {
@@ -96,12 +94,12 @@ const EditorPage = () => {
     setPost(null);
     setLoading(true);
     getPost.execute(params?.postId, {
-      versionId: search.versionId,
+      versionId: search.versionId
     });
   }, [params?.postId, search.versionId]);
 
   useEffect(() => {
-    if (post) {
+    if (post?.id) {
       methods.reset(methods.getValues());
       if (search?.editor === 'preview') {
         setEditorType('preview');
@@ -109,13 +107,13 @@ const EditorPage = () => {
         setEditorType('headless');
       }
     }
-  }, [search?.editor]);
+  }, [search?.editor, post?.id]);
 
   useEffect(() => {
     if (updatePostContent?.result) {
       openSnackbar({
         message: 'Post updated successfully',
-        messageBarType: MessageBarType.success,
+        messageBarType: MessageBarType.success
       });
     }
   }, [updatePostContent?.result]);
@@ -128,14 +126,14 @@ const EditorPage = () => {
       () => {
         openSnackbar({
           message: 'Form has errors',
-          messageBarType: MessageBarType.severeWarning,
+          messageBarType: MessageBarType.severeWarning
         });
       }
     )();
   };
 
   return (
-    <div className="page-wrapper">
+    <div className='page-wrapper'>
       <EditorCommandBar
         loading={loading}
         handleSubmit={handleSubmit}
@@ -148,15 +146,16 @@ const EditorPage = () => {
         toggleMenu={setMenuOpened}
         editor={editorType}
       />
-      <div className="page-content">
-        {enableEditor && editorType === 'preview' ? (
+      <div className='page-content'>
+        {enableEditor && editorType === 'preview' && (
           <PreviewEditor
             methods={methods}
             device={device}
             menuOpened={menuOpened}
             message={message}
           />
-        ) : (
+        )}
+        {editorType === 'headless' && (
           <HeadlessEditor methods={methods} message={message} />
         )}
       </div>
@@ -193,7 +192,7 @@ const EditorPage = () => {
         onUpdated={(data) => {
           setPost({
             ...post,
-            contentType: data,
+            contentType: data
           });
           setStateData('updateContentTypeOpen', false);
         }}
@@ -206,8 +205,8 @@ const EditorPage = () => {
           history.push({
             search: queryString.stringify({
               ...(queryString.parse(location.search) || {}),
-              versionId: post?.id,
-            }),
+              versionId: post?.id
+            })
           });
           setStateData('versionsOpen', false);
         }}
@@ -232,8 +231,8 @@ const EditorPage = () => {
             search: queryString.stringify({
               ...(queryString.parse(location.search) || {}),
               versionId: undefined,
-              action: 'version_deleted',
-            }),
+              action: 'version_deleted'
+            })
           });
         }}
       />
@@ -247,8 +246,8 @@ const EditorPage = () => {
             search: queryString.stringify({
               ...(queryString.parse(location.search) || {}),
               versionId: undefined,
-              action: 'version_restored',
-            }),
+              action: 'version_restored'
+            })
           });
           setStateData('versionRestoreOpen', false);
         }}
@@ -258,5 +257,5 @@ const EditorPage = () => {
 };
 
 export default composeWrappers({
-  postsContext: PostsContextProvider,
+  postsContext: PostsContextProvider
 })(EditorPage);
