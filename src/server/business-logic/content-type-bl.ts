@@ -5,7 +5,7 @@ import logger from '@shared/features/logger';
 
 export type IImportContentTypes = {
   entityManager: EntityManager;
-  contentTypes: any[];
+  data: any[];
   user: any;
   options?: {
     force?: boolean;
@@ -14,7 +14,7 @@ export type IImportContentTypes = {
 
 export const importContentTypes = async ({
   entityManager,
-  contentTypes: list,
+  data: list,
   user,
   options,
 }: IImportContentTypes): Promise<IContentType[]> => {

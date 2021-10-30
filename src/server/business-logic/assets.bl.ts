@@ -184,16 +184,16 @@ export const importAsset = async ({
 
 export const importAssets = async ({
   entityManager,
-  assets,
+  data,
   user,
   options,
 }: {
   entityManager: EntityManager;
-  assets: IAsset[];
+  data: IAsset[];
   user: any;
   options?: any;
 }) => {
-  const sorted = (assets || []).sort((a, b) => {
+  const sorted = (data || []).sort((a, b) => {
     if (a.npath < b.npath) {
       return -1;
     }

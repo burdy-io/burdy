@@ -160,3 +160,18 @@ export interface IGroup {
   description?: string;
   users?: IUser[];
 }
+
+export enum IBackupState {
+  PENDING = 'pending',
+  READY = 'ready'
+}
+
+export interface IBackup {
+  id: number;
+  name: string;
+  document: string;
+  provider: string;
+  state: IBackupState;
+  createdAt: Date;
+  includes: string[];
+}

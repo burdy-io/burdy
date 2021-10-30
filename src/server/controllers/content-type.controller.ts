@@ -167,7 +167,7 @@ app.post(
     await entityManager.transaction(async (transactionManager) => {
       response = await importContentTypes({
         entityManager: transactionManager,
-        contentTypes: filtered,
+        data: filtered,
         user: req?.data?.user,
         options: {
           force,

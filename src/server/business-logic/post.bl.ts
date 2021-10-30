@@ -7,6 +7,7 @@ import { createPostVersion } from '@server/controllers/post.controller';
 import ContentType from '@server/models/content-type.model';
 import logger from '@shared/features/logger';
 import { importTag } from '@server/business-logic/tags.bl';
+import {mapPost} from "@server/common/mappers";
 
 const POST_FOLDER_TYPE = 'folder';
 
@@ -159,16 +160,16 @@ export const importPost = async ({
 
 export const importPosts = async ({
   entityManager,
-  posts,
+  data,
   user,
   options,
 }: {
   entityManager: EntityManager;
-  posts: IPost[];
+  data: IPost[];
   user: any;
   options?: any;
 }) => {
-  const sorted = (posts || []).sort((a, b) => {
+  const sorted = (data || []).sort((a, b) => {
     if (a.slugPath < b.slugPath) {
       return -1;
     }
@@ -210,5 +211,6 @@ export const exportPosts = async ({
       type: In(['post', 'page', 'hierarchical_post', 'fragment', 'folder']),
     },
   });
-  return posts;
+
+  return posts.map(mapPost);
 };

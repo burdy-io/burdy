@@ -12,6 +12,8 @@ import { getExpires, sign } from '@server/common/jwt';
 import UserSession from '@server/models/user-session.model';
 import { exportContent, importContent } from '@server/business-logic/server.bl';
 import authMiddleware from '@server/middleware/auth.middleware';
+import PathUtil from "@scripts/util/path.util";
+import fs from 'fs-extra';
 
 const app = express();
 
@@ -85,12 +87,29 @@ app.post(
   })
 );
 
-app.post(
+app.get(
   '/export',
   authMiddleware(['all']),
   asyncMiddleware(async (req, res) => {
-    await exportContent();
-    res.send('ok');
+    const include = req.query?.includes ?? undefined;
+    let includeTokens: string[];
+
+    if (include) includeTokens = (include as string).split(',');
+
+    const output = PathUtil.burdyRoot('temp-export.zip');
+    await exportContent({ output, force: true, include: includeTokens })
+
+    const readStream = fs.createReadStream(output);
+
+    res.attachment(`export-${new Date().toISOString()}.zip`);
+    res.contentType('application/zip');
+
+    readStream.on('end', () => {
+      res.end();
+      fs.remove(output);
+    })
+
+    readStream.pipe(res);
   })
 );
 
