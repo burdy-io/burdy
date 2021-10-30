@@ -1,29 +1,30 @@
 import '../util/env.util';
-import Hooks from '@shared/features/hooks';
-import { getConnectionManager } from 'typeorm';
-import { getDatabaseType } from '@scripts/util/database.util';
-import {connectDatabaseDriver} from "@server/drivers/database.driver";
-import {exportContent, importContent} from "@server/business-logic/server.bl";
-import ConsoleOutput from "@scripts/util/console-output.util";
+import { connectDatabaseDriver } from '@server/drivers/database.driver';
+import { exportContent, importContent } from '@server/business-logic/server.bl';
+import ConsoleOutput from '@scripts/util/console-output.util';
+import PathUtil from '@scripts/util/path.util';
 
 declare const ACTION: string;
 declare const FILE: string;
 declare const FORCE: boolean;
 
 const handleImport = async () => {
-  await importContent({ options: { force: FORCE }, file: FILE })
-}
+  await importContent({
+    options: { force: FORCE },
+    file: PathUtil.processRoot(FILE),
+  });
+};
 
 const handleExport = async () => {
-  await exportContent({ output: FILE, force: FORCE });
-}
+  await exportContent({ output: PathUtil.processRoot(FILE), force: FORCE });
+};
 
 (async () => {
   require('../../index');
 
   await connectDatabaseDriver();
 
-  switch(ACTION) {
+  switch (ACTION) {
     case 'import':
       await handleImport();
       break;

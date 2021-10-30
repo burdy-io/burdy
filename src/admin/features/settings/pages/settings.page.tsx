@@ -6,6 +6,7 @@ import GeneralSettings from '@admin/features/settings/tabs/general.tab';
 import Hooks from '@shared/features/hooks';
 import { useAuth } from '@admin/features/authentication/context/auth.context';
 import ErrorBoundary from '@admin/components/error-boundary';
+import BackupSettings from "@admin/features/settings/tabs/backup.tab";
 
 const Settings = () => {
   const history = useHistory();
@@ -19,6 +20,12 @@ const Settings = () => {
         name: 'General',
         permissions: ['settings'],
         component: GeneralSettings
+      },
+      {
+        key: 'backups',
+        name: 'Backups',
+        permissions: ['all'],
+        component: BackupSettings,
       },
       {
         key: 'groups',

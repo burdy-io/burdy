@@ -11,6 +11,7 @@ import settingsController from '@server/controllers/settings.controller';
 import contentTypeController from '@server/controllers/content-type.controller';
 import tagController from '@server/controllers/tag.controller';
 import publicController from '@server/controllers/public.controller';
+import backupController from '@server/controllers/backup.controller';
 
 Hooks.addAction(
   'api/init',
@@ -40,6 +41,7 @@ Hooks.addAction(
     app.use(groupController);
     app.use(settingsController);
     app.use(tagController);
+    app.use(backupController);
   },
   { id: 'core/controllers' }
 );

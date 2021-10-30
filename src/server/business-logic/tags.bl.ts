@@ -86,16 +86,16 @@ export const importTag = async ({
 
 export const importTags = async ({
   entityManager,
-  tags,
+  data,
   user,
   options,
 }: {
   entityManager: EntityManager;
-  tags: ITag[];
+  data: ITag[];
   user: any;
   options?: any;
 }) => {
-  const sorted = (tags || []).sort((a, b) => {
+  const sorted = (data || []).sort((a, b) => {
     if (a.slugPath < b.slugPath) {
       return -1;
     }

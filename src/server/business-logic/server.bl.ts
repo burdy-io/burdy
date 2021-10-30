@@ -23,11 +23,40 @@ import DeferPromise from 'defer-promise';
 interface IExportContentParams {
   output?: string;
   force?: boolean;
+  include?: string[];
 }
+
+const handlers = [
+  {
+    type: 'tags',
+    exportBinding: exportTags,
+    importBinding: importTags,
+    filename: 'tags.json',
+  },
+  {
+    type: 'contentTypes',
+    exportBinding: exportContentTypes,
+    importBinding: importContentTypes,
+    filename: 'contentTypes.json',
+  },
+  {
+    type: 'assets',
+    exportBinding: exportAssets,
+    importBinding: importAssets,
+    filename: 'assets.json',
+  },
+  {
+    type: 'posts',
+    exportBinding: exportPosts,
+    importBinding: importPosts,
+    filename: 'posts.json',
+  },
+];
 
 export const exportContent = async ({
   output,
   force = false,
+  include,
 }: IExportContentParams = {}) => {
   await getManager().transaction(async (entityManager) => {
     await (async () => {
@@ -58,27 +87,33 @@ export const exportContent = async ({
     );
     await fse.ensureDir(PathUtil.burdyRoot('export'));
 
-    const tags = await exportTags({ entityManager });
-    const contentTypes = await exportContentTypes({ entityManager });
-    const assets = await exportAssets({ entityManager });
-    const posts = await exportPosts({ entityManager });
+    const exporters = !include
+      ? handlers
+      : handlers.filter(({ type }) => include.includes(type));
 
-    await Promise.all([
-      fse.writeJson(PathUtil.burdyRoot('export', 'tags.json'), tags),
-      fse.writeJson(
-        PathUtil.burdyRoot('export', 'contentTypes.json'),
-        contentTypes
-      ),
-      fse.writeJson(PathUtil.burdyRoot('export', 'assets.json'), assets),
-      fse.writeJson(
-        PathUtil.burdyRoot('export', 'posts.json'),
-        posts.map(mapPost)
-      ),
-    ]);
+    let exports = await async.map(exporters, async (exporter, next) => {
+      try {
+        const { exportBinding, filename } = exporter;
+
+        const result = await exportBinding({ entityManager });
+        next(null, { result, filename });
+      } catch (e) {
+        logger.error(`Failed to export ${exporter.type}. Skipping...`);
+        next(null, null);
+      }
+    });
+
+    exports = exports.map((i) => i);
+
+    await Promise.all(
+      exports.map(({ result, filename }) => {
+        return fse.writeJson(PathUtil.burdyRoot('export', filename), result);
+      })
+    );
 
     if (output) {
       const deferred = DeferPromise<void>();
-      const outputStream = fse.createWriteStream(PathUtil.processRoot(output));
+      const outputStream = fse.createWriteStream(output);
 
       const zipArchive = archiver('zip');
       await zipArchive.directory(PathUtil.burdyRoot('export'), false);
@@ -109,12 +144,14 @@ export const importContent = async ({
   user,
   options,
   file,
+  include,
 }: {
   user?: IUser;
   file?: string;
   options?: {
     force?: string | boolean;
   };
+  include?: string[];
 }) => {
   await getManager().transaction(async (entityManager) => {
     const force = isTrue(options?.force);
@@ -123,8 +160,8 @@ export const importContent = async ({
 
     await (async () => {
       if (!file) return;
-      const fileInput = PathUtil.processRoot(file);
-      const zipExists = await fse.pathExists(fileInput);
+      const fileInput = file;
+      const zipExists = await fse.pathExists(file);
 
       if (!zipExists) {
         ConsoleOutput.info('Zip not found. Skipping archive deflation...');
@@ -141,49 +178,35 @@ export const importContent = async ({
         .promise();
     })();
 
-    const [tags, assets, contentTypes, posts] = await async.map(
-      ['tags.json', 'assets.json', 'contentTypes.json', 'posts.json'],
-      async (file, next) => {
-        try {
-          const result = await fse.readJson(path.join(entry, file));
-          next(null, result);
-        } catch (e) {
-          next(null, []);
-        }
+    const importers = !include
+      ? handlers
+      : handlers.filter(({ type }) => include.includes(type));
+
+    let imports = await async.map(importers, async (handler, next) => {
+      try {
+        const { filename, importBinding } = handler;
+        const result = await fse.readJson(path.join(entry, filename));
+        next(null, { result, importBinding });
+      } catch (e) {
+        next(null, null);
       }
-    );
-
-    await importTags({
-      entityManager,
-      tags,
-      user,
     });
 
-    await importContentTypes({
-      entityManager,
-      contentTypes,
-      user,
-      options: {
-        force,
-      },
-    });
+    imports = imports.filter((i) => i);
 
-    await importAssets({
-      entityManager,
-      assets,
-      user,
-      options: {
-        force,
-      },
-    });
-
-    await importPosts({
-      entityManager,
-      posts,
-      user,
-      options: {
-        force,
-      },
+    await async.each(imports, async (importData, next) => {
+      try {
+        const { result, importBinding } = importData as any;
+        await importBinding({
+          entityManager,
+          user,
+          data: result,
+          options: { force },
+        });
+        next();
+      } catch (e) {
+        next(e);
+      }
     });
 
     logger.info('Import finished.');
