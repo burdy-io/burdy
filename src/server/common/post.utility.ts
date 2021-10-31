@@ -112,8 +112,9 @@ export const compilePostContainer = async (post: IPost, options?: ICompilePostOp
     .leftJoinAndSelect('post.contentType', 'contentType')
     .leftJoinAndSelect('post.tags', 'tags');
 
-  childPostQuery.where('post.type = :type', {type: 'post'});
-  childPostQuery.where('post.parentId = :parent', {parent: post.id});
+  childPostQuery
+    .where('post.type = :type', {type: 'post'})
+    .andWhere('post.parentId = :parent', {parent: post.id});
 
   childPostQuery.skip(perPage * (page - 1));
   childPostQuery.take(perPage);
@@ -122,8 +123,9 @@ export const compilePostContainer = async (post: IPost, options?: ICompilePostOp
 
   const childCountQuery = postRepository.createQueryBuilder('post');
 
-  childCountQuery.where('post.type = :type', {type: 'post'});
-  childCountQuery.where('post.parentId = :parent', {parent: post.id});
+  childCountQuery
+    .where('post.type = :type', {type: 'post'})
+    .andWhere('post.parentId = :parent', {parent: post.id});
 
   publishedQuery(childCountQuery, allowUnpublished);
 
