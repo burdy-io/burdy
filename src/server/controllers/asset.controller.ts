@@ -26,7 +26,7 @@ import { mapAsset } from '@server/common/mappers';
 const app = express();
 
 const FOLDER_MIME_TYPE = 'application/vnd.burdy.folder';
-const IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 export const generateUniqueName = async (
   manager: EntityManager,

@@ -18,7 +18,7 @@ import {
 import ExtendedSelection, { useSelection } from '@admin/helpers/selection';
 
 const FOLDER_MIME_TYPE = 'application/vnd.burdy.folder';
-const IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 type ViewTypes = 'list' | 'tiles';
 type Arrayable<T> = T | T[];

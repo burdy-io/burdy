@@ -267,7 +267,7 @@ const ActionButtons: React.FC = () => {
       </div>
       <AssetsSelectPanel
         isOpen={assetOpen}
-        mimeTypes={['image/jpeg', 'image/webp', 'image/png', '']}
+        mimeTypes={['image/jpeg', 'image/webp', 'image/png', 'image/gif', 'image/svg+xml']}
         selectionMode={SelectionMode.single}
         onDismiss={() => {
           setAssetOpen(false);
