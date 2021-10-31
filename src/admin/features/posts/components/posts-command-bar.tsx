@@ -1,20 +1,23 @@
 import {
   CommandBar,
-  ICommandBarItemProps,
+  ICommandBarItemProps, MessageBarType,
   NeutralColors,
-  SearchBox,
+  SearchBox
 } from '@fluentui/react';
 import React, {useMemo} from 'react';
 import {useHistory} from 'react-router';
 import {useDebouncedCallback} from 'use-debounce';
 import {useAuth} from '@admin/features/authentication/context/auth.context';
 import {usePosts} from '../context/posts.context';
+import { copyToClipboard } from '@admin/helpers/utility';
+import { useSnackbar } from '@admin/context/snackbar';
 
 const enablePreviewEditor = process.env.PUBLIC_ENABLE_PREVIEW_EDITOR === 'true';
 
 const PostsCommandBar = () => {
   const history = useHistory();
   const {filterPermissions} = useAuth();
+  const snackbar = useSnackbar();
 
   const {
     selectedPosts,
@@ -153,6 +156,24 @@ const PostsCommandBar = () => {
           permissions: ['sites_publish'],
           onClick: () => {
             setStateData('unpublishPostOpen', true);
+          },
+        },
+        {
+          key: 'copyUrl',
+          text: 'Copy API URL',
+          iconProps: { iconName: 'ClipboardList' },
+          disabled:
+            selectedPosts?.length === 0,
+          onClick: () => {
+            const [selectedPost] = selectedPosts;
+            copyToClipboard(
+              `${window.location.origin}/api/content/${selectedPost.slugPath}`
+            );
+            snackbar.openSnackbar({
+              message: 'Successfully copied URL to clipboard!',
+              messageBarType: MessageBarType.success,
+              duration: 1000,
+            });
           },
         },
         {

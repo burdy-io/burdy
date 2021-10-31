@@ -22,6 +22,7 @@ import { IPost } from '@shared/interfaces/model';
 import DynamicGroup from '@admin/config-fields/dynamic-group';
 import { FormProvider } from 'react-hook-form';
 import { useHistory } from 'react-router';
+import queryString from 'query-string';
 
 const theme = getTheme();
 
@@ -233,7 +234,12 @@ const PreviewEditor = ({
     const handler = (event: MessageEvent) => {
       const id = event.data?.post?.id;
       if (!id || id === post?.id) return;
-      history.push(`/sites/editor/${id}`);
+      history.push({
+        pathname: `/sites/editor/${id}`,
+        search: queryString.stringify({
+          editor: 'preview'
+        })
+      });
     };
 
     window.addEventListener('message', handler);

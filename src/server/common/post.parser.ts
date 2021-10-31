@@ -76,6 +76,7 @@ export const parseContent = (post: IPost, path?: string) => {
   };
 
   const parseGroup = (content = {}, path?: string) => {
+    if (!content) content = {};
     const groupContent = _.cloneDeep(content);
     Object.keys(content).forEach(key => {
       if (key.endsWith('_$type')) {
@@ -142,6 +143,7 @@ export const parseInternalMetaContent = (post: IPost, path?: string) => {
   };
 
   const parseGroup = (content = {}, path?: string) => {
+    if (!content) content = {};
     const groupContent = _.cloneDeep(content);
     Object.keys(content).forEach(key => {
       if (key.endsWith('_$type')) {

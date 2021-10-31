@@ -1,17 +1,19 @@
 import {
   CommandBar,
   ICommandBarItemProps,
-  IconButton,
+  IconButton, MessageBarType,
   NeutralColors,
   Shimmer,
   ShimmerElementType,
-  Stack,
+  Stack
 } from '@fluentui/react';
 import React, { useEffect, useMemo } from 'react';
 import { useHistory, useLocation } from 'react-router';
 import queryString from 'query-string';
 import { usePosts } from '../../posts/context/posts.context';
 import { useAuth } from '@admin/features/authentication/context/auth.context';
+import { copyToClipboard } from '@admin/helpers/utility';
+import { useSnackbar } from '@admin/context/snackbar';
 
 export interface EditorCommandBarProps {
   handleSubmit: any;
@@ -39,6 +41,8 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
 
   const history = useHistory();
   const location = useLocation();
+
+  const snackbar = useSnackbar();
 
   const { filterPermissions } = useAuth();
 
@@ -234,6 +238,21 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
       ];
     }
     const items = filterPermissions([
+      {
+        key: 'copyUrl',
+        text: 'Copy API URL',
+        iconProps: { iconName: 'ClipboardList' },
+        onClick: () => {
+          copyToClipboard(
+            `${window.location.origin}/api/content/${post.slugPath}`
+          );
+          snackbar.openSnackbar({
+            message: 'Successfully copied URL to clipboard!',
+            messageBarType: MessageBarType.success,
+            duration: 3000,
+          });
+        },
+      },
       {
         key: 'history',
         text: getVersionsCount?.result
