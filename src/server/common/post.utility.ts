@@ -113,7 +113,7 @@ export const compilePostContainer = async (post: IPost, options?: ICompilePostOp
     where: {
       parent: post,
       type: 'post',
-      ...(allowUnpublished ? {status: 'published'} : {})
+      ...(!allowUnpublished ? {status: 'published'} : {})
     }
   });
 
