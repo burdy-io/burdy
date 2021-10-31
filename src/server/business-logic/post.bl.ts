@@ -21,13 +21,19 @@ export const getParent = async (
     const slug = components.shift();
     const slugPath = parent ? `${parent.slugPath}/${slug}` : slug;
     try {
-      newParent = await manager.save(Post, {
-        parent,
-        name: slug,
-        type: POST_FOLDER_TYPE,
-        slug,
-        slugPath,
+      newParent = await manager.findOne(Post,{
+        slugPath
       });
+
+      if (!newParent) {
+        newParent = await manager.save(Post, {
+          parent,
+          name: slug,
+          type: POST_FOLDER_TYPE,
+          slug,
+          slugPath,
+        });
+      }
     } catch (err) {
       newParent = await manager.findOne(Post, {
         slugPath,

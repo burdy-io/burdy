@@ -23,12 +23,18 @@ export const getParent = async (
     const name = components.shift();
     const npath = parent ? `${parent.npath}/${name}` : name;
     try {
-      newParent = await manager.save(Asset, {
-        parent,
-        name,
-        mimeType: FOLDER_MIME_TYPE,
+      newParent = await manager.findOne(Asset, {
         npath,
       });
+
+      if (!newParent) {
+        newParent = await manager.save(Asset, {
+          parent,
+          name,
+          mimeType: FOLDER_MIME_TYPE,
+          npath,
+        });
+      }
     } catch (err) {
       newParent = await manager.findOne(Asset, {
         npath,
@@ -174,7 +180,7 @@ export const importAssets = async ({
     }
     return 0;
   });
-  await async.eachLimit(sorted, 1, async (item, next) => {
+  await async.eachLimit(sorted, 10, async (item, next) => {
     try {
       await importAsset({
         manager: entityManager,

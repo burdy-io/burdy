@@ -69,12 +69,18 @@ const getParent = async (
     const name = components.shift();
     const npath = parent ? `${parent.npath}/${name}` : name;
     try {
-      newParent = await manager.save(Asset, {
-        parent,
-        name,
-        mimeType: FOLDER_MIME_TYPE,
+      newParent = await manager.findOne(Asset, {
         npath,
       });
+
+      if (!newParent) {
+        newParent = await manager.save(Asset, {
+          parent,
+          name,
+          mimeType: FOLDER_MIME_TYPE,
+          npath,
+        });
+      }
     } catch (err) {
       newParent = await manager.findOne(Asset, {
         npath,
