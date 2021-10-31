@@ -106,16 +106,31 @@ export const compilePostContainer = async (post: IPost, options?: ICompilePostOp
   const page = options?.query?.page ?? 1;
   const perPage = options?.query?.perPage ?? 10;
 
-  const [childPosts, count] = await postRepository.findAndCount({
-    relations: ['author', 'tags', 'meta', 'contentType'],
-    skip: perPage * (page - 1),
-    take: perPage,
-    where: {
-      parent: post,
-      type: 'post',
-      ...(!allowUnpublished ? {status: 'published'} : {})
-    }
-  });
+  const childPostQuery = postRepository.createQueryBuilder('post')
+    .leftJoinAndSelect('post.meta', 'meta')
+    .leftJoinAndSelect('post.author', 'author')
+    .leftJoinAndSelect('post.contentType', 'contentType')
+    .leftJoinAndSelect('post.tags', 'tags');
+
+  childPostQuery.where('post.type = :type', {type: 'post'});
+  childPostQuery.where('post.parentId = :parent', {parent: post.id});
+
+  childPostQuery.skip(perPage * (page - 1));
+  childPostQuery.take(perPage);
+
+  publishedQuery(childPostQuery, allowUnpublished);
+
+  const childCountQuery = postRepository.createQueryBuilder('post');
+
+  childCountQuery.where('post.type = :type', {type: 'post'});
+  childCountQuery.where('post.parentId = :parent', {parent: post.id});
+
+  publishedQuery(childCountQuery, allowUnpublished);
+
+  const [childPosts, count] = await Promise.all([
+    childPostQuery.getMany(),
+    childCountQuery.getCount()
+  ]);
 
   const [postContainer, ...posts] = await Promise.all([
     compilePost(post),
