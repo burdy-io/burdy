@@ -9,6 +9,8 @@ import {Transporter} from "nodemailer";
 import Mail from "nodemailer/lib/mailer";
 import {IPermission} from "@shared/interfaces/permissions";
 import { IDashboardLink, IDashboardSection } from '@admin/features/dashboard';
+import Post from '@server/models/post.model';
+import Asset from '@server/models/asset.model';
 
 // Extensible types / declarations for hooks
 declare global {
@@ -32,6 +34,9 @@ declare global {
       'user/postCreate': [User];
       'user/postDelete': [User];
       'user/postDeleteMany': [User[]];
+
+      'public/getPost': [Post];
+      'public/getAsset': [Asset];
 
       [key: string]: any[];
     }
