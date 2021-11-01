@@ -12,6 +12,7 @@ import {
 } from '@server/common/mappers';
 import _ from 'lodash';
 import { IPost } from '@shared/interfaces/model';
+import Hooks from '@shared/features/hooks';
 
 const MAX_DEBT = process.env.POSTS_MAX_RELATIONS_DEBT || 3;
 
@@ -73,6 +74,11 @@ export const retrievePostAndCompile = async ({ id, slugPath, versionId }: ICompi
   publishedQuery(qb, options?.allowUnpublished);
 
   let post = await qb.getOne();
+
+  if (!(options?.debt > 0) && !options?.allowUnpublished) {
+    await Hooks.doAction('public/getPost', post);
+  }
+
   if (versionId) {
     const postVersion = await postRepository.findOne({
       relations: ['meta', 'contentType', 'author', 'tags'],

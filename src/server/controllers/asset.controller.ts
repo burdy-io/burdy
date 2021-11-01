@@ -22,6 +22,7 @@ import {
   updateMeta,
 } from '@server/common/orm-helpers';
 import { mapAsset } from '@server/common/mappers';
+import Hooks from '@shared/features/hooks';
 
 const app = express();
 
@@ -500,6 +501,7 @@ app.get(
     if (!asset) throw new BadRequestError('invalid_asset');
     if (asset.mimeType === FOLDER_MIME_TYPE)
       throw new BadRequestError('invalid_asset');
+    await Hooks.doAction('public/getAsset', asset);
 
     if (videoRange) {
       const parts = videoRange.replace(/bytes=/, '').split('-');
