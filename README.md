@@ -4,14 +4,7 @@
 
 <img src="https://github.com/burdy-io/burdy/blob/main/assets/burdy.png?raw=true" alt="headless cms burdy" />
 
-* Self-hosted - know where your data is stored!
-* Backend - Node.js, TypeORM, Express
-* Admin - React, Fluent UI
-* Databases - TypeORM (SQLite, Postgres, MySQL, MariaDB), File Storage - file system, AWS S3, DigitalOcean Spaces
-* Customizable - You are able to extend any part of Admin or Backend by just using hooks. Furthermore, you can create custom functionalities in a no time!
-* Native Cloud Support - AWS, DigitalOcean
-
-For more details visit our [Docs](https://burdy.io/docs)
+Most advanced Open-source Headless CMS written in Typescript
 
 ## Installation
 
@@ -25,18 +18,19 @@ npm run dev
 Open [http://localhost:4000/admin](http://localhost:4000/admin) to view your running app.
 When you're ready for production, run `npm run build` then `npm run start`.
 
-## 2.0 New Features
+# 2.0 Summary
+## New Features
 * **Backup Management** - New way of managing backups of your entire data. Backup, restore, export, import or moving content across environments!
-* **Preview Editor** - Besides Headless Editor we have released new Editor based on IFrame. Now you can manage content and preview your updates live on your websites from Burdy!
-* **Hierarchical Posts** - Besides having Hierarchical Pages we have added support for Hierarchical Posts which represent repeatable data such as Blogs, Docs and more.
+* **Preview Editor** - Besides Headless Editor we have released new Editor based on IFrame. Now you can manage content and preview your updates live on your websites directly from Burdy!
+* **Hierarchical Posts** - Besides having Hierarchical Pages we have added support for Hierarchical Posts which represent repeatable data such as Blogs, Docs and more organized in a Sites Hierarchy, for example mainsite/en/blogs/<blog>
 
-## 2.0 Improvements
+## Improvements
 * **Improved Authoring Experience** - Managing Multiple sites or mobile apps from single Burdy has never been easier. With optimized **Sites** you can now manage **tens of thousands** of pages and posts in a single Burdy
 * **Improved Cloud Provider Support** - Besides native support for AWS infrastructure, we are officially announcing native support for DigitalOcean.
 * **Optimized Editors** - Both Headless and Preview Editors are faster then ever.
 * **Improved Localization Capability** - With the unified post/page structure, localization is a second nature of our system.
 
-## 2.0 Breaking Changes
+## Breaking Changes
 * Burdy 2.0 is not backwards compatible with Burdy 1.0
 * Flat Posts have been replaced with Hierarchical Posts inside **Sites**
 
@@ -45,7 +39,9 @@ When you're ready for production, run `npm run build` then `npm run start`.
 * **Redis Support** - We aim to improve content delivery performance by providing native Redis support. You can expect Burdy to be able to serve thousands of requests per second on content API.
 * **A/B Testing** - A/B test any post, page, fragment
 
-## Burdy Features
+---
+
+# Burdy Features
 Out of the box Burdy comes with many features
 
 * **Any Data Structure** - build and manage any data structure, objects, arrays, arrays in objects, arrays in arrays in objects, arrays in object in arrays or what ever you whish!
@@ -80,6 +76,15 @@ Layout:
 - Tab
 - Dynamic Zone
 
+## Tech Stack
 
+* Self-hosted - know where your data is stored!
+* Backend - Node.js, TypeORM, Express
+* Admin - React, Fluent UI
+* Databases - TypeORM (SQLite, Postgres, MySQL, MariaDB), File Storage - file system, AWS S3, DigitalOcean Spaces
+* Customizable - You are able to extend any part of Admin or Backend by just using hooks. Furthermore, you can create custom functionalities in a no time!
+* Native Cloud Support - AWS, DigitalOcean
+
+For more details visit our [Docs](https://burdy.io/docs)
 
 Enjoy!!!
