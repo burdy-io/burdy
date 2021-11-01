@@ -64,6 +64,7 @@ app.get(
   authMiddleware(),
   asyncMiddleware(async (req, res) => {
     const contentTypeId = req?.query?.contentTypeId;
+    const contentTypeName = req?.query?.contentTypeName;
     const type = req?.query?.type;
     const id = req?.query?.id;
     const search = req?.query?.search;
@@ -104,6 +105,12 @@ app.get(
     if (contentTypeId) {
       qb.andWhere('post.contentTypeId IN (:...ids)', {
         ids: (contentTypeId as string).split(',')
+      });
+    }
+
+    if (contentTypeName) {
+      qb.andWhere('contentType.name IN (:...name)', {
+        name: (contentTypeName as string).split(',')
       });
     }
 

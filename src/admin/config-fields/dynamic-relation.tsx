@@ -295,7 +295,7 @@ const DynamicRelation: React.FC<DynamicRelationProps> = ({ field, name }) => {
                 setAddPostOpen(false);
               }}
               params={{
-                contentTypeId: field.posts,
+                contentTypeName: field.posts,
               }}
             />
           </>
