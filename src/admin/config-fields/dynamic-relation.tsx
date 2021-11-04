@@ -31,18 +31,17 @@ const styles = mergeStyleSets({
 
 interface PostsListProps {
   posts: IPost[];
-  onReorder?: (posts: any[]) => void;
+  onPostsChange?: (posts: IPost[]) => void;
 }
 
-const PostsList: React.FC<PostsListProps> = ({ posts, onReorder }) => {
+const PostsList: React.FC<PostsListProps> = ({ posts, onPostsChange }) => {
   const { selection, getPosts } = usePosts();
-
   const [postsVal, setPostsVal] = useState([]);
 
   useEffect(() => {
     if (posts?.length > 0) {
       getPosts.execute({
-        id: (posts || []).map((post) => post?.id).join(','),
+        slug: (posts || []).map((post) => post?.slugPath).join(','),
       });
     } else {
       getPosts.reset();
@@ -50,10 +49,15 @@ const PostsList: React.FC<PostsListProps> = ({ posts, onReorder }) => {
   }, [posts]);
 
   useEffect(() => {
+    if (postsVal.length === 0) return;
+    onPostsChange?.(postsVal);
+  }, [postsVal]);
+
+  useEffect(() => {
     const result = [...(getPosts?.result || [])];
     result.sort((a, b) => {
-      const aIndex = posts.findIndex((post) => post.id == a.id);
-      const bIndex = posts.findIndex((post) => post.id == b.id);
+      const aIndex = posts.findIndex((post) => post.slugPath == a.slugPath);
+      const bIndex = posts.findIndex((post) => post.slugPath == b.slugPath);
       return aIndex - bIndex;
     });
     setPostsVal(result);
@@ -106,15 +110,7 @@ const PostsList: React.FC<PostsListProps> = ({ posts, onReorder }) => {
             }}
             title="Open in new tab"
             onClick={() => {
-              let url;
-              if (contentType?.type === 'post' && parentId) {
-                url = `/admin/sites/editor/${id}`;
-              } else if (contentType?.type === 'page') {
-                url = `/admin/sites/editor/${id}`;
-              } else {
-                url = `/admin/posts/${contentTypeId}/editor/${id}`;
-              }
-              window.open(url, '_blank');
+              window.open(`/admin/sites/editor/${id}`, '_blank');
             }}
           />
         ),
@@ -167,7 +163,6 @@ interface DynamicRelationProps {
 const DynamicRelation: React.FC<DynamicRelationProps> = ({ field, name }) => {
   const { control, disabled } = useExtendedFormContext();
   const { selectedPosts } = usePosts();
-
   const [addPostOpen, setAddPostOpen] = useState(false);
 
   const selectedItem = useMemo(() => {
@@ -176,6 +171,7 @@ const DynamicRelation: React.FC<DynamicRelationProps> = ({ field, name }) => {
     }
     return undefined;
   }, [selectedPosts]);
+
   return (
     <Controller
       name={name}
@@ -193,7 +189,7 @@ const DynamicRelation: React.FC<DynamicRelationProps> = ({ field, name }) => {
         }, [fieldValue]);
         const selectedItemIndex = useMemo(() => {
           return (value || []).findIndex(
-            (item) => item?.id == selectedItem?.id
+            (item) => item?.slugPath == selectedItem?.slugPath
           );
         }, [value, selectedItem]);
 
@@ -203,7 +199,7 @@ const DynamicRelation: React.FC<DynamicRelationProps> = ({ field, name }) => {
           ];
 
           items.splice(selectedItemIndex + offset, 0, {
-            id: selectedItem?.id,
+            slugPath: selectedItem?.slugPath,
           });
 
           onChange(JSON.stringify(items));
@@ -228,7 +224,7 @@ const DynamicRelation: React.FC<DynamicRelationProps> = ({ field, name }) => {
               onClick: () => {
                 onChange(
                   JSON.stringify((value ?? []).filter((post) =>
-                    selectedPosts.every((selected) => selected?.id != post.id)
+                    selectedPosts.every((selected) => selected?.slugPath != post.slugPath)
                   ))
                 );
               },
@@ -271,10 +267,10 @@ const DynamicRelation: React.FC<DynamicRelationProps> = ({ field, name }) => {
 
             <PostsList
               posts={value}
-              onReorder={(data) => {
+              onPostsChange={(data) => {
                 onChange(
                   JSON.stringify((data || []).map((item) => ({
-                    id: item?.id,
+                    slugPath: item?.slugPath,
                   })))
                 );
               }}
@@ -286,20 +282,20 @@ const DynamicRelation: React.FC<DynamicRelationProps> = ({ field, name }) => {
               onSubmit={(data) => {
                 onChange(JSON.stringify([
                   ...(Array.isArray(value) ? value : []).filter(
-                    (val) => !!val?.id && !Number.isNaN(val?.id)
+                    (val) => Boolean(val?.slugPath)
                   ),
                   ...data
                     .filter(
-                      (post) => !(value || []).find((val) => val.id == post.id)
+                      (post) => !(value || []).find((val) => val.slugPath == post.slugPath)
                     )
                     .map((post) => ({
-                      id: post.id,
+                      slugPath: post.slugPath,
                     })),
                 ]));
                 setAddPostOpen(false);
               }}
               params={{
-                contentTypeId: field.posts,
+                contentTypeName: field.posts,
               }}
             />
           </>

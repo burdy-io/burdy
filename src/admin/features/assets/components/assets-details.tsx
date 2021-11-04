@@ -26,6 +26,8 @@ import {
   IMAGE_MIME_TYPES,
   useAssets,
 } from '../context/assets.context';
+import {useSnackbar} from "@admin/context/snackbar";
+import {formatDate} from "@admin/helpers/misc";
 
 const stackItemStyles: IStackItemStyles = {
   root: {
@@ -33,7 +35,7 @@ const stackItemStyles: IStackItemStyles = {
   },
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   wrapper: {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
@@ -46,11 +48,18 @@ const useStyles = makeStyles({
   itemHeading: {
     fontWeight: '600',
   },
-});
+  previewImage: {
+    maxHeight: 256,
+    maxWidth: '100%',
+    marginRight: 'auto',
+    border: `1px solid ${theme.palette.neutralLight}`
+  }
+}));
 
 const AssetsDetails = () => {
   const styles = useStyles();
-  const { update, selectedAssets, stateData, setStateData } = useAssets();
+  const { update, selectedAssets, stateData, setStateData, assetSrc } = useAssets();
+  const {openSnackbar} = useSnackbar();
 
   const selectedAsset = useMemo(() => {
     return selectedAssets[0];
@@ -70,7 +79,7 @@ const AssetsDetails = () => {
   }, [stateData?.assetDetailsOpen]);
 
   const isImage = useMemo(() => {
-    return IMAGE_MIME_TYPES.indexOf(selectedAsset?.mimeType) > -1;
+    return IMAGE_MIME_TYPES.indexOf(selectedAsset?.mimeType) > -1 || selectedAsset?.mimeType === 'image/svg+xml';
   }, [selectedAsset]);
 
   useEffect(() => {
@@ -132,6 +141,11 @@ const AssetsDetails = () => {
           copyToClipboard(
             `${window.location.origin}/api/uploads/${selectedAssets[0]?.npath}`
           );
+          openSnackbar({
+            message: 'Successfully copied URL to clipboard!',
+            messageBarType: MessageBarType.success,
+            duration: 1000,
+          });
         },
       },
     ],
@@ -145,7 +159,8 @@ const AssetsDetails = () => {
       onDismiss={() => setStateData('assetDetailsOpen', false)}
       headerText="View asset"
       closeButtonAriaLabel="Close"
-      type={PanelType.medium}
+      type={PanelType.custom}
+      customWidth={400 as any}
       onRenderFooterContent={Footer}
       isFooterAtBottom
     >
@@ -157,6 +172,9 @@ const AssetsDetails = () => {
         <Text className={styles.heading} variant="mediumPlus" block>
           {selectedAsset?.name}
         </Text>
+        {isImage && (
+          <img className={styles.previewImage} src={assetSrc(selectedAsset)} alt="Preview" />
+        )}
         <CommandBar
           items={commandItems}
           styles={{
@@ -199,23 +217,23 @@ const AssetsDetails = () => {
               Date Created
             </Text>
             <Text variant="medium" block>
-              {selectedAsset?.createdAt}
+              {formatDate(selectedAsset?.createdAt)}
             </Text>
           </Stack>
         </div>
 
         <Stack tokens={{ childrenGap: 10, maxWidth: 330 }}>
+          {isImage && (
+            <>
+              <ControlledTextField name="alt" label="Alt" control={control} />
+              <ControlledTextField
+                name="copyright"
+                label="Copyright"
+                control={control}
+              />
+            </>
+          )}
           <TagsPickerControl name="tags" label="Tags" control={control} />
-          {isImage && (
-            <ControlledTextField name="alt" label="Alt" control={control} />
-          )}
-          {isImage && (
-            <ControlledTextField
-              name="copyright"
-              label="Copyright"
-              control={control}
-            />
-          )}
         </Stack>
       </Stack>
     </Panel>

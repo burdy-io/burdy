@@ -46,6 +46,7 @@ const ControlledTextField: React.FC<HookFormProps & ITextFieldProps> = (
       }) => (
         <TextField
           {...props}
+          autoComplete="off"
           multiline={isTrue(props?.multiline)}
           required={isTrue(props?.required)}
           onChange={onChange}

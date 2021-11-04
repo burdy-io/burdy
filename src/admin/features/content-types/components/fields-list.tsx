@@ -120,17 +120,17 @@ const FieldsList: React.FC<IFieldsListProps> = ({ field, isRoot }) => {
   );
 
   const getComponentFn = useCallback(
-    (id) => {
+    (name) => {
       return (getComponents?.result ?? []).find(
-        (component) => component.id == id
+        (component) => component.name == name
       );
     },
     [getComponents?.result]
   );
 
   const getPostFn = useCallback(
-    (id) => {
-      return (getContentTypes?.result ?? []).find((post) => post.id == id);
+    (name) => {
+      return (getContentTypes?.result ?? []).find((post) => post.name == name);
     },
     [getContentTypes?.result]
   );
@@ -174,7 +174,7 @@ const FieldsList: React.FC<IFieldsListProps> = ({ field, isRoot }) => {
       <div className={styles.fieldContent}>
         <Label>Allowed components</Label>
         {components.map(getComponentFn).map((component: any) => (
-          <div key={component?.id} className={styles.fieldContentItem}>
+          <div key={component?.name} className={styles.fieldContentItem}>
             {component?.name}
           </div>
         ))}
@@ -194,7 +194,7 @@ const FieldsList: React.FC<IFieldsListProps> = ({ field, isRoot }) => {
       <div className={styles.fieldContent}>
         <Label>Allowed relation posts</Label>
         {posts.map(getPostFn).map((post: any) => (
-          <div key={post?.id} className={styles.fieldContentItem}>
+          <div key={post?.name} className={styles.fieldContentItem}>
             {post?.name}
           </div>
         ))}

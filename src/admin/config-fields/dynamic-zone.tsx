@@ -66,18 +66,18 @@ const DynamicZoneComponentImpl: React.FC<DynamicZoneComponentProps> = ({
   const { control, disabled, narrow } = useExtendedFormContext();
 
   const [panelOpened, setPanelOpened] = useState(false);
-  const { getContentType } = useContentTypes();
+  const { getSingleContentType } = useContentTypes();
 
   useEffect(() => {
     if (component) {
-      getContentType.execute(component);
+      getSingleContentType.execute({ name: component });
     }
   }, [component]);
 
   return (
     <div className={styles.component}>
       <div className={styles.headingWrapper}>
-        <Label style={{ overflow: 'hidden' }}>{getContentType?.result?.name}</Label>
+        <Label style={{ overflow: 'hidden' }}>{getSingleContentType?.result?.name}</Label>
         <Stack horizontal tokens={{ childrenGap: 8 }}>
           {narrow && <IconButton
             onClick={() => {
@@ -110,7 +110,7 @@ const DynamicZoneComponentImpl: React.FC<DynamicZoneComponentProps> = ({
           />
         </Stack>
       </div>
-      <LoadingBar loading={getContentType?.loading}>
+      <LoadingBar loading={getSingleContentType?.loading}>
         <Controller
           name={`${name}.component`}
           control={control}
@@ -120,18 +120,19 @@ const DynamicZoneComponentImpl: React.FC<DynamicZoneComponentProps> = ({
         <Controller
           name={`${name}.component_name`}
           control={control}
-          defaultValue={getContentType?.result?.name}
+          defaultValue={getSingleContentType?.result?.name}
           render={({ field }) => {
             useEffect(() => {
-              field.onChange(getContentType?.result?.name);
+              field.onChange(getSingleContentType?.result?.name);
             }, []);
             return null;
           }}
         />
-        {!narrow && <DynamicGroup field={getContentType?.result} name={name} />}
+        {!narrow && <DynamicGroup field={getSingleContentType?.result} name={name} />}
         {narrow && <BackPanel
           isOpen={panelOpened}
-          headerText={getContentType?.result?.name}
+          headerText={getSingleContentType?.result?.name}
+          isBlocking={false}
           isFooterAtBottom
           isHiddenOnDismiss
           onBack={() => setPanelOpened(false)}
@@ -139,7 +140,7 @@ const DynamicZoneComponentImpl: React.FC<DynamicZoneComponentProps> = ({
           type={PanelType.custom}
           customWidth={400 as any}
         >
-          <DynamicGroup field={getContentType?.result} name={name} />
+          <DynamicGroup field={getSingleContentType?.result} name={name} />
         </BackPanel>}
       </LoadingBar>
     </div>
@@ -221,7 +222,7 @@ const DynamicZone: React.FC<DynamicZoneProps> = ({ field, name }) => {
                           }}
                           disableDown={index >= fields?.length - 1}
                           disableUp={index === 0}
-                          name={`${name}.[${index}]`}
+                          name={`${name}[${index}]`}
                           component={(formField as any)?.component}
                           field={{
                             fields: field?.fields
@@ -253,12 +254,12 @@ const DynamicZone: React.FC<DynamicZoneProps> = ({ field, name }) => {
       <ContentTypesComponentsSelectPanel
         isOpen={addComponentOpen}
         filter={{
-          id: field?.components
+          name: field?.components
         }}
         onDismiss={() => setAddComponentOpen(false)}
         onSubmit={(e) => {
           append({
-            component: e?.[0].id
+            component: e?.[0].name
           });
           setAddComponentOpen(false);
         }}

@@ -12,12 +12,14 @@ import User from "@server/models/user.model";
 import UserMeta from "@server/models/user-meta.model";
 import UserSession from "@server/models/user-session.model";
 import UserToken from "@server/models/user-token.model";
+import Backup from "@server/models/backup.model";
 
 
 Hooks.addFilter('db/models', async (args) => {
   return [
     Asset,
     AssetMeta,
+    Backup,
     ContentType,
     Group,
     Post,

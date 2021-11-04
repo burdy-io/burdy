@@ -8,10 +8,12 @@ import {
   Shimmer,
   ShimmerElementType,
   Stack,
+  List,
 } from '@fluentui/react';
 import React, { useMemo } from 'react';
 import Empty from './empty';
 import { ColumnsViewContextProvider, useColumns } from './columns.context';
+import {useHistory} from "react-router";
 
 const theme = getTheme();
 
@@ -61,15 +63,13 @@ const styles = mergeStyleSets({
     padding: '4px 6px',
     boxSizing: 'border-box',
     borderBottom: `1px solid ${theme.semanticColors.bodyDivider}`,
+    userSelect: 'none',
     selectors: {
       '&:hover': {
         background: theme.semanticColors.bodyBackgroundHovered,
         cursor: 'pointer',
       },
-    },
-    '&:last-child': {
-      marginBottom: 46,
-    },
+    }
   },
   itemCell_selected: {
     background: theme.semanticColors.bodyBackgroundChecked,
@@ -133,74 +133,90 @@ const styles = mergeStyleSets({
   },
 });
 
-const Item = ({ item }) => {
-  const { selection, ancestorsObj, selectedItems } = useColumns();
-
-  const isSelected = selection.isKeySelected(item.key);
-  const isParent = ancestorsObj[item.id];
-
-  return (
-    <div
-      key={item.key}
-      className={`${styles.itemCell} ${
-        isSelected && styles.itemCell_selected
-      } ${isParent && styles.itemCell_parent}`}
-      onClick={(evt) => {
-        selection.setAllSelected(false);
-        selection.setKeySelected(item.key, true, false);
-        evt.stopPropagation();
-      }}
-      data-cy="columns-view-item"
-    >
-      <div
-        className={styles.check}
-        onClick={(evt) => {
-          if (
-            selectedItems?.length > 0 &&
-            selectedItems?.[0]?.parentId !== item.parentId
-          ) {
-            selection.setAllSelected(false);
-          }
-          if (isSelected) {
-            selection.setKeySelected(item.key, false, false);
-          } else {
-            selection.setKeySelected(item.key, true, false);
-          }
-          evt.stopPropagation();
-        }}
-      >
-        <Check checked={isSelected} />
-      </div>
-      {item?.iconProps && (
-        <div className={styles.icon} style={item?.opacity ? {opacity: item.opacity} : {}}>
-          <Icon {...(item?.iconProps || {})} />
-        </div>
-      )}
-      <div className={styles.itemContent} style={item?.opacity ? {opacity: item.opacity} : {}}>
-        <div className={styles.itemTitle}>{item.title}</div>
-        <div className={styles.itemHelper}>{item.helper}</div>
-      </div>
-      {item?.children?.length > 0 && (
-        <Icon
-          className={styles.chevron}
-          iconName={getRTL() ? 'ChevronLeft' : 'ChevronRight'}
-        />
-      )}
-    </div>
-  );
-};
-
 interface ColumnProps {
   items: any;
 }
 
 const Column: React.FC<ColumnProps> = ({ items }) => {
-  const { ancestorsObj, selection } = useColumns();
+  const { ancestorsObj, selection, selectedItems } = useColumns();
+  const history = useHistory();
 
   const children = useMemo(() => {
     const item = (items || []).find((item) => ancestorsObj[item.id]);
     return item?.children;
   }, [ancestorsObj, items]);
+
+  const Item = (item) => {
+    return (
+      <div
+        key={item.key}
+        className={`${styles.itemCell} ${
+          item.isSelected && styles.itemCell_selected
+        } ${item.isParent && styles.itemCell_parent}`}
+        onClick={(evt) => {
+          selection.setAllSelected(false);
+          selection.setKeySelected(item.key, true, false);
+          evt.stopPropagation();
+        }}
+        onDoubleClick={() => {
+          if (item.actionType !== 'sites' || item.type === 'folder') return;
+
+          if (item.type === 'hierarchical_post') {
+            history.push(`/sites/post-container/${item.id}`);
+          } else {
+            history.push(`/sites/editor/${item.id}`);
+          }
+        }}
+        data-cy="columns-view-item"
+      >
+        <div
+          className={styles.check}
+          onClick={(evt) => {
+            if (
+              selectedItems?.length > 0 &&
+              selectedItems?.[0]?.parentId !== item.parentId
+            ) {
+              selection.setAllSelected(false);
+            }
+            if (item.isSelected) {
+              selection.setKeySelected(item.key, false, false);
+            } else {
+              selection.setKeySelected(item.key, true, false);
+            }
+            evt.stopPropagation();
+          }}
+        >
+          <Check checked={item.isSelected} />
+        </div>
+        {item?.iconProps && (
+          <div className={styles.icon} style={item?.opacity ? {opacity: item.opacity} : {}}>
+            <Icon {...(item?.iconProps || {})} />
+          </div>
+        )}
+        <div className={styles.itemContent} style={item?.opacity ? {opacity: item.opacity} : {}}>
+          <div className={styles.itemTitle}>{item.title}</div>
+          <div className={styles.itemHelper}>{item.helper}</div>
+        </div>
+        {item?.children?.length > 0 && (
+          <Icon
+            className={styles.chevron}
+            iconName={getRTL() ? 'ChevronLeft' : 'ChevronRight'}
+          />
+        )}
+      </div>
+    );
+  };
+
+  const formatted = useMemo<any[]>(() => {
+    return (items || []).map(item => {
+      return {
+        ...item,
+        isSelected: selection.isKeySelected(item.key),
+        isParent: ancestorsObj[item.id]
+      }
+    })
+  }, [items, selectedItems, ancestorsObj])
+
   return (
     <>
       <div
@@ -213,9 +229,7 @@ const Column: React.FC<ColumnProps> = ({ items }) => {
           }
         }}
       >
-        {items.map((item) => (
-          <Item item={item} />
-        ))}
+        <List items={formatted} onRenderCell={Item} />
       </div>
       {children && <Column items={children} />}
     </>

@@ -1,6 +1,7 @@
 import { unflatten } from '@server/common/object';
 import { IPost } from '@shared/interfaces/model';
 import _ from 'lodash';
+import { getAssetsSrc } from '@server/common/mappers';
 
 export const parseContent = (post: IPost, path?: string) => {
   const metaObjFlattened = {};
@@ -17,12 +18,12 @@ export const parseContent = (post: IPost, path?: string) => {
     return content === 'true' || content === true;
   }
 
-  const parseRichtext = (content, path) => {
+  const parseRichtext = (content) => {
     try {
       const richtext = JSON.parse(content);
       Object.keys(richtext?.entityMap || {}).forEach(key => {
-        if (richtext?.entityMap?.[key]?.type === 'IMAGE') {
-          assets[`${path}.entityMap.${key}.data`] = richtext?.entityMap?.[key]?.data?.id;
+        if (richtext?.entityMap?.[key]?.type === 'IMAGE' && richtext?.entityMap?.[key]?.data?.npath) {
+          richtext.entityMap[key].data.src = getAssetsSrc(richtext.entityMap[key].data.npath);
         }
       });
       return richtext;
@@ -35,7 +36,7 @@ export const parseContent = (post: IPost, path?: string) => {
     try {
       const parsed = JSON.parse(content);
       (parsed || []).forEach((asset, index) => {
-        assets[`${path}.${index}`] = asset?.id;
+        assets[`${path}.${index}`] = asset?.npath;
       });
       return parsed;
     } catch {
@@ -65,7 +66,7 @@ export const parseContent = (post: IPost, path?: string) => {
     try {
       const parsed = JSON.parse(content);
       (parsed || []).forEach((relation, index) => {
-        references[`${path}.${index}`] = relation?.id;
+        references[`${path}.${index}`] = relation?.slugPath;
       });
       return parsed;
     } catch {
@@ -75,6 +76,7 @@ export const parseContent = (post: IPost, path?: string) => {
   };
 
   const parseGroup = (content = {}, path?: string) => {
+    if (!content) content = {};
     const groupContent = _.cloneDeep(content);
     Object.keys(content).forEach(key => {
       if (key.endsWith('_$type')) {
@@ -95,7 +97,7 @@ export const parseContent = (post: IPost, path?: string) => {
             groupContent[contentKey] = parseGroup(content?.[contentKey], newPath);
             break;
           case 'richtext':
-            groupContent[contentKey] = parseRichtext(content?.[contentKey], newPath);
+            groupContent[contentKey] = parseRichtext(content?.[contentKey]);
             break;
           case 'zone':
             groupContent[contentKey] = parseZone(content?.[contentKey], newPath);
@@ -141,6 +143,7 @@ export const parseInternalMetaContent = (post: IPost, path?: string) => {
   };
 
   const parseGroup = (content = {}, path?: string) => {
+    if (!content) content = {};
     const groupContent = _.cloneDeep(content);
     Object.keys(content).forEach(key => {
       if (key.endsWith('_$type')) {

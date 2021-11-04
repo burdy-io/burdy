@@ -88,6 +88,7 @@ const DynamicRepeatable: React.FC<DynamicRepeatableProps> = ({
               <Stack tokens={{ childrenGap: 10 }}>
                 {fields.map((formField, index) => (
                   <Draggable
+                    isDragDisabled={disabled}
                     key={formField.id}
                     draggableId={formField.id}
                     index={index}
@@ -132,7 +133,7 @@ const DynamicRepeatable: React.FC<DynamicRepeatableProps> = ({
                           </Stack>
                         </div>
                         <DynamicGroup
-                          name={`${name || ''}.[${index}]`}
+                          name={`${name || ''}[${index}]`}
                           field={{
                             fields: field?.fields,
                           }}

@@ -1,7 +1,7 @@
 import {
   CommandBar,
   ICommandBarItemProps,
-  ICommandBarProps,
+  ICommandBarProps, MessageBarType,
   NeutralColors,
   SearchBox,
 } from '@fluentui/react';
@@ -10,6 +10,8 @@ import { copyToClipboard } from '@admin/helpers/utility';
 import { useAuth } from '@admin/features/authentication/context/auth.context';
 import { useDebouncedCallback } from 'use-debounce';
 import { FOLDER_MIME_TYPE, useAssets } from '../context/assets.context';
+import {useSnackbar} from "@admin/context/snackbar";
+import AssetProgressIndicator from "@admin/features/assets/components/asset-progress-indicator";
 
 type ColumnType =
   | 'new'
@@ -53,6 +55,8 @@ const AssetsCommandBar: React.FC<IAssetCommandBarProps> = ({
     setStateData,
     stateData,
   } = useAssets();
+
+  const {openSnackbar} = useSnackbar();
 
   const debounced = useDebouncedCallback(async (val) => {
     setParams({
@@ -168,6 +172,11 @@ const AssetsCommandBar: React.FC<IAssetCommandBarProps> = ({
             copyToClipboard(
               `${window.location.origin}/api/uploads/${selectedAssets[0]?.npath}`
             );
+            openSnackbar({
+              message: 'Successfully copied URL to clipboard!',
+              messageBarType: MessageBarType.success,
+              duration: 1000,
+            });
           },
         },
         {
@@ -227,13 +236,16 @@ const AssetsCommandBar: React.FC<IAssetCommandBarProps> = ({
   );
 
   return (
-    <CommandBar
-      items={commandItems}
-      farItems={commandFarItems}
-      style={{ borderBottom: `1px solid ${NeutralColors.gray30}` }}
-      data-cy="assets-commandBar"
-      {...props}
-    />
+    <>
+      <CommandBar
+        items={commandItems}
+        farItems={commandFarItems}
+        style={{ borderBottom: `1px solid ${NeutralColors.gray30}` }}
+        data-cy="assets-commandBar"
+        {...props}
+      />
+      <AssetProgressIndicator />
+    </>
   );
 };
 

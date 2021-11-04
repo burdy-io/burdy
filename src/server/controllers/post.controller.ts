@@ -64,11 +64,13 @@ app.get(
   authMiddleware(),
   asyncMiddleware(async (req, res) => {
     const contentTypeId = req?.query?.contentTypeId;
+    const contentTypeName = req?.query?.contentTypeName;
     const type = req?.query?.type;
     const id = req?.query?.id;
     const search = req?.query?.search;
     const parentId = req?.query?.parentId;
     const onlyOrphans = req?.query?.onlyOrphans;
+    const slug = req?.query?.slug;
 
     const postRepository = getRepository(Post);
 
@@ -88,6 +90,12 @@ app.get(
       });
     }
 
+    if (slug) {
+      qb.andWhere('post.slugPath IN (:...slugPaths)', {
+        slugPaths: (slug as string).split(','),
+      })
+    }
+
     if (type) {
       qb.andWhere('post.type IN (:...types)', {
         types: (type as string).split(',')
@@ -97,6 +105,12 @@ app.get(
     if (contentTypeId) {
       qb.andWhere('post.contentTypeId IN (:...ids)', {
         ids: (contentTypeId as string).split(',')
+      });
+    }
+
+    if (contentTypeName) {
+      qb.andWhere('contentType.name IN (:...name)', {
+        name: (contentTypeName as string).split(',')
       });
     }
 
@@ -162,7 +176,7 @@ app.post(
           contentType = await transactionManager.findOne(ContentType, {
             where: {
               id: params.contentTypeId,
-              type: In(['post', 'page', 'fragment', 'hierarchical_post'])
+              type: In(['post', 'page', 'fragment'])
             }
           });
           if (!contentType) throw new BadRequestError('invalid_content_type');
@@ -253,7 +267,7 @@ app.post(
             .leftJoinAndSelect('post.meta', 'meta')
             .leftJoinAndSelect('post.tags', 'tags')
             .where('post.type IN (:...types)', {
-              types: ['folder', 'page', 'fragment', 'hierarchical_post', 'post']
+              types: ['folder', 'page', 'fragment', 'post', 'hierarchical_post']
             })
             .andWhere(new Brackets((subQb) => {
               subQb
@@ -681,9 +695,8 @@ app.delete(
   })
 );
 
-
 app.get(
-  '/posts/iframe/:postId',
+  '/posts/preview/:postId',
   authMiddleware(),
   asyncMiddleware(async (req, res) => {
     const id = req?.params?.postId;
@@ -695,15 +708,15 @@ app.get(
     const token = sign({
       postId: post.id,
       userId: req?.data?.user?.id,
-    }, process.env.IFRAME_TOKEN_EXPIRES || 1800);
+    }, process.env.PREVIEW_TOKEN_EXPIRES || 1800);
 
-    const data = await Hooks.applyFilters('posts/iframe/data', {
+    const data = await Hooks.applyFilters('posts/preview/data', {
       post,
       data: {
-        baseUrl: process.env.IFRAME_BASE_URL,
+        baseUrl: process.env.PREVIEW_BASE_URL,
         token
       },
-      src: `${process.env.IFRAME_BASE_URL}/${post?.slugPath}?${queryString.stringify({versionId, token})}`
+      src: `${process.env.PREVIEW_BASE_URL}/${post?.slugPath}?${queryString.stringify({versionId, token})}`
     });
 
     return res.send(data);

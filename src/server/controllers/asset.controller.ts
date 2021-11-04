@@ -22,11 +22,12 @@ import {
   updateMeta,
 } from '@server/common/orm-helpers';
 import { mapAsset } from '@server/common/mappers';
+import Hooks from '@shared/features/hooks';
 
 const app = express();
 
 const FOLDER_MIME_TYPE = 'application/vnd.burdy.folder';
-const IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 export const generateUniqueName = async (
   manager: EntityManager,
@@ -69,12 +70,18 @@ const getParent = async (
     const name = components.shift();
     const npath = parent ? `${parent.npath}/${name}` : name;
     try {
-      newParent = await manager.save(Asset, {
-        parent,
-        name,
-        mimeType: FOLDER_MIME_TYPE,
+      newParent = await manager.findOne(Asset, {
         npath,
       });
+
+      if (!newParent) {
+        newParent = await manager.save(Asset, {
+          parent,
+          name,
+          mimeType: FOLDER_MIME_TYPE,
+          npath,
+        });
+      }
     } catch (err) {
       newParent = await manager.findOne(Asset, {
         npath,
@@ -94,7 +101,7 @@ app.get(
     const assetRepository = getRepository(Asset);
     const databaseType = getConnection().options.type;
 
-    const { id, parentId, mimeType, search } = req.query as any;
+    const { id, parentId, mimeType, search, npath } = req.query as any;
 
     const qb = assetRepository
       .createQueryBuilder('asset')
@@ -105,11 +112,17 @@ app.get(
       qb.andWhereInIds(id.split(','));
     }
 
+    if (npath) {
+      qb.andWhere('asset.npath IN (:...npath)', {
+        npath: npath.split(',')
+      });
+    }
+
     qb.leftJoinAndSelect(
       (q) =>
         q
           .select([
-            'id',
+            'npath',
             databaseType === 'postgres' ? '"parentId"' : 'parentId',
             databaseType === 'postgres' ? '"mimeType"' : 'mimeType',
           ])
@@ -123,7 +136,7 @@ app.get(
         : 'thumbnail.parentId = asset.id'
     );
 
-    qb.addSelect('thumbnail.id', 'asset_thumbnail');
+    qb.addSelect('thumbnail.npath', 'asset_thumbnail');
 
     if (search?.length > 0) {
       qb.andWhere('asset.mimeType != :mimeType', {
@@ -139,7 +152,7 @@ app.get(
       });
     }
 
-    if (!(search?.length > 0) && !id) {
+    if (!(search?.length > 0) && !(id || npath)) {
       if (parentId) {
         qb.andWhere('asset.parentId = :parentId', { parentId });
       } else {
@@ -174,6 +187,37 @@ app.get(
     }
 
     res.send(Asset.getAncestorsList(ancestorsTree).reverse().map(mapAsset));
+  })
+);
+
+app.get('/assets/single',
+  authMiddleware(),
+  asyncMiddleware(async (req, res) => {
+    const assetRepository = getRepository(Asset);
+    const { attachment, npath } = req.query;
+
+    const asset = await assetRepository.findOne({
+      relations: ['tags'],
+      where: {
+        npath
+      },
+    });
+    if (!asset) throw new BadRequestError('invalid_asset');
+
+    if (asset.mimeType === FOLDER_MIME_TYPE)
+      throw new BadRequestError('invalid_asset');
+
+    let content;
+    if (asset.document) {
+      content = await FileDriver.getInstance().read(asset.document);
+    }
+
+    res.set('Content-Type', asset.mimeType);
+    res.set('Content-Length', `${asset.contentLength}`);
+    if (IMAGE_MIME_TYPES.indexOf(asset.mimeType) === -1 || attachment) {
+      res.attachment(asset.name);
+    }
+    res.send(content);
   })
 );
 
@@ -457,6 +501,7 @@ app.get(
     if (!asset) throw new BadRequestError('invalid_asset');
     if (asset.mimeType === FOLDER_MIME_TYPE)
       throw new BadRequestError('invalid_asset');
+    await Hooks.doAction('public/getAsset', asset);
 
     if (videoRange) {
       const parts = videoRange.replace(/bytes=/, '').split('-');

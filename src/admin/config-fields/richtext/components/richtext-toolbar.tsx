@@ -190,7 +190,10 @@ const ActionButtons: React.FC = () => {
       'IMAGE',
       'IMMUTABLE',
       {
-        id: image.id,
+        npath: image.npath,
+        name: image.name,
+        mimeType: image.mimeType,
+        meta: image.meta,
         caption: '',
         align: 'center'
       }
@@ -264,7 +267,7 @@ const ActionButtons: React.FC = () => {
       </div>
       <AssetsSelectPanel
         isOpen={assetOpen}
-        mimeTypes={['image/jpeg', 'image/webp', 'image/png', '']}
+        mimeTypes={['image/jpeg', 'image/webp', 'image/png', 'image/gif', 'image/svg+xml']}
         selectionMode={SelectionMode.single}
         onDismiss={() => {
           setAssetOpen(false);

@@ -18,7 +18,7 @@ import {
 import ExtendedSelection, { useSelection } from '@admin/helpers/selection';
 
 const FOLDER_MIME_TYPE = 'application/vnd.burdy.folder';
-const IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 type ViewTypes = 'list' | 'tiles';
 type Arrayable<T> = T | T[];
@@ -70,6 +70,8 @@ interface IAssetsContext {
 
   view: ViewTypes;
   setView: (type: ViewTypes) => void;
+
+  assetSrc: (asset: IAsset) => string;
 }
 
 const AssetsContext = createContext<IAssetsContext>({} as any);
@@ -84,6 +86,8 @@ const AssetsContextProvider = ({ children }) => {
     'assetDefaultView',
     'tiles'
   );
+
+  const assetSrc = (asset: IAsset) => `/api/assets/single?npath=${asset?.thumbnail ?? asset.npath}`;
 
   const assetsState = useModelState<IAsset>([], (a, b) => {
     if (a?.mimeType === FOLDER_MIME_TYPE && b?.mimeType !== FOLDER_MIME_TYPE) {
@@ -187,6 +191,7 @@ const AssetsContextProvider = ({ children }) => {
           formData.append('file', file);
 
           await axios.post('/api/assets', formData, { onUploadProgress });
+          setUploads(({[id]: _, ...state}) => state);
         })()
       );
 
@@ -329,6 +334,8 @@ const AssetsContextProvider = ({ children }) => {
 
         stateData,
         setStateData,
+
+        assetSrc,
 
         openFileDialog,
         openFolderDialog,

@@ -109,8 +109,12 @@ const Hooks = {
   ) => {
     const queue = getQueue<IHookAction>('actions', key as string);
     await async.each(queue, async (hook, next) => {
-      await hook.function(...args);
-      next();
+      try {
+        await hook.function(...args);
+        next();
+      } catch (err) {
+        next(err);
+      }
     });
   },
   applyFilters: async <T extends keyof Burdy.IFilters>(

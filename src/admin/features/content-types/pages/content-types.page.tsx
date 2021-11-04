@@ -1,17 +1,17 @@
 import React, { useEffect } from 'react';
 import Heading from '@admin/components/heading';
 import { composeWrappers } from '@admin/helpers/hoc';
-import { useSettings } from '@admin/context/settings';
 import ContentTypeCreatePanel from '@admin/features/content-types/components/content-type-create-panel';
 import {
   ContentTypesContextProvider,
-  useContentTypes,
+  useContentTypes
 } from '../context/content-types.context';
 import ContentTypesList from '../components/content-types-list';
 import ContentTypesCommandBar from '../components/content-types-command-bar';
 import ContentTypeUpdatePanel from '../components/content-type-update-panel';
 import ContentTypesDeleteDialog from '../components/content-types-delete-dialog';
 import ContentTypesImportDialog from '@admin/features/content-types/components/content-type-import-dialog';
+import { Pivot, PivotItem } from '@fluentui/react';
 
 const ContentTypesPage = () => {
   const {
@@ -21,36 +21,98 @@ const ContentTypesPage = () => {
 
     stateData,
     setStateData,
+
+    params,
+    setParams
   } = useContentTypes();
 
   useEffect(() => {
     getContentTypes.execute();
   }, []);
 
-  const { getContentTypes: getGlobalContentTypes } = useSettings();
+  const filters = [
+    {
+      name: 'All',
+      key: 'all'
+    },
+    {
+      name: 'Pages',
+      key: 'page'
+    },
+    {
+      name: 'Components',
+      key: 'component'
+    },
+    {
+      name: 'Posts',
+      key: 'post'
+    },
+    {
+      name: 'Fragments',
+      key: 'fragment'
+    }
+  ];
 
   return (
-    <div className="page-wrapper">
+    <div className='page-wrapper'>
       <ContentTypesCommandBar />
       <div
-        className="page-content page-content-scroll"
+        className='page-content page-content-scroll'
         style={{ padding: '0 1rem' }}
       >
-        <Heading title="Content Types" />
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <div style={{ marginRight: 10 }}>
+            <Heading title='Content Types' />
+          </div>
+          <Pivot
+            selectedKey={params?.type?.length > 0 ? params?.type : 'all'}
+            headersOnly
+            aria-label='Basic Pivot'
+            onLinkClick={(item) => {
+              const key = item?.props?.itemKey;
+              const type = key?.length > 0 && key !== 'all' ? key : undefined;
+              setParams({
+                ...(params || {}),
+                type
+              });
+              getContentTypes.execute({
+                ...(params || {}),
+                type
+              });
+            }}
+          >
+            {filters.map((item) => (
+              <PivotItem
+                key={item.key}
+                itemKey={item.key}
+                headerText={item?.name?.length > 0 ? item?.name : item?.key}
+                style={{ paddingTop: 20 }}
+              />
+            ))}
+          </Pivot>
+        </div>
         <ContentTypesList />
       </div>
 
       <ContentTypeCreatePanel
         isOpen={stateData?.createContentTypeOpen}
+        defaultType={params?.type}
         onDismiss={() => {
           setStateData('createContentTypeOpen', false);
         }}
         onCreated={(data) => {
           setStateData('createContentTypeOpen', false);
-          contentTypesState.create([data]);
-          getGlobalContentTypes.execute({
-            type: 'post',
-          });
+          if (params?.type === data?.type) {
+            contentTypesState.create([data]);
+          } else {
+            setParams({});
+            getContentTypes.execute();
+          }
         }}
       />
       <ContentTypeUpdatePanel
@@ -62,9 +124,6 @@ const ContentTypesPage = () => {
         onUpdated={(data) => {
           setStateData('updateContentTypeOpen', false);
           contentTypesState.update([data]);
-          getGlobalContentTypes.execute({
-            type: 'post',
-          });
         }}
       />
       <ContentTypesDeleteDialog
@@ -74,9 +133,6 @@ const ContentTypesPage = () => {
         }}
         onDeleted={() => {
           setStateData('deleteContentTypesOpen', false);
-          getGlobalContentTypes.execute({
-            type: 'post',
-          });
         }}
       />
       <ContentTypesImportDialog
@@ -86,10 +142,8 @@ const ContentTypesPage = () => {
         }}
         onImported={() => {
           setStateData('importContentTypesOpen', false);
+          setParams({});
           getContentTypes.execute();
-          getGlobalContentTypes.execute({
-            type: 'post',
-          });
         }}
       />
     </div>
@@ -97,5 +151,5 @@ const ContentTypesPage = () => {
 };
 
 export default composeWrappers({
-  contentTypesContext: ContentTypesContextProvider,
+  contentTypesContext: ContentTypesContextProvider
 })(ContentTypesPage);

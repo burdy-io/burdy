@@ -1,30 +1,28 @@
 import LoadingBar from '@admin/components/loading-bar';
 import {
-  getTheme, IconButton,
+  getTheme,
+  IconButton,
   mergeStyleSets,
   MessageBar,
-  MessageBarType, Pivot, PivotItem,
+  MessageBarType,
+  Pivot,
+  PivotItem,
   Shimmer,
   ShimmerElementType,
-  Stack
+  Stack,
 } from '@fluentui/react';
-import React, {
-  forwardRef,
-  useEffect,
-  useImperativeHandle, useMemo,
-  useRef,
-  useState
-} from 'react';
-import DynamicForm from '@admin/config-fields/dynamic-form';
-import { useSnackbar } from '@admin/context/snackbar';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { FormHelperContextProvider } from '@admin/config-fields/dynamic-form';
 import Empty from '@admin/components/empty';
-import { useLocation } from 'react-router';
-import queryString from 'query-string';
 import { usePosts } from '../../posts/context/posts.context';
 import classNames from 'classnames';
 import { useDebouncedCallback } from 'use-debounce';
 import PostDetails from '@admin/features/posts/components/post-details';
 import { IPost } from '@shared/interfaces/model';
+import DynamicGroup from '@admin/config-fields/dynamic-group';
+import { FormProvider } from 'react-hook-form';
+import { useHistory } from 'react-router';
+import queryString from 'query-string';
 
 const theme = getTheme();
 
@@ -33,11 +31,11 @@ interface TabsItemProps {
   name?: string;
 }
 
-interface TabsProps {
+type TabsProps = {
   items: TabsItemProps[];
   loading?: boolean;
   onSelected: (e: string) => void;
-}
+};
 
 const Tabs: React.FC<TabsProps> = ({ items, onSelected, loading }) => {
   const [selectedKey, setSelectedKey] = useState(null);
@@ -58,7 +56,7 @@ const Tabs: React.FC<TabsProps> = ({ items, onSelected, loading }) => {
         <Stack
           horizontal
           style={{ height: '100%' }}
-          verticalAlign='center'
+          verticalAlign="center"
           tokens={{ childrenGap: 10 }}
         >
           <Shimmer
@@ -77,7 +75,7 @@ const Tabs: React.FC<TabsProps> = ({ items, onSelected, loading }) => {
         <Pivot
           selectedKey={selectedKey}
           headersOnly
-          aria-label='Basic Pivot'
+          aria-label="Basic Pivot"
           onLinkClick={(item) => {
             setSelectedKey(item?.props?.itemKey);
           }}
@@ -97,7 +95,7 @@ const Tabs: React.FC<TabsProps> = ({ items, onSelected, loading }) => {
 
 const styles = mergeStyleSets({
   card: {
-    margin: 24
+    margin: 24,
   },
   mainWrapper: {
     display: 'flex',
@@ -105,7 +103,7 @@ const styles = mergeStyleSets({
     alignItems: 'flex-start',
     width: '100%',
     height: '100%',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
   },
   content: {
     flexGrow: 1,
@@ -113,7 +111,7 @@ const styles = mergeStyleSets({
     overflowY: 'auto',
     position: 'relative',
     padding: 24,
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
   },
   side: {
     maxWidth: 380,
@@ -122,7 +120,7 @@ const styles = mergeStyleSets({
     height: '100%',
     overflowY: 'auto',
     position: 'relative',
-    boxShadow: theme.effects.elevation16
+    boxShadow: theme.effects.elevation16,
   },
   cardHeading: {
     padding: '0 14px',
@@ -130,7 +128,7 @@ const styles = mergeStyleSets({
     display: 'flex',
     position: 'relative',
     height: 44,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   editor: {
     boxShadow: theme.effects.elevation16,
@@ -141,24 +139,24 @@ const styles = mergeStyleSets({
     marginRight: 'auto',
     height: '100%',
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
   browserMobile: {
-    maxWidth: '375px'
+    maxWidth: '375px',
   },
   browserTablet: {
-    maxWidth: '768px'
+    maxWidth: '768px',
   },
   iframeWrapper: {
     flex: 1,
-    overflowY: 'auto'
+    overflowY: 'auto',
   },
   urlBar: {
     backgroundColor: theme.palette.neutralLight,
     display: 'flex',
     alignItems: 'center',
     height: 40,
-    padding: '0 10px'
+    padding: '0 10px',
   },
   urlBarSearch: {
     backgroundColor: theme.palette.white,
@@ -168,7 +166,7 @@ const styles = mergeStyleSets({
     display: 'flex',
     alignItems: 'center',
     height: 28,
-    fontWeight: 600
+    fontWeight: 600,
   },
   iframe: {
     display: 'block',
@@ -176,45 +174,33 @@ const styles = mergeStyleSets({
     height: '100%',
     width: '100%',
     border: '0px none',
-    overflow: 'auto'
+    overflow: 'auto',
   },
   messages: {
     marginLeft: 'auto',
     marginRight: 'auto',
     marginBottom: 12,
     maxWidth: 960,
-    width: '100%'
+    width: '100%',
   },
   hide: {
-    display: 'none !important'
-  }
+    display: 'none !important',
+  },
 });
 
-const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuOpened = true }, ref) => {
-  const { post, updatePostContent, compilePost, getIFrameData } = usePosts();
+const PreviewEditor = ({
+  methods,
+  device = 'desktop',
+  menuOpened = true,
+  message,
+}) => {
+  const { post, compilePost, getPreviewData } = usePosts();
 
   const iframeRef = useRef(null);
-  const formRef = useRef(null);
   const [selectedTab, setSelectedTab] = useState(null);
   const [iframeSrc, setIframeSrc] = useState<string>();
 
-  const [message, setMessage] = useState(null);
-
-  const [loaded, setLoaded] = useState(false);
-
-  const { openSnackbar } = useSnackbar();
-
-  const location = useLocation();
-
-  useImperativeHandle(
-    ref,
-    () => ({
-      getForm() {
-        return formRef?.current?.getForm();
-      }
-    }),
-    []
-  );
+  const history = useHistory();
 
   const debounced = useDebouncedCallback(async (val) => {
     try {
@@ -222,15 +208,18 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
         ...post,
         meta: {
           ...(post?.meta || {}),
-          content: val
-        }
+          content: val,
+        },
       });
 
       if (iframeRef?.current) {
-        iframeRef.current.contentWindow.postMessage({
-          source: 'burdy-post-edit',
-          payload: compiled
-        });
+        iframeRef.current.contentWindow.postMessage(
+          {
+            source: 'burdy-post-edit',
+            payload: compiled,
+          },
+          '*'
+        );
       }
     } catch (err) {
       //
@@ -238,25 +227,28 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
   }, 500);
 
   useEffect(() => {
-    const search = queryString.parse(location.search) as any;
-    let id;
-    if (search?.action) {
-      setMessage(search?.action);
-      id = setTimeout(() => {
-        setMessage(null);
-      }, 5000);
-    }
-    return () => {
-      if (id) {
-        clearTimeout(id);
-      }
+    methods.watch((val) => {
+      debounced(val);
+    });
+
+    const handler = (event: MessageEvent) => {
+      const id = event.data?.post?.id;
+      if (!id || id === post?.id) return;
+      history.push({
+        pathname: `/sites/editor/${id}`,
+        search: queryString.stringify({
+          editor: 'preview'
+        })
+      });
     };
+
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
   }, []);
 
-  const fetchIframeData = async (post: IPost) => {
+  const fetchPreviewData = async (post: IPost) => {
     try {
-      const response = await getIFrameData.execute(post?.id, post?.versionId);
-      console.log(response);
+      const response = await getPreviewData.execute(post?.id, post?.versionId);
       if (response) {
         setIframeSrc(response?.src);
       }
@@ -267,32 +259,20 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
 
   useEffect(() => {
     if (post) {
-      setLoaded(true);
-      if (!iframeSrc) {
-        fetchIframeData(post);
-      }
+      fetchPreviewData(post);
     }
-  }, [post]);
-
-  useEffect(() => {
-    if (updatePostContent?.result) {
-      openSnackbar({
-        message: 'Post updated successfully',
-        messageBarType: MessageBarType.success
-      });
-    }
-  }, [updatePostContent?.result]);
+  }, [post?.id]);
 
   const tabs = useMemo(() => {
     const tmpTabs = [
       {
         name: 'editor',
-        label: 'Editor'
+        label: 'Editor',
       },
       {
         name: 'details',
-        label: 'Details'
-      }
+        label: 'Details',
+      },
     ];
     return tmpTabs;
   }, [post]);
@@ -309,31 +289,33 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
   return (
     <div className={styles.mainWrapper}>
       <div className={styles.content}>
-        <div className={`${styles.editor} ${classNames({
-          [styles.browserTablet]: device === 'tablet',
-          [styles.browserMobile]: device === 'mobile'
-        })}`}>
-          <LoadingBar loading={!loaded}>
+        <div
+          className={`${styles.editor} ${classNames({
+            [styles.browserTablet]: device === 'tablet',
+            [styles.browserMobile]: device === 'mobile',
+          })}`}
+        >
+          <LoadingBar loading={!post?.id}>
             <div className={styles.urlBar}>
-              <div className={styles.urlBarSearch}>
-                {pageUrl}
-              </div>
+              <div className={styles.urlBarSearch}>{pageUrl}</div>
               <div>
                 <IconButton
-                  iconProps={{iconName: 'OpenInNewTab'}}
+                  iconProps={{ iconName: 'OpenInNewTab' }}
                   onClick={() => window.open(iframeSrc, '_blank')}
                 />
               </div>
             </div>
             <div className={styles.iframeWrapper}>
-              {iframeSrc && <iframe
-                title='burdy-editor'
-                id='burdy-editor'
-                className={styles.iframe}
-                ref={iframeRef}
-                src={iframeSrc}
-                style={{ width: '1px', minWidth: '100%' }}
-              />}
+              {iframeSrc && (
+                <iframe
+                  title="burdy-editor"
+                  id="burdy-editor"
+                  className={styles.iframe}
+                  ref={iframeRef}
+                  src={iframeSrc}
+                  style={{ width: '1px', minWidth: '100%' }}
+                />
+              )}
             </div>
           </LoadingBar>
         </div>
@@ -350,7 +332,7 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
             <Tabs
               items={tabs.map((tab) => ({
                 key: tab.name,
-                name: tab.label
+                name: tab.label,
               }))}
               onSelected={(e) => setSelectedTab(e)}
             />
@@ -378,38 +360,31 @@ const IFrameEditor = forwardRef<any, any>(({ onChange, device = 'desktop', menuO
               </MessageBar>
             </div>
           )}
-          <div
-            className={`${selectedTab === 'editor' ? '' : styles.hide}`}
-          >
-            <LoadingBar loading={!loaded}>
+          <div className={`${selectedTab === 'editor' ? '' : styles.hide}`}>
+            <LoadingBar loading={!post?.id}>
               {post?.contentType?.fields?.length > 0 && (
-                <DynamicForm
-                  ref={formRef}
-                  disabled={!!post?.versionId}
-                  narrow
-                  field={post?.contentType}
-                  defaultValues={(post?.meta as any)?.content}
-                  onChange={(val) => {
-                    onChange?.(val);
-                    debounced(val);
-                  }}
-                />
+                <FormProvider {...methods}>
+                  <FormHelperContextProvider
+                    disabled={!!post?.versionId}
+                    narrow
+                  >
+                    <DynamicGroup field={post?.contentType} />
+                  </FormHelperContextProvider>
+                </FormProvider>
               )}
 
               {!(post?.contentType?.fields?.length > 0) && (
-                <Empty compact title='No fields defined' />
+                <Empty compact title="No fields defined" />
               )}
             </LoadingBar>
           </div>
-          <div
-            className={`${selectedTab === 'details' ? '' : styles.hide}`}
-          >
-            <PostDetails loading={!loaded} post={post} />
+          <div className={`${selectedTab === 'details' ? '' : styles.hide}`}>
+            <PostDetails loading={!post?.id} post={post} />
           </div>
         </div>
       </div>
     </div>
   );
-});
+};
 
-export default IFrameEditor;
+export default PreviewEditor;

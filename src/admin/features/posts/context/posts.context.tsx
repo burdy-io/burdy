@@ -16,7 +16,7 @@ interface IPostsContext {
   copyPosts: UseAsyncReturn<IPost, [id: number, data?: any]>;
   updatePostContent: UseAsyncReturn<IPost, [id: number, data?: any]>;
   compilePost: UseAsyncReturn<IPost, [post: any]>;
-  getIFrameData: UseAsyncReturn<any, [id: number, versionId?: number]>;
+  getPreviewData: UseAsyncReturn<any, [id: number, versionId?: number]>;
   deletePosts: UseAsyncReturn<any[], [ids?: number[]]>;
 
   getVersions: UseAsyncReturn<IPost[], [postId: number, params?: any]>;
@@ -216,9 +216,9 @@ const PostsContextProvider = ({ defaultAdditionalData = {}, children }) => {
     }
   });
 
-  const getIFrameData = useAsyncCallback(async (id, versionId) => {
+  const getPreviewData = useAsyncCallback(async (id, versionId) => {
     try {
-      const response = await axios.get(`/api/posts/iframe/${id}`, {
+      const response = await axios.get(`/api/posts/preview/${id}`, {
         params: {
           versionId
         }
@@ -255,10 +255,10 @@ const PostsContextProvider = ({ defaultAdditionalData = {}, children }) => {
 
   const deleteVersions = useAsyncCallback(async (postId, ids) => {
     try {
-      const response = await axios.delete(`/api/posts/${postId}/versions`, {
+      await axios.delete(`/api/posts/${postId}/versions`, {
         data: ids,
       });
-      return response.data;
+      return ids;
     } catch (e) {
       throw e.response.data;
     }
@@ -293,7 +293,7 @@ const PostsContextProvider = ({ defaultAdditionalData = {}, children }) => {
         getOneContentType,
 
         compilePost,
-        getIFrameData,
+        getPreviewData,
 
         getVersions,
         getVersionsCount,

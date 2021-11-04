@@ -8,7 +8,6 @@ import {
   ShimmeredDetailsList
 } from '@fluentui/react';
 import Empty from '@admin/components/empty';
-import { getMetaValue } from '@admin/helpers/utility';
 import { useAuth } from '@admin/features/authentication/context/auth.context';
 import { useContentTypes } from '../context/content-types.context';
 

@@ -27,7 +27,6 @@ const SideNav = () => {
   const { getContentTypes } = useSettings();
   const { filterPermissions } = useAuth();
   const location = useLocation();
-  const history = useHistory();
   const [expandedLinks, setExpandedLinks] = useStorageState<any>(
     'sideMenu-navExpanded',
     {}
@@ -48,10 +47,6 @@ const SideNav = () => {
   const groups = useMemo<INavLinkGroup[]>(() => {
     const tmpGroups = [];
 
-    const postsRepeater = (getContentTypes?.result ?? []).filter(
-      (contentType) => contentType.type === 'post'
-    );
-
     tmpGroups.push({
       links: filterPermissions([
         {
@@ -68,13 +63,6 @@ const SideNav = () => {
           permissions: ['assets_list'],
         },
         {
-          url: '/content-types',
-          key: 'content-types',
-          'data-cy': 'nav-content-types',
-          name: 'Content Types',
-          permissions: ['content_types_list'],
-        },
-        {
           url: '/sites',
           key: 'sites',
           'data-cy': 'nav-sites',
@@ -82,27 +70,11 @@ const SideNav = () => {
           permissions: ['sites_list'],
         },
         {
-          key: 'posts',
-          name: `Posts`,
-          'data-cy': 'nav-posts',
-          permissions: ['posts_list'],
-          isExpanded: expandedLinks?.posts,
-          links:
-            postsRepeater.length === 0
-              ? [
-                  {
-                    key: 'empty',
-                    'data-cy': 'nav-posts-empty',
-                    name: 'No posts',
-                    disabled: true,
-                  },
-                ]
-              : postsRepeater.map((postType) => ({
-                  url: `/posts/${postType.id}`,
-                  key: `posts_${postType.id}`,
-                  'data-cy': `nav-posts-${postType.name}`,
-                  name: postType.name,
-                })),
+          url: '/content-types',
+          key: 'content-types',
+          'data-cy': 'nav-content-types',
+          name: 'Content Types',
+          permissions: ['content_types_list'],
         },
         {
           url: '/tags',
@@ -135,10 +107,6 @@ const SideNav = () => {
   const selectedKey = useMemo(() => {
     if (location.pathname.includes('/sites')) {
       return 'sites';
-    }
-
-    if (location.pathname.includes('/posts')) {
-      return `posts_${location.pathname.split('/')?.[2]}`;
     }
 
     const flatLinks = groups.flatMap((g) => g.links);

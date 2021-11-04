@@ -22,6 +22,6 @@ import httpProxy from 'http-proxy';
   );
 
   require('../../index');
-  await Promise.all([connectDatabaseDriver(), connectMailDriver()]);
+  await Promise.all([connectDatabaseDriver()]);
   await launch();
 })();

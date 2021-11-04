@@ -1,12 +1,11 @@
-import React, {useEffect} from "react";
+import React, { useEffect } from 'react';
 import {useRichtext} from "@admin/config-fields/dynamic-richtext.context";
 import {useExtendedFormContext} from "@admin/config-fields/dynamic-form";
-import {Controller} from "react-hook-form";
 import { convertToRaw, DraftHandleValue, Editor, EditorState, Modifier, RichUtils } from 'draft-js';
 import {Label, makeStyles} from "@fluentui/react";
 import RichtextToolbar from "@admin/config-fields/richtext/components/richtext-toolbar";
 import DraftImageBlock from "@admin/config-fields/richtext/blocks/draft-image-block";
-import { useDebounce, useDebouncedCallback } from 'use-debounce';
+import { useDebouncedCallback } from 'use-debounce';
 
 const useStyles = makeStyles((theme) => ({
   editorToolbar: {
@@ -43,10 +42,10 @@ const useStyles = makeStyles((theme) => ({
 export interface IDynamicTextProps {
   field: any;
   name?: string;
-  control?: any;
+  onChange?: (val: any) => void;
 }
 
-const RichText: React.FC<IDynamicTextProps> = ({field, name, control}) => {
+const RichText: React.FC<IDynamicTextProps> = ({field, name, onChange}) => {
   const classes = useStyles();
   const {
     editorState,
@@ -184,68 +183,56 @@ const RichText: React.FC<IDynamicTextProps> = ({field, name, control}) => {
       return 'not-handled';
   }
 
+  const debounced = useDebouncedCallback((editorState) => {
+    onChange(JSON.stringify(convertToRaw(editorState.getCurrentContent())))
+  }, 300);
+
+  useEffect(() => {
+    debounced(editorState);
+  }, [name, editorState, forceUpdateState]);
+
   return (
-    <div>
-      <Controller
-        name={name}
-        control={control}
-        render={({field: controllerField}) => {
-          const debounced = useDebouncedCallback((editorState) => {
-            controllerField.onChange(
-              JSON.stringify(convertToRaw(editorState.getCurrentContent()))
-            );
-          }, 300);
+    <>
+      <Label>
+        {field?.label?.length > 0 ? field?.label : field?.name}
+      </Label>
+      <div className={classes.editorToolbar}>
+        <RichtextToolbar />
+      </div>
+      <div className={`${classes.editor} ${disabled && classes.editorDisabled}`} data-cy={`richtext-${name}`}>
+        <Editor
+          ref={editor}
+          editorState={editorState}
+          onChange={(state) => {
+            setEditorState(state);
+          }}
+          onTab={onTab}
+          handleReturn={disableHeaderBlock}
+          readOnly={disabled}
+          keyBindingFn={handleKeypress}
+          handleKeyCommand={handleKeyCommand}
+          blockRendererFn={(block) => {
+            if (block.getType() === 'atomic') {
+              const contentState = editorState.getCurrentContent();
+              const entity = block.getEntityAt(0);
+              if (!entity) return null;
+              const type = contentState.getEntity(entity).getType();
+              if (type === 'IMAGE') {
+                return {
+                  component: DraftImageBlock,
+                  editable: false
+                };
+              }
+              return null;
+            }
 
-          useEffect(() => {
-            debounced(editorState);
-          }, [name, editorState, forceUpdateState]);
-
-          return (
-            <>
-              <Label>
-                {field?.label?.length > 0 ? field?.label : field?.name}
-              </Label>
-              <div className={classes.editorToolbar}>
-                <RichtextToolbar />
-              </div>
-              <div className={`${classes.editor} ${disabled && classes.editorDisabled}`} data-cy={`richtext-${name}`}>
-                <Editor
-                  ref={editor}
-                  editorState={editorState}
-                  onChange={(state) => {
-                    setEditorState(state);
-                  }}
-                  onTab={onTab}
-                  handleReturn={disableHeaderBlock}
-                  readOnly={disabled}
-                  keyBindingFn={handleKeypress}
-                  handleKeyCommand={handleKeyCommand}
-                  blockRendererFn={(block) => {
-                    if (block.getType() === 'atomic') {
-                      const contentState = editorState.getCurrentContent();
-                      const entity = block.getEntityAt(0);
-                      if (!entity) return null;
-                      const type = contentState.getEntity(entity).getType();
-                      if (type === 'IMAGE') {
-                        return {
-                          component: DraftImageBlock,
-                          editable: false
-                        };
-                      }
-                      return null;
-                    }
-
-                    return null;
-                  }}
-                  spellCheck
-                  {...editorProps}
-                />
-              </div>
-            </>
-          );
-        }}
-      />
-    </div>
+            return null;
+          }}
+          spellCheck
+          {...editorProps}
+        />
+      </div>
+    </>
   );
 };
 

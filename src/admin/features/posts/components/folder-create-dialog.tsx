@@ -1,7 +1,7 @@
-import { ControlledDropdown, ControlledTextField } from '@admin/components/rhf-components';
-import { ContentTypesContextProvider } from '@admin/features/content-types/context/content-types.context';
-import { PostsContextProvider, usePosts } from '@admin/features/posts/context/posts.context';
-import { composeWrappers } from '@admin/helpers/hoc';
+import {ControlledDropdown, ControlledTextField} from '@admin/components/rhf-components';
+import {ContentTypesContextProvider} from '@admin/features/content-types/context/content-types.context';
+import {PostsContextProvider, usePosts} from '@admin/features/posts/context/posts.context';
+import {composeWrappers} from '@admin/helpers/hoc';
 import {
   DefaultButton,
   Dialog,
@@ -12,17 +12,17 @@ import {
   PrimaryButton,
   Stack,
 } from '@fluentui/react';
-import React, { useEffect, useMemo } from 'react';
-import { Control, useForm } from 'react-hook-form';
+import React, {useEffect, useMemo} from 'react';
+import {Control, useForm} from 'react-hook-form';
 import slugify from 'slugify';
-import { slugRegex, slugRegexMessage } from '@shared/validators';
+import {slugRegex, slugRegexMessage} from '@shared/validators';
 
 interface ISelectParentProps {
   control: Control;
 }
 
-const SelectParentImpl: React.FC<ISelectParentProps> = ({ control }) => {
-  const { getPosts } = usePosts();
+const SelectParentImpl: React.FC<ISelectParentProps> = ({control}) => {
+  const {getPosts} = usePosts();
   const pages = useMemo(() => {
     return [
       {
@@ -67,14 +67,14 @@ interface IFolderCreateDialog {
 }
 
 const FolderCreateDialog: React.FC<IFolderCreateDialog> = ({
-  isOpen,
-  defaultValues,
-  onDismiss,
-  onCreated,
-}) => {
-  const { createPost } = usePosts();
+                                                             isOpen,
+                                                             defaultValues,
+                                                             onDismiss,
+                                                             onCreated,
+                                                           }) => {
+  const {createPost} = usePosts();
 
-  const { control, handleSubmit, reset, watch, formState, setValue } = useForm({
+  const {control, handleSubmit, reset, watch, formState, setValue} = useForm({
     mode: 'all',
   });
 
@@ -101,6 +101,13 @@ const FolderCreateDialog: React.FC<IFolderCreateDialog> = ({
     }
   }, [createPost?.result]);
 
+  const submit = handleSubmit((data) => {
+    createPost.execute({
+      ...data,
+      type: 'folder',
+    });
+  })
+
   return (
     <Dialog
       hidden={!isOpen}
@@ -110,56 +117,51 @@ const FolderCreateDialog: React.FC<IFolderCreateDialog> = ({
         title: 'Create folder',
       }}
       modalProps={{
-        styles: { main: { maxWidth: 500 } },
+        styles: {main: {maxWidth: 500}},
       }}
     >
-      <Stack
-        tokens={{
-          childrenGap: 8,
-        }}
-      >
-        {createPost.error?.message && (
-          <MessageBar messageBarType={MessageBarType.error}>
-            {createPost.error.message}
-          </MessageBar>
-        )}
-        <ControlledTextField
-          rules={{
-            required: 'Name is required',
+      <form onSubmit={submit}>
+        <Stack
+          tokens={{
+            childrenGap: 8,
           }}
-          name="name"
-          label="Name"
-          control={control}
-        />
-        <ControlledTextField
-          name="slug"
-          label="Slug"
-          control={control}
-          rules={{
-            required: 'Slug is required',
-            pattern: {
-              value: slugRegex,
-              message: slugRegexMessage,
-            }
-          }}
-        />
-        <SelectParent control={control} />
-      </Stack>
-      <DialogFooter>
-        <DefaultButton onClick={onDismiss} text="Cancel" />
-        <PrimaryButton
-          onClick={() => {
-            handleSubmit((data) => {
-              createPost.execute({
-                ...data,
-                type: 'folder',
-              });
-            })();
-          }}
-          text="Create"
-          disabled={createPost?.loading}
-        />
-      </DialogFooter>
+        >
+          {createPost.error?.message && (
+            <MessageBar messageBarType={MessageBarType.error}>
+              {createPost.error.message}
+            </MessageBar>
+          )}
+          <ControlledTextField
+            rules={{
+              required: 'Name is required',
+            }}
+            name="name"
+            label="Name"
+            control={control}
+          />
+          <ControlledTextField
+            name="slug"
+            label="Slug"
+            control={control}
+            rules={{
+              required: 'Slug is required',
+              pattern: {
+                value: slugRegex,
+                message: slugRegexMessage,
+              }
+            }}
+          />
+          <SelectParent control={control}/>
+        </Stack>
+        <DialogFooter>
+          <DefaultButton onClick={onDismiss} text="Cancel"/>
+          <PrimaryButton
+            type="submit"
+            text="Create"
+            disabled={createPost?.loading}
+          />
+        </DialogFooter>
+      </form>
     </Dialog>
   );
 };

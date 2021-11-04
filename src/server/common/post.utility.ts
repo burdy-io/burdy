@@ -12,6 +12,7 @@ import {
 } from '@server/common/mappers';
 import _ from 'lodash';
 import { IPost } from '@shared/interfaces/model';
+import Hooks from '@shared/features/hooks';
 
 const MAX_DEBT = process.env.POSTS_MAX_RELATIONS_DEBT || 3;
 
@@ -73,6 +74,11 @@ export const retrievePostAndCompile = async ({ id, slugPath, versionId }: ICompi
   publishedQuery(qb, options?.allowUnpublished);
 
   let post = await qb.getOne();
+
+  if (!(options?.debt > 0) && !options?.allowUnpublished) {
+    await Hooks.doAction('public/getPost', post);
+  }
+
   if (versionId) {
     const postVersion = await postRepository.findOne({
       relations: ['meta', 'contentType', 'author', 'tags'],
@@ -106,16 +112,33 @@ export const compilePostContainer = async (post: IPost, options?: ICompilePostOp
   const page = options?.query?.page ?? 1;
   const perPage = options?.query?.perPage ?? 10;
 
-  const [childPosts, count] = await postRepository.findAndCount({
-    relations: ['author', 'tags', 'meta', 'contentType'],
-    skip: perPage * (page - 1),
-    take: perPage,
-    where: {
-      parent: post,
-      type: 'post',
-      ...(allowUnpublished ? {status: 'published'} : {})
-    }
-  });
+  const childPostQuery = postRepository.createQueryBuilder('post')
+    .leftJoinAndSelect('post.meta', 'meta')
+    .leftJoinAndSelect('post.author', 'author')
+    .leftJoinAndSelect('post.contentType', 'contentType')
+    .leftJoinAndSelect('post.tags', 'tags');
+
+  childPostQuery
+    .where('post.type = :type', {type: 'post'})
+    .andWhere('post.parentId = :parent', {parent: post.id});
+
+  childPostQuery.skip(perPage * (page - 1));
+  childPostQuery.take(perPage);
+
+  publishedQuery(childPostQuery, allowUnpublished);
+
+  const childCountQuery = postRepository.createQueryBuilder('post');
+
+  childCountQuery
+    .where('post.type = :type', {type: 'post'})
+    .andWhere('post.parentId = :parent', {parent: post.id});
+
+  publishedQuery(childCountQuery, allowUnpublished);
+
+  const [childPosts, count] = await Promise.all([
+    childPostQuery.getMany(),
+    childCountQuery.getCount()
+  ]);
 
   const [postContainer, ...posts] = await Promise.all([
     compilePost(post),
@@ -147,37 +170,42 @@ export const compilePost = async (post: IPost, options?: ICompilePostOptions) =>
   const mappedPost = mapPublicPostWithMeta(post);
 
   // Inject references
-  const referencesIds = _.uniq(Object.values(references || {})).filter(id => !!id);
+  const referencesIds = _.uniq(Object.values(references || {})).filter(slugPath => Boolean(slugPath));
   if (referencesIds?.length > 0 && debt < MAX_DEBT) {
     // @ts-ignore
-    const posts = await Promise.all(referencesIds.map((id: number) => {
-      return retrievePostAndCompile({ id }, {
+    const posts = await Promise.all(referencesIds.map((slugPath: string) => {
+      return retrievePostAndCompile({ slugPath }, {
         ...(options || {}),
         allowNull: true,
         debt: debt + 1
       });
     }));
     const postsObj = {};
-    posts.forEach((post: any) => {
-      postsObj[post.id] = post;
+
+    posts.filter(post => post).forEach((post: any) => {
+      postsObj[post.slugPath] = post;
     });
 
     Object.keys(references).forEach(key => {
-      _.set(content, key, postsObj[references[key]]);
+      if (postsObj[references[key]]) {
+        _.set(content, key, postsObj[references[key]]);
+      } else {
+        _.unset(content, key);
+      }
     });
   }
   // Inject assets
-  const assetsIds = _.uniq(Object.values(assetsRefs || {})).filter(id => !!id);
-  if (assetsIds?.length > 0) {
+  const assetsNpaths = _.uniq(Object.values(assetsRefs || {})).filter(npath => !!npath);
+  if (assetsNpaths?.length > 0) {
     const assets = await assetRepository.find({
       relations: ['meta', 'tags'],
       where: {
-        id: In(assetsIds)
+        npath: In(assetsNpaths)
       }
     });
     const assetsObj = {};
     assets.forEach(asset => {
-      assetsObj[asset.id] = mapPublicAsset(asset);
+      assetsObj[asset.npath] = mapPublicAsset(asset);
     });
 
     Object.keys(assetsRefs).forEach(key => {

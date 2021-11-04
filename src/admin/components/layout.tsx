@@ -2,9 +2,7 @@ import React, { useMemo } from 'react';
 import SideNav from '@admin/components/side-nav';
 import Header from '@admin/components/header';
 import { Redirect, Route, Switch } from 'react-router';
-import PostsPage from '@admin/features/posts/pages/posts.page';
 import SitesPage from '@admin/features/posts/pages/sites.page';
-import HeadlessEditorPage from '@admin/features/editor/pages/headless.page';
 import TagsPage from '@admin/features/tags/pages/tags.page';
 import Dashboard from '@admin/features/dashboard';
 import AssetsPage from '@admin/features/assets/pages/assets.page';
@@ -15,10 +13,8 @@ import Hooks from '@shared/features/hooks';
 import { makeStyles, NeutralColors } from '@fluentui/react';
 import { useAuth } from '@admin/features/authentication/context/auth.context';
 import ErrorBoundary from '@admin/components/error-boundary';
-import IFramePage from '@admin/features/editor/pages/iframe.page';
 import PostContainerPage from "@admin/features/posts/pages/post-container.page";
-
-const enableIframeEditor = process.env.PUBLIC_ENABLE_IFRAME_EDITOR === 'true';
+import EditorPage from '@admin/features/editor/pages/editor.page';
 
 const useStyles = makeStyles({
   layout: {
@@ -93,12 +89,6 @@ const Layout = () => {
         permissions: ['settings']
       },
       {
-        key: 'sites-frame-editor',
-        path: '/sites/frame/:postId',
-        component: IFramePage,
-        permissions: ['sites_update']
-      },
-      {
         key: 'post-container',
         path: '/sites/post-container/:postId',
         component: PostContainerPage,
@@ -107,7 +97,7 @@ const Layout = () => {
       {
         key: 'sites-editor',
         path: '/sites/editor/:postId',
-        component: HeadlessEditorPage,
+        component: EditorPage,
         permissions: ['sites_update']
       },
       {
@@ -115,18 +105,6 @@ const Layout = () => {
         path: '/sites',
         component: SitesPage,
         permissions: ['sites_list']
-      },
-      {
-        key: 'posts-editor',
-        path: '/posts/:contentTypeId/editor/:postId',
-        component: HeadlessEditorPage,
-        permissions: ['posts_update']
-      },
-      {
-        key: 'posts',
-        path: '/posts/:contentTypeId',
-        component: PostsPage,
-        permissions: ['posts_list']
       },
       {
         key: 'tags',

@@ -35,6 +35,13 @@ const AssetsCreateFolderDialog = () => {
     }
   }, [createFolder?.result]);
 
+  const submit = handleSubmit((data) => {
+    createFolder.execute({
+      ...(data || {}),
+      parentId: params?.parentId,
+    });
+  });
+
   return (
     <Dialog
       hidden={!stateData?.newFolderOpen}
@@ -58,7 +65,7 @@ const AssetsCreateFolderDialog = () => {
         </MessageBar>
       )}
 
-      <form>
+      <form onSubmit={submit}>
         <Stack tokens={{ childrenGap: 10 }}>
           <ControlledTextField
             name="name"
@@ -67,6 +74,7 @@ const AssetsCreateFolderDialog = () => {
             rules={{
               required: 'Name is required',
             }}
+            autoComplete="off"
           />
         </Stack>
 
@@ -77,14 +85,7 @@ const AssetsCreateFolderDialog = () => {
           />
           <PrimaryButton
             data-cy="assets-createFolder-submit"
-            onClick={() => {
-              handleSubmit((data) => {
-                createFolder.execute({
-                  ...(data || {}),
-                  parentId: params?.parentId,
-                });
-              })();
-            }}
+            type="submit"
             text="Create"
             disabled={createFolder?.loading}
           />

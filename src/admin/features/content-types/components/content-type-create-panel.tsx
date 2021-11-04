@@ -26,11 +26,13 @@ import { slugRegex, slugRegexMessage } from '@shared/validators';
 interface IContentTypeCreatePanelProps {
   isOpen?: boolean;
   onDismiss?: () => void;
+  defaultType?: string;
   onCreated?: (contentType?: any) => void;
 }
 
 const ContentTypeCreatePanel: React.FC<IContentTypeCreatePanelProps> = ({
   isOpen,
+  defaultType,
   onDismiss,
   onCreated,
 }) => {
@@ -75,7 +77,9 @@ const ContentTypeCreatePanel: React.FC<IContentTypeCreatePanelProps> = ({
         >
           Create
         </PrimaryButton>
-        <DefaultButton onClick={onDismiss} data-cy="contentTypes-add-cancel">Cancel</DefaultButton>
+        <DefaultButton onClick={onDismiss} data-cy="contentTypes-add-cancel">
+          Cancel
+        </DefaultButton>
       </Stack>
     ),
     [field?.fields]
@@ -103,23 +107,20 @@ const ContentTypeCreatePanel: React.FC<IContentTypeCreatePanelProps> = ({
             name="name"
             label="Name"
             data-cy="contentTypes-add-name"
+            autoFocus
             rules={{
               required: 'Name is required',
               pattern: {
                 value: slugRegex,
                 message: slugRegexMessage,
-              }
+              },
             }}
           />
           <ControlledDropdown
-            defaultValue="post"
+            defaultValue={defaultType && defaultType !== 'all' ? defaultType : 'page'}
             control={control}
             data-cy="contentTypes-add-type"
             options={[
-              {
-                key: 'post',
-                text: 'Post',
-              },
               {
                 key: 'page',
                 text: 'Page',
@@ -133,9 +134,9 @@ const ContentTypeCreatePanel: React.FC<IContentTypeCreatePanelProps> = ({
                 text: 'Component',
               },
               {
-                key: 'hierarchical_post',
-                text: 'Hierarchical Post',
-              }
+                key: 'post',
+                text: 'Post',
+              },
             ]}
             name="type"
             label="Type"

@@ -57,7 +57,7 @@ const DynamicField: React.FC<DynamicFieldProps> = ({ field, name }) => {
             }
             mimeTypes={
               field?.type === 'images'
-                ? ['image/jpeg', 'image/webp', 'image/png', 'image/svg+xml']
+                ? ['image/jpeg', 'image/webp', 'image/png', 'image/gif', 'image/svg+xml']
                 : null
             }
             name={getName()}
@@ -172,7 +172,7 @@ const DynamicField: React.FC<DynamicFieldProps> = ({ field, name }) => {
   }, [JSON.stringify(field), control, getName()]);
 
   return (
-    <>
+    <div>
       <Controller
         name={`${getName()}_$type`}
         control={control}
@@ -182,7 +182,7 @@ const DynamicField: React.FC<DynamicFieldProps> = ({ field, name }) => {
       <ErrorBoundary message={`Field ${getName()} errored. Please check console for more details`}>
         <Field />
       </ErrorBoundary>
-    </>
+    </div>
   );
 };
 

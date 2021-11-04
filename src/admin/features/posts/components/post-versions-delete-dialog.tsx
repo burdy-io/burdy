@@ -13,7 +13,7 @@ interface IPostVersionsDeleteDialogProps {
   isOpen?: boolean;
   post?: IPost;
   onDismiss?: () => void;
-  onDeleted?: () => void;
+  onDeleted?: (ids?: any[]) => void;
 }
 
 const PostVersionsDeleteDialog: React.FC<IPostVersionsDeleteDialogProps> = ({
@@ -30,7 +30,7 @@ const PostVersionsDeleteDialog: React.FC<IPostVersionsDeleteDialogProps> = ({
 
   useEffect(() => {
     if (deleteVersions?.result) {
-      onDeleted();
+      onDeleted(deleteVersions?.result);
     }
   }, [deleteVersions?.result]);
 
