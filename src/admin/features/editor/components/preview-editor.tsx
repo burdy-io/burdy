@@ -193,6 +193,7 @@ const PreviewEditor = ({
   device = 'desktop',
   menuOpened = true,
   message,
+  loading
 }) => {
   const { post, compilePost, getPreviewData } = usePosts();
 
@@ -295,7 +296,7 @@ const PreviewEditor = ({
             [styles.browserMobile]: device === 'mobile',
           })}`}
         >
-          <LoadingBar loading={!post?.id}>
+          <LoadingBar loading={loading}>
             <div className={styles.urlBar}>
               <div className={styles.urlBarSearch}>{pageUrl}</div>
               <div>
@@ -361,7 +362,7 @@ const PreviewEditor = ({
             </div>
           )}
           <div className={`${selectedTab === 'editor' ? '' : styles.hide}`}>
-            <LoadingBar loading={!post?.id}>
+            <LoadingBar loading={loading}>
               {post?.contentType?.fields?.length > 0 && (
                 <FormProvider {...methods}>
                   <FormHelperContextProvider
@@ -379,7 +380,7 @@ const PreviewEditor = ({
             </LoadingBar>
           </div>
           <div className={`${selectedTab === 'details' ? '' : styles.hide}`}>
-            <PostDetails loading={!post?.id} post={post} />
+            <PostDetails loading={loading} post={post} />
           </div>
         </div>
       </div>

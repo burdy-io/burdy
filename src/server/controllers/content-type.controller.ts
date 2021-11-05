@@ -478,6 +478,22 @@ const fields = [
       },
     ],
   },
+  {
+    type: 'text-editor',
+    name: 'Text Editor (Ace)',
+    iconProps: { iconName: 'NumberSymbol' },
+    group: 'Core',
+    fields: [
+      {
+        name: 'mode',
+        type: 'choicegroup',
+        defaultValue: 'json',
+        label: 'Type',
+        required: true,
+        options: 'json\nxml\njavascript\ntypescript\ntext\nhtml\ncss',
+      }
+    ],
+  },
 ];
 
 const mapComponent = (component) => {
