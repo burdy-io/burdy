@@ -7,7 +7,7 @@ import {
   Shimmer,
   ShimmerElementType
 } from '@fluentui/react';
-import React from 'react';
+import React, { useEffect } from 'react';
 import PostDetails from '@admin/features/posts/components/post-details';
 import { FormHelperContextProvider } from '@admin/config-fields/dynamic-form';
 import Empty from '@admin/components/empty';
@@ -72,14 +72,14 @@ const styles = mergeStyleSets({
   }
 });
 
-const HeadlessEditor = ({ methods, message }) => {
+const HeadlessEditor = ({ methods, message, loading }) => {
   const { post } = usePosts();
 
   return (
     <div className={styles.mainWrapper}>
       <div className={styles.content}>
         <div className={`${styles.editor}`}>
-          <LoadingBar loading={!post?.id}>
+          <LoadingBar loading={loading}>
             {post?.contentType?.fields?.length > 0 && (
               <FormProvider {...methods}>
                 <FormHelperContextProvider
@@ -131,7 +131,7 @@ const HeadlessEditor = ({ methods, message }) => {
               </MessageBar>
             </div>
           )}
-          <PostDetails loading={!post?.id} post={post} />
+          <PostDetails loading={loading} post={post} />
         </div>
       </div>
     </div>

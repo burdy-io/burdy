@@ -19,6 +19,7 @@ import PostVersionsRestoreDialog from '../../posts/components/post-versions-rest
 import { useForm } from 'react-hook-form';
 import PreviewEditor from '@admin/features/editor/components/preview-editor';
 import HeadlessEditor from '@admin/features/editor/components/headless-editor';
+import LoadingBar from '@admin/components/loading-bar';
 
 const enablePreviewEditor = process.env.PUBLIC_ENABLE_PREVIEW_EDITOR === 'true';
 
@@ -153,10 +154,11 @@ const EditorPage = () => {
             device={device}
             menuOpened={menuOpened}
             message={message}
+            loading={loading}
           />
         )}
         {editorType === 'headless' && (
-          <HeadlessEditor methods={methods} message={message} />
+          <HeadlessEditor methods={methods} message={message} loading={loading} />
         )}
       </div>
       <PostSettingsDialog

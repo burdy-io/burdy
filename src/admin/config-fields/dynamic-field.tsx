@@ -22,6 +22,7 @@ import DynamicRichText from './dynamic-richtext';
 import { useExtendedFormContext } from './dynamic-form';
 import ErrorBoundary from '@admin/components/error-boundary';
 import { isTrue } from '@admin/helpers/utility';
+import DynamicTextEditor from '@admin/config-fields/dynamic-text-editor';
 
 interface DynamicFieldProps {
   field: any;
@@ -137,6 +138,15 @@ const DynamicField: React.FC<DynamicFieldProps> = ({ field, name }) => {
             options={(field?.options ?? '')
               .split('\n')
               .map((val) => ({ key: val, text: val }))}
+            name={getName()}
+            disabled={disabled}
+          />
+        );
+      case 'text-editor':
+        return (
+          <DynamicTextEditor
+            control={control}
+            field={field}
             name={getName()}
             disabled={disabled}
           />
