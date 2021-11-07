@@ -446,6 +446,11 @@ const fields = [
     group: 'Core',
     fields: [
       {
+        name: 'allowToggle',
+        type: 'checkbox',
+        label: 'Allow Toggle',
+      },
+      {
         type: 'components_dropdown',
         name: 'component',
         label: 'Component',

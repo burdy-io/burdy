@@ -1,12 +1,15 @@
-import React, { useEffect } from 'react';
-import { Label, Separator } from '@fluentui/react';
+import React, { useEffect, useMemo } from 'react';
+import { Label, Separator, Stack } from '@fluentui/react';
 import { composeWrappers } from '@admin/helpers/hoc';
 import {
   ContentTypesContextProvider,
-  useContentTypes
+  useContentTypes,
 } from '@admin/features/content-types/context/content-types.context';
 import LoadingBar from '@admin/components/loading-bar';
 import DynamicGroup from './dynamic-group';
+import { ControlledCheckbox } from '@admin/components/rhf-components';
+import { useExtendedFormContext } from '@admin/config-fields/dynamic-form';
+import { isTrue } from '@admin/helpers/utility';
 
 interface DynamicComponentProps {
   field: any;
@@ -15,6 +18,7 @@ interface DynamicComponentProps {
 
 const DynamicComponent: React.FC<DynamicComponentProps> = ({ field, name }) => {
   const { getSingleContentType } = useContentTypes();
+  const { disabled, control, watch } = useExtendedFormContext();
 
   useEffect(() => {
     if (field?.component) {
@@ -22,20 +26,42 @@ const DynamicComponent: React.FC<DynamicComponentProps> = ({ field, name }) => {
     }
   }, [field?.component]);
 
+  const enabled = watch(`${name}_$enabled`);
+  const displayComponent = useMemo(() => {
+    if (!isTrue(field?.allowToggle)) return true;
+    return isTrue(enabled);
+  }, [enabled, field?.allowToggle]);
+
   return (
     <>
-      {field?.label?.length > 0 &&
       <div>
-        <Label>{field?.label}</Label>
+        <Stack
+          horizontal
+          horizontalAlign="space-between"
+          verticalAlign="center"
+          tokens={{ childrenGap: 8 }}
+        >
+          <Label>{field?.label?.length > 0 ? field?.label : field?.name}</Label>
+          {isTrue(field?.allowToggle) && (
+            <ControlledCheckbox
+              disabled={disabled}
+              control={control}
+              label="Enable"
+              name={`${name}_$enabled`}
+            />
+          )}
+        </Stack>
         <Separator />
-      </div>}
+      </div>
       <LoadingBar loading={getSingleContentType?.loading}>
-        <DynamicGroup field={getSingleContentType?.result} name={name} />
+        {displayComponent && (
+          <DynamicGroup field={getSingleContentType?.result} name={name} />
+        )}
       </LoadingBar>
     </>
   );
 };
 
 export default composeWrappers({
-  contentTypesContext: ContentTypesContextProvider
+  contentTypesContext: ContentTypesContextProvider,
 })(DynamicComponent);
