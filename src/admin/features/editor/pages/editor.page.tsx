@@ -101,12 +101,17 @@ const EditorPage = () => {
 
   useEffect(() => {
     if (post?.id) {
-      methods.reset(methods.getValues());
-      if (search?.editor === 'preview') {
-        setEditorType('preview');
-      } else {
-        setEditorType('headless');
-      }
+      const values = methods.getValues();
+      setLoading(true);
+      setTimeout(() => {
+        methods.reset(values);
+        if (search?.editor === 'preview') {
+          setEditorType('preview');
+        } else {
+          setEditorType('headless');
+        }
+        setLoading(false);
+      }, 200);
     }
   }, [search?.editor, post?.id]);
 

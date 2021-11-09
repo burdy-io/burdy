@@ -76,7 +76,7 @@ export const parseContent = (post: IPost, path?: string) => {
   };
 
   const parseGroup = (content = {}, path?: string) => {
-    if (!content) content = {};
+    if (_.isEmpty(content)) return null;
     const groupContent = _.cloneDeep(content);
     Object.keys(content).forEach(key => {
       if (key.endsWith('_$type')) {
