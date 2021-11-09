@@ -200,6 +200,7 @@ const PreviewEditor = ({
   const iframeRef = useRef(null);
   const [selectedTab, setSelectedTab] = useState(null);
   const [iframeSrc, setIframeSrc] = useState<string>();
+  const [baseUrl, setBaseUrl] = useState<string>();
 
   const history = useHistory();
 
@@ -231,7 +232,9 @@ const PreviewEditor = ({
     methods.watch((val) => {
       debounced(val);
     });
+  }, []);
 
+  useEffect(() => {
     const handler = (event: MessageEvent) => {
       const id = event.data?.post?.id;
       if (!id || id === post?.id) return;
@@ -245,12 +248,13 @@ const PreviewEditor = ({
 
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, []);
+  }, [post?.id]);
 
   const fetchPreviewData = async (post: IPost) => {
     try {
       const response = await getPreviewData.execute(post?.id, post?.versionId);
       if (response) {
+        setBaseUrl(response?.data?.baseUrl);
         setIframeSrc(response?.src);
       }
     } catch (err) {
@@ -279,13 +283,8 @@ const PreviewEditor = ({
   }, [post]);
 
   const pageUrl = useMemo(() => {
-    try {
-      const url = new URL(iframeSrc);
-      return `${url.origin}${url.pathname}`;
-    } catch (e) {
-      return '';
-    }
-  }, [iframeSrc]);
+    return baseUrl ? `${baseUrl}/${post?.slugPath}` : '';
+  }, [baseUrl]);
 
   return (
     <div className={styles.mainWrapper}>
