@@ -114,8 +114,13 @@ const DynamicZoneComponentImpl: React.FC<DynamicZoneComponentProps> = ({
         <Controller
           name={`${name}.component`}
           control={control}
-          defaultValue={component}
-          render={() => null}
+          defaultValue={getSingleContentType?.result?.name}
+          render={({ field }) => {
+            useEffect(() => {
+              field.onChange(getSingleContentType?.result?.name);
+            }, []);
+            return null;
+          }}
         />
         <Controller
           name={`${name}.component_name`}
