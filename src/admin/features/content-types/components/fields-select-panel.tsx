@@ -85,10 +85,12 @@ const FieldsSelectPanel: React.FC<IFieldsSelectPanelProps> = ({
         return compare;
       })
       .filter((cmp) => {
-        if ((search ?? '').trim().length === 0) return true;
-        if ((cmp.name ?? '').indexOf(search) > -1) return true;
-        if ((cmp.type ?? '').indexOf(search) > -1) return true;
-        return false;
+        if ((search || '') === '') return true;
+
+        return (
+          ((cmp.name as string).toLowerCase() || '').includes(search.toLowerCase()) ||
+          ((cmp.type as string).toLowerCase() || '').includes(search.toLowerCase())
+        );
       });
 
     sortedComponents.forEach((component, index) => {
