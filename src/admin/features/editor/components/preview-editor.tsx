@@ -284,7 +284,7 @@ const PreviewEditor = ({
 
   const pageUrl = useMemo(() => {
     return baseUrl ? `${baseUrl}/${post?.slugPath}` : '';
-  }, [baseUrl]);
+  }, [baseUrl, post?.slugPath]);
 
   return (
     <div className={styles.mainWrapper}>
