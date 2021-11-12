@@ -58,3 +58,8 @@ a {
 .ms-Panel-scrollableContent {
   padding: 1rem 0 0;
 }
+
+.ms-Pivot {
+  overflow-y: hidden;
+  overflow-x: auto;
+}

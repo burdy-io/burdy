@@ -20,6 +20,7 @@ import { useForm } from 'react-hook-form';
 import PreviewEditor from '@admin/features/editor/components/preview-editor';
 import HeadlessEditor from '@admin/features/editor/components/headless-editor';
 import LoadingBar from '@admin/components/loading-bar';
+import _ from 'lodash';
 
 const enablePreviewEditor = process.env.PUBLIC_ENABLE_PREVIEW_EDITOR === 'true';
 
@@ -101,8 +102,9 @@ const EditorPage = () => {
 
   useEffect(() => {
     if (post?.id) {
-      const values = methods.getValues();
+      const values = _.cloneDeep(methods?.getValues());
       setLoading(true);
+      setEditorType(null);
       setTimeout(() => {
         methods.reset(values);
         if (search?.editor === 'preview') {
