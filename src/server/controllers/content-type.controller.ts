@@ -495,7 +495,7 @@ const fields = [
         defaultValue: 'json',
         label: 'Type',
         required: true,
-        options: 'json\nxml\nyaml\njavascript\ntypescript\ntext\nhtml\ncss\nsql\nmarkdown',
+        options: 'json\nxml\nyaml\njavascript\ntypescript\ntext\nhtml\ncss\nsql\nmarkdown\nsh',
       }
     ],
   },

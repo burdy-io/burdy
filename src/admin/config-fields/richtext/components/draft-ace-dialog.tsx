@@ -98,6 +98,10 @@ const InsertAceDialog: React.FC<IInsertAceDialogProps> = ({
               key: 'sql',
               text: 'Sql',
             },
+            {
+              key: 'sh',
+              text: 'Shell',
+            }
           ]}
         />
       </Stack>
