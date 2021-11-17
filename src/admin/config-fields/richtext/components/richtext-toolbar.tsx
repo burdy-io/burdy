@@ -6,6 +6,7 @@ import {IAsset} from "@shared/interfaces/model";
 import {AtomicBlockUtils, EditorState, RichUtils} from "draft-js";
 import AssetsSelectPanel from "@admin/features/assets/components/assets-select-panel";
 import InsertLinkDialog from "@admin/components/insert-link-dialog";
+import InsertAceDialog from '@admin/config-fields/richtext/components/draft-ace-dialog';
 
 const useToolbarStyles = makeStyles((theme) => ({
   button: {
@@ -170,6 +171,7 @@ const ActionButtons: React.FC = () => {
   const {editorState, setEditorState, editorProps, setEditorProps} = useRichtext();
   const [assetOpen, setAssetOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
+  const [aceOpen, setAceOpen] = useState(false);
 
   const [selection, setSelection] = useState(null);
 
@@ -196,6 +198,29 @@ const ActionButtons: React.FC = () => {
         meta: image.meta,
         caption: '',
         align: 'center'
+      }
+    );
+
+    const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
+
+    setEditorState(
+      AtomicBlockUtils.insertAtomicBlock(editorState, entityKey, ' ')
+    );
+
+    EditorState.forceSelection(
+      editorState,
+      editorState.getCurrentContent().getSelectionAfter()
+    );
+  };
+
+  const createAce = (mode: string) => {
+    const contentState = editorState.getCurrentContent();
+
+    const contentStateWithEntity = contentState.createEntity(
+      'TEXT_EDITOR',
+      'MUTABLE',
+      {
+        mode
       }
     );
 
@@ -264,6 +289,17 @@ const ActionButtons: React.FC = () => {
             return false;
           }}
         />
+        <DefaultButton
+          iconProps={{iconName: 'FileCode'}}
+          className={classes.button}
+          disabled={disabled}
+          onMouseDown={(e) => {
+            setAceOpen(true);
+            e.preventDefault();
+            setSelection(editorState.getSelection());
+            return false;
+          }}
+        />
       </div>
       <AssetsSelectPanel
         isOpen={assetOpen}
@@ -290,6 +326,19 @@ const ActionButtons: React.FC = () => {
           createLink(data);
           setLinkOpen(false);
           setReadOnly(false);
+        }}
+      />
+      <InsertAceDialog
+        isOpen={aceOpen}
+        onDismiss={() => {
+          setAceOpen(false);
+          forceSelection();
+        }}
+        onInsert={(data) => {
+          if (data) {
+            createAce(data?.mode);
+          }
+          setAceOpen(false);
         }}
       />
     </>

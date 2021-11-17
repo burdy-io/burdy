@@ -6,6 +6,9 @@ import 'ace-builds/src-noconflict/mode-html';
 import 'ace-builds/src-noconflict/mode-json';
 import 'ace-builds/src-noconflict/mode-xml';
 import 'ace-builds/src-noconflict/mode-text';
+import 'ace-builds/src-noconflict/mode-sql';
+import 'ace-builds/src-noconflict/mode-yaml';
+import 'ace-builds/src-noconflict/mode-markdown';
 import 'ace-builds/src-noconflict/theme-github';
 import React from 'react';
 import { Controller } from 'react-hook-form';
@@ -27,7 +30,7 @@ const DynamicTextEditor = ({ field, name, control, disabled }) => {
 
   return (
     <div className={styles.editorWrapper}>
-      <Label>{field.label || field.name}</Label>
+      <Label>{field.label || field.name} ({field.mode})</Label>
       <Controller
         name={name}
         control={control}

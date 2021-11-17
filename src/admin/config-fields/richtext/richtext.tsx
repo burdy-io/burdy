@@ -5,6 +5,7 @@ import { convertToRaw, DraftHandleValue, Editor, EditorState, Modifier, RichUtil
 import {Label, makeStyles} from "@fluentui/react";
 import RichtextToolbar from "@admin/config-fields/richtext/components/richtext-toolbar";
 import DraftImageBlock from "@admin/config-fields/richtext/blocks/draft-image-block";
+import DraftAceBlock from "@admin/config-fields/richtext/blocks/draft-ace-block";
 import { useDebouncedCallback } from 'use-debounce';
 
 const useStyles = makeStyles((theme) => ({
@@ -221,6 +222,12 @@ const RichText: React.FC<IDynamicTextProps> = ({field, name, onChange}) => {
                 return {
                   component: DraftImageBlock,
                   editable: false
+                };
+              }
+              if (type === 'TEXT_EDITOR') {
+                return {
+                  component: DraftAceBlock,
+                  editable: true
                 };
               }
               return null;
