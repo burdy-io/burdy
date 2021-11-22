@@ -164,7 +164,7 @@ interface DynamicZoneProps {
 const DynamicZone: React.FC<DynamicZoneProps> = ({ field, name }) => {
   const [addComponentOpen, setAddComponentOpen] = useState(false);
   const { control, disabled, narrow } = useExtendedFormContext();
-  const { fields, append, remove, swap } = useFieldArray({
+  const { fields, append, remove, move } = useFieldArray({
     control,
     name
   });
@@ -189,7 +189,7 @@ const DynamicZone: React.FC<DynamicZoneProps> = ({ field, name }) => {
     if (!result.destination) {
       return;
     }
-    swap(result?.source?.index, result?.destination?.index);
+    move(result?.source?.index, result?.destination?.index);
   };
 
   return (
@@ -223,7 +223,7 @@ const DynamicZone: React.FC<DynamicZoneProps> = ({ field, name }) => {
                             remove(index);
                           }}
                           onMove={(offset) => {
-                            swap(index, index + offset);
+                            move(index, index + offset);
                           }}
                           disableDown={index >= fields?.length - 1}
                           disableUp={index === 0}
