@@ -173,7 +173,7 @@ const DynamicField: React.FC<DynamicFieldProps> = ({ field, name }) => {
         );
       default: {
         const Component =
-          Hooks.applySyncFilters(`admin/field/${field.name}`, null, field) ??
+          Hooks.applySyncFilters(`admin/field/${field.type}`, null, field) ??
           null;
         if (!Component) return null;
         return <Component field={field} name={getName()} />;
