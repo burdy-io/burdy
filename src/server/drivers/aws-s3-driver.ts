@@ -27,6 +27,10 @@ export default class AwsS3FileDriver implements IFileDriver {
       options.endpoint = new AWS.Endpoint(process.env.AWS_S3_ENDPOINT);
     }
 
+    if (process.env.AWS_S3_FORCEPATHSTYLE) {
+      options.s3ForcePathStyle = Boolean(process.env.AWS_S3_FORCEPATHSTYLE);
+    }
+
     this.s3 = new AWS.S3(options);
   }
 
