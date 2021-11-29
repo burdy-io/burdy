@@ -14,8 +14,19 @@ import { exportContent, importContent } from '@server/business-logic/server.bl';
 import authMiddleware from '@server/middleware/auth.middleware';
 import PathUtil from "@scripts/util/path.util";
 import fs from 'fs-extra';
+import AccessToken from '@server/models/access-token';
+import { nanoid } from 'nanoid';
 
 const app = express();
+
+app.get(
+  '/health',
+  asyncMiddleware(async (req, res) => {
+    res.send({
+      status: 'ok'
+    })
+  })
+);
 
 app.post(
   '/init',
@@ -59,6 +70,12 @@ app.post(
       { key: 'initiated', value: true },
       { key: 'adminEmail', value: email },
     ]);
+
+    const accessTokenRepository = getEnhancedRepository(AccessToken);
+    await accessTokenRepository.save({
+      name: req?.body?.name,
+      token: nanoid()
+    });
 
     let token;
     await getManager().transaction(async (entityManager) => {

@@ -9,10 +9,9 @@ import {useHistory} from 'react-router';
 import {useDebouncedCallback} from 'use-debounce';
 import {useAuth} from '@admin/features/authentication/context/auth.context';
 import {usePosts} from '../context/posts.context';
-import { copyToClipboard } from '@admin/helpers/utility';
+import { copyToClipboard, testPaths } from '@admin/helpers/utility';
 import { useSnackbar } from '@admin/context/snackbar';
-
-const enablePreviewEditor = process.env.PUBLIC_ENABLE_PREVIEW_EDITOR === 'true';
+import { useAllowedPaths } from '@admin/helpers/hooks';
 
 const PostsCommandBar = () => {
   const history = useHistory();
@@ -28,6 +27,8 @@ const PostsCommandBar = () => {
     setStateData,
     additionalData,
   } = usePosts();
+
+  const allowedPaths = useAllowedPaths();
 
   const debounced = useDebouncedCallback(async (val) => {
     setParams({
@@ -66,7 +67,7 @@ const PostsCommandBar = () => {
             setStateData('createPostOpen', true);
           },
         },
-        enablePreviewEditor ? {
+        testPaths(allowedPaths, selectedPosts?.[0]?.slugPath) ? {
             key: 'edit',
             text: 'Edit',
             disabled:

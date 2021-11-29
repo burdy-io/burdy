@@ -1,7 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { convertModelArrayToObject, ModelObject } from '@admin/helpers/misc';
 import { useRefEffect } from '@fluentui/react-hooks';
+import { findSettingsValue, isTrue } from '@admin/helpers/utility';
+import { useSettings } from '@admin/context/settings';
 
 const useButtonHover = (debounce = 300) => {
   const [value, setValue] = useState(false);
@@ -43,8 +45,13 @@ type ModelMiddleware<T> = (models: T[]) => T[];
 export type SetModelMiddleware<T> = (middleware: ModelMiddleware<T>[]) => void;
 type CompareFunction<T> = (a: T, b: T) => number;
 
-const useModelState = <T extends BaseModel>(defaultValue: T[] = [], sorter: CompareFunction<T> = null) => {
-  const [sort, setSort] = useState<CompareFunction<T> | null>(sorter ? () => sorter : null);
+const useModelState = <T extends BaseModel>(
+  defaultValue: T[] = [],
+  sorter: CompareFunction<T> = null
+) => {
+  const [sort, setSort] = useState<CompareFunction<T> | null>(
+    sorter ? () => sorter : null
+  );
   const [arrayState, setArrayStatePrivate] = useState<T[]>(defaultValue);
   const [objectState, setObjectStatePrivate] = useState<ModelObject<T>>(
     convertModelArrayToObject(defaultValue)
@@ -53,7 +60,7 @@ const useModelState = <T extends BaseModel>(defaultValue: T[] = [], sorter: Comp
 
   const removeSort = () => {
     setSort(null);
-  }
+  };
 
   const setObjectState = (models: ModelObject<T>) => {
     setArrayState(Object.values(models));
@@ -63,7 +70,7 @@ const useModelState = <T extends BaseModel>(defaultValue: T[] = [], sorter: Comp
     if (sort) {
       models.sort(sort);
     }
-  }
+  };
 
   const setArrayState = (models: T[]) => {
     models = middleware.reduce(
@@ -103,7 +110,7 @@ const useModelState = <T extends BaseModel>(defaultValue: T[] = [], sorter: Comp
     middleware,
     setMiddleware,
     removeSort,
-    setSort
+    setSort,
   };
 };
 
@@ -131,10 +138,36 @@ const useRefChange = <T = unknown>(
   }, initial);
 };
 
+const useAllowedPaths = () => {
+  const { settingsArray } = useSettings();
+  const allowedPaths = useMemo(() => {
+    const previewEditor: any = findSettingsValue(
+      settingsArray,
+      'previewEditor'
+    );
+    let paths = [];
+    if (!previewEditor) return paths;
+    try {
+      const parsed = JSON.parse(previewEditor);
+      if (!isTrue(parsed?.enabled)) {
+        return paths;
+      }
+      paths = ((parsed?.allowedPaths || '').split('\n') || []).filter(
+        (path) => path?.length > 0
+      );
+    } catch {
+      //
+    }
+    return paths;
+  }, []);
+  return allowedPaths;
+};
+
 export {
   useRefChange,
   useButtonHover,
   useStorageState,
   useModelState,
+  useAllowedPaths,
   ModelState,
 };

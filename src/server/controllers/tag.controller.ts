@@ -6,8 +6,10 @@ import Tag from '@server/models/tag.model';
 import * as yup from 'yup';
 import { ITag } from '@shared/interfaces/model';
 import BadRequestError from '@server/errors/bad-request-error';
-import { getReplaceChildrenQuery } from '@server/common/orm-helpers';
-import { mapTag } from '@server/common/mappers';
+import { getEnhancedRepository, getReplaceChildrenQuery } from '@server/common/orm-helpers';
+import { mapPublicTag, mapTag } from '@server/common/mappers';
+import contentMiddleware from '@server/middleware/content.middleware';
+import { isTrue } from '@admin/helpers/utility';
 
 const app = express();
 
@@ -160,6 +162,88 @@ app.put(
     }
 
     res.send(mapTag(tag));
+  })
+);
+
+app.get(
+  '/search/tags',
+  contentMiddleware({ alwaysAuthorize: true }),
+  asyncMiddleware(async (req, res) => {
+    const tagRepository = getEnhancedRepository(Tag);
+    const qb = tagRepository.createQueryBuilder('tag');
+
+    const search = req?.query?.search as string;
+    const parent = req?.query?.parent as string;
+    const onlyOrphans = req?.query?.onlyOrphans as string;
+    const slugPath = req?.query?.slugPath as string;
+
+    let limit = 100;
+    if (req?.query?.limit && !Number.isNaN(Number(req?.query?.limit))) {
+      limit = Number(req?.query?.limit);
+    }
+    let page = 1;
+    if (req?.query?.page && !Number.isNaN(Number(req?.query?.page))) {
+      page = Number(req?.query?.page);
+    }
+    const orderBy = req?.query?.orderBy as string;
+    const order = req?.query?.order as string;
+
+    const expand = ((req?.query?.expand as string) || '').split(',');
+
+    if (parent || expand.find((val) => val === 'parent')) {
+      qb.leftJoinAndSelect('tag.parent', 'parent');
+    }
+
+    if (slugPath) {
+      qb.andWhere('tag.slugPath IN (:...slugPaths)', {
+        slugPaths: (slugPath as string).split(','),
+      });
+    }
+
+    if (isTrue(onlyOrphans)) {
+      if (parent) {
+        qb.andWhere('parent.slugPath = :parentSlugPath', {
+          parentSlugPath: parent,
+        });
+      } else {
+        qb.andWhere('tag.parentId IS NULL');
+      }
+    } else if (parent) {
+      qb.andWhere('tag.slugPath LIKE :parentSlugPath', {
+        parentSlugPath: `${(parent as string).toLowerCase()}/%`,
+      });
+    }
+
+    if (search?.length > 0) {
+      qb.andWhere(
+        new Brackets((subQb) => {
+          subQb
+            .where('LOWER(tag.name) LIKE :search', {
+              search: `%${(search as string).toLowerCase()}%`,
+            })
+            .orWhere('LOWER(tag.slugPath) LIKE :search', {
+              search: `%${(search as string).toLowerCase()}%`,
+            });
+        })
+      );
+    }
+
+    const getMany = () => {
+      qb.take(limit).skip((page - 1) * limit);
+      return qb.getMany();
+    }
+
+    qb.addOrderBy(orderBy || 'tag.slugPath', order === 'DESC' ? 'DESC' : 'ASC');
+    const [count, results] = await Promise.all([
+      qb.getCount(),
+      getMany()
+    ]);
+    res.send({
+      count,
+      results: (results || []).map((tag) => mapPublicTag(tag)),
+      page,
+      limit
+    });
   })
 );
 

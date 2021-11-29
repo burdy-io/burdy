@@ -19,16 +19,16 @@ import PostVersionsRestoreDialog from '../../posts/components/post-versions-rest
 import { useForm } from 'react-hook-form';
 import PreviewEditor from '@admin/features/editor/components/preview-editor';
 import HeadlessEditor from '@admin/features/editor/components/headless-editor';
-import LoadingBar from '@admin/components/loading-bar';
 import _ from 'lodash';
-
-const enablePreviewEditor = process.env.PUBLIC_ENABLE_PREVIEW_EDITOR === 'true';
+import { testPaths } from '@admin/helpers/utility';
+import { useAllowedPaths } from '@admin/helpers/hooks';
 
 const EditorPage = () => {
   const params = useParams<any>();
   const history = useHistory();
   const location = useLocation();
   const search = queryString.parse(location?.search);
+  const allowedPaths = useAllowedPaths();
 
   const {
     getPost,
@@ -87,10 +87,10 @@ const EditorPage = () => {
         post?.type === 'post' ||
         post?.type === 'hierarchical_post'
       ) {
-        setEnableEditor(!!enablePreviewEditor);
+        setEnableEditor(!!testPaths(allowedPaths, post?.slugPath));
       }
     }
-  }, [post?.id, post?.versionId]);
+  }, [post?.id, post?.slugPath, post?.versionId]);
 
   useEffect(() => {
     setPost(null);
@@ -107,7 +107,7 @@ const EditorPage = () => {
       setEditorType(null);
       setTimeout(() => {
         methods.reset(values);
-        if (search?.editor === 'preview') {
+        if (search?.editor === 'preview' && testPaths(allowedPaths, post?.slugPath)) {
           setEditorType('preview');
         } else {
           setEditorType('headless');

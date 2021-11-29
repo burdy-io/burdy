@@ -10,6 +10,8 @@ import DynamicGroup from './dynamic-group';
 import { ControlledCheckbox } from '@admin/components/rhf-components';
 import { useExtendedFormContext } from '@admin/config-fields/dynamic-form';
 import { isTrue } from '@admin/helpers/utility';
+import { usePosts } from '@admin/features/posts/context/posts.context';
+import { v4 } from 'uuid';
 
 interface DynamicComponentProps {
   field: any;
@@ -18,6 +20,7 @@ interface DynamicComponentProps {
 
 const DynamicComponent: React.FC<DynamicComponentProps> = ({ field, name }) => {
   const { getSingleContentType } = useContentTypes();
+  const {setLoadingContent} = usePosts();
   const { disabled, control, watch } = useExtendedFormContext();
 
   useEffect(() => {
@@ -25,6 +28,14 @@ const DynamicComponent: React.FC<DynamicComponentProps> = ({ field, name }) => {
       getSingleContentType.execute({ name: field?.component });
     }
   }, [field?.component]);
+
+  useEffect(() => {
+    const id = v4();
+    setLoadingContent(id, getSingleContentType?.loading);
+    return () => {
+      setLoadingContent(id, false);
+    }
+  }, [getSingleContentType?.loading])
 
   const enabled = watch(`${name}_$enabled`);
   const displayComponent = useMemo(() => {

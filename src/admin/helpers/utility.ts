@@ -8,6 +8,9 @@
  *
  * @return Formatted string.
  */
+import { ISiteSettings } from '@shared/interfaces/model';
+import { match } from 'path-to-regexp';
+
 export const humanFileSize = (bytes: number, dp = 1) => {
   const thresh = 1024;
 
@@ -57,17 +60,39 @@ export const getMetaValue = (obj: any, key: string) => {
   return getMeta(obj, key)?.value;
 };
 
-
 /**
  * The function returns true if the string passed to it has no content.
  */
 export const isEmptyString = (str) => {
-  if (str === undefined || str === null || str.length === 0 || str.trim().length === 0) {
+  if (
+    str === undefined ||
+    str === null ||
+    str.length === 0 ||
+    str.trim().length === 0
+  ) {
     return true;
   }
   return false;
-}
+};
 
-export const isTrue = (str: string|boolean|number) => {
-  return str === 'true' || str === true || str === 1;
-}
+export const isTrue = (str: string | boolean | number) => {
+  return str === true || str === 1 || (str as string || '').toLowerCase() === 'true';
+};
+
+export const findSettingsValue = (
+  settings: ISiteSettings[] = [],
+  key: string
+) => {
+  return (settings || []).find((settings) => settings?.key === key)?.value;
+};
+
+export const testPaths = (paths: string[] = [], path: string) => {
+  return paths.find((rule) => {
+    try {
+      const result = match(rule?.[0] === '/' ? rule : `/${rule}`);
+      return result(`/${path}`);
+    } catch {
+      return false;
+    }
+  });
+};

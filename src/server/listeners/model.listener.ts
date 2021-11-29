@@ -13,10 +13,11 @@ import UserMeta from "@server/models/user-meta.model";
 import UserSession from "@server/models/user-session.model";
 import UserToken from "@server/models/user-token.model";
 import Backup from "@server/models/backup.model";
-
+import AccessToken from '@server/models/access-token';
 
 Hooks.addFilter('db/models', async (args) => {
   return [
+    AccessToken,
     Asset,
     AssetMeta,
     Backup,

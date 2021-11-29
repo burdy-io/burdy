@@ -4,15 +4,15 @@ import Asset from '@server/models/asset.model';
 import BadRequestError from '@server/errors/bad-request-error';
 import { parseContent } from '@server/common/post.parser';
 import {
-  mapPost,
-  mapPostContainer,
-  mapPostWithMeta,
   mapPublicAsset,
   mapPublicPostWithMeta
 } from '@server/common/mappers';
 import _ from 'lodash';
 import { IPost } from '@shared/interfaces/model';
 import Hooks from '@shared/features/hooks';
+
+import { Key, pathToRegexp } from 'path-to-regexp';
+import deepcopy from 'deepcopy';
 
 const MAX_DEBT = process.env.POSTS_MAX_RELATIONS_DEBT || 3;
 
@@ -223,4 +223,41 @@ export const compilePost = async (post: IPost, options?: ICompilePostOptions) =>
       content
     }
   };
+};
+
+const escapeRegExp = (str: string) => {
+  return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
+};
+
+export const buildPath = (path: string, rules: {source: string; rewrite: string;}[]): string | undefined => {
+  let resultArray: RegExpExecArray | null;
+  let keys: Key[] = [];
+  rules = deepcopy(rules);
+
+  const rule = rules.find((rule) => {
+    keys = [];
+    const regexp = pathToRegexp(rule.source, keys);
+    resultArray = regexp.exec(path);
+    return !!resultArray;
+  });
+
+  if (!rule) {
+    return undefined;
+  }
+
+  const params: Record<Key['name'], string | undefined> = {};
+
+  keys.forEach((key, index) => {
+    params[key.name] = resultArray?.[index + 1];
+  });
+
+  const rewrite = (string: string, params: Record<Key['name'], string | undefined> = {}) => {
+    let tmpString = string;
+    Object.keys(params).forEach((key) => {
+      tmpString = tmpString.replace(new RegExp(escapeRegExp(`{${key}}`), 'g'), params[key] || '');
+    });
+    return tmpString;
+  };
+
+  return rewrite(rule.rewrite as string, params)
 };

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import SideNav from '@admin/components/side-nav';
 import Header from '@admin/components/header';
 import { Redirect, Route, Switch } from 'react-router';
@@ -13,15 +13,17 @@ import Hooks from '@shared/features/hooks';
 import { makeStyles, NeutralColors } from '@fluentui/react';
 import { useAuth } from '@admin/features/authentication/context/auth.context';
 import ErrorBoundary from '@admin/components/error-boundary';
-import PostContainerPage from "@admin/features/posts/pages/post-container.page";
+import PostContainerPage from '@admin/features/posts/pages/post-container.page';
 import EditorPage from '@admin/features/editor/pages/editor.page';
+import { useSettings } from '@admin/context/settings';
+import LoadingBar from '@admin/components/loading-bar';
 
 const useStyles = makeStyles({
   layout: {
     display: 'grid',
     gridAutoFlow: 'column',
     gridTemplateColumns: 'auto 1fr',
-    height: '100vh'
+    height: '100vh',
   },
   header: {
     position: 'fixed !important' as any,
@@ -30,7 +32,7 @@ const useStyles = makeStyles({
     right: 0,
     paddingLeft: '0 !important',
     paddingRight: '0 !important',
-    zIndex: 14
+    zIndex: 14,
   },
   sider: {
     position: 'fixed !important' as any,
@@ -39,79 +41,83 @@ const useStyles = makeStyles({
     left: 0,
     background: NeutralColors.gray20,
     width: 200,
-    zIndex: 10
+    zIndex: 10,
   },
   content: {
     padding: '48px 0 0 200px',
     transition: '.2s padding ease-in-out',
     height: 'calc(100vh - 48px)',
     '&:global(.menuCollapsed)': {
-      padding: '48px 0 0 80px'
-    }
+      padding: '48px 0 0 80px',
+    },
   },
   innerContent: {
-    height: '100%'
-  }
+    height: '100%',
+  },
 });
 
 const Layout = () => {
   const styles = useStyles();
   const { filterPermissions } = useAuth();
+  const { getSettings } = useSettings();
+  useEffect(() => {
+    getSettings.execute();
+  }, []);
   const routes = useMemo(() => {
     const predefined = [
       {
         exact: true,
         key: 'dashboard',
         path: '/',
-        component: Dashboard
+        component: Dashboard,
       },
       {
         key: 'assets',
         path: '/assets',
         component: AssetsPage,
-        permissions: ['assets_list']
+        permissions: ['assets_list'],
       },
       {
         key: 'content-types',
         path: '/content-types',
         component: ContentTypes,
-        permissions: ['content_types_list']
+        permissions: ['content_types_list'],
       },
       {
         key: 'users',
         path: '/users',
-        component: UsersPage
+        component: UsersPage,
       },
       {
         key: 'settings',
         path: '/settings',
         component: Settings,
-        permissions: ['settings']
+        permissions: ['settings'],
       },
       {
         key: 'post-container',
         path: '/sites/post-container/:postId',
         component: PostContainerPage,
-        permissions: ['sites_list']
+        permissions: ['sites_list'],
       },
       {
         key: 'sites-editor',
         path: '/sites/editor/:postId',
         component: EditorPage,
-        permissions: ['sites_update']
+        permissions: ['sites_update'],
       },
       {
         key: 'sites',
         path: '/sites',
         component: SitesPage,
-        permissions: ['sites_list']
+        permissions: ['sites_list'],
       },
       {
         key: 'tags',
         path: '/tags',
         component: TagsPage,
-        permissions: ['tags_list']
-      }
+        permissions: ['tags_list'],
+      },
     ];
     return filterPermissions(
       Hooks.applySyncFilters('admin/routes', predefined) || []
@@ -119,35 +125,39 @@ const Layout = () => {
   }, []);
 
   return (
-    <div>
-      <div className={styles.header}>
-        <Header />
-      </div>
-      <div className={styles.sider}>
-        <SideNav />
-      </div>
-      <div className={styles.content}>
-        <div className={styles.innerContent}>
-          <Switch>
-            {routes.map((route) => {
-              return (
-                <Route
-                  exact={route.exact}
-                  path={route.path}
-                  key={route.key}
-                  render={() => (
-                    <ErrorBoundary message={`Page ${route.path} errored. Please check console for more details.`}>
-                      <route.component />
-                    </ErrorBoundary>
-                  )}
-                />
-              );
-            })}
-            <Redirect from='*' to='' />
-          </Switch>
+    <LoadingBar loading={getSettings.loading}>
+      <div>
+        <div className={styles.header}>
+          <Header />
+        </div>
+        <div className={styles.sider}>
+          <SideNav />
+        </div>
+        <div className={styles.content}>
+          <div className={styles.innerContent}>
+            <Switch>
+              {routes.map((route) => {
+                return (
+                  <Route
+                    exact={route.exact}
+                    path={route.path}
+                    key={route.key}
+                    render={() => (
+                      <ErrorBoundary
+                        message={`Page ${route.path} errored. Please check console for more details.`}
+                      >
+                        <route.component />
+                      </ErrorBoundary>
+                    )}
+                  />
+                );
+              })}
+              <Redirect from="*" to="" />
+            </Switch>
+          </div>
         </div>
       </div>
-    </div>
+    </LoadingBar>
   );
 };
 

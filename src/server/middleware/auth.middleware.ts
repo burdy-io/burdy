@@ -7,6 +7,10 @@ import Hooks from '@shared/features/hooks';
 import express from 'express';
 import ForbiddenError from '@server/errors/forbidden-error';
 
+export const extractAuthToken = (req: express.Request): string | undefined => {
+  return req?.cookies?.token as string;
+}
+
 const authMiddleware =
   (permissions: string[] = []) =>
   async (
@@ -15,7 +19,7 @@ const authMiddleware =
     next: express.NextFunction
   ) => {
     try {
-      const token = req?.cookies?.token;
+      const token = extractAuthToken(req);
       const decoded = verify(token);
 
       const entityManager = getManager();

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import {
-  ActionButton, DefaultButton, DialogFooter,
+  ActionButton,
   getTheme,
   IconButton,
   Label,
-  mergeStyleSets, Panel, PanelType,
+  mergeStyleSets, PanelType,
   Separator,
   Stack
 } from '@fluentui/react';
@@ -23,6 +23,8 @@ import DynamicGroup from './dynamic-group';
 import { useExtendedFormContext } from '@admin/config-fields/dynamic-form';
 import classNames from 'classnames';
 import BackPanel from '@admin/components/back-panel';
+import { usePosts } from '@admin/features/posts/context/posts.context';
+import {v4} from 'uuid';
 
 const theme = getTheme();
 
@@ -66,6 +68,7 @@ const DynamicZoneComponentImpl: React.FC<DynamicZoneComponentProps> = ({
   const { control, disabled, narrow } = useExtendedFormContext();
 
   const [panelOpened, setPanelOpened] = useState(false);
+  const { setLoadingContent } = usePosts();
   const { getSingleContentType } = useContentTypes();
 
   useEffect(() => {
@@ -73,6 +76,14 @@ const DynamicZoneComponentImpl: React.FC<DynamicZoneComponentProps> = ({
       getSingleContentType.execute({ name: component });
     }
   }, [component]);
+
+  useEffect(() => {
+    const id = v4();
+    setLoadingContent(id, getSingleContentType?.loading);
+    return () => {
+      setLoadingContent(id, false);
+    }
+  }, [getSingleContentType?.loading])
 
   return (
     <div className={styles.component}>
