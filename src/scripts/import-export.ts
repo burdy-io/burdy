@@ -5,7 +5,7 @@ import {compilerRun} from '@scripts/util/webpack.util';
 import config from '@shared/features/config';
 import {webpackServerConfigure} from '../webpack.config';
 
-const scriptImportExport = async ({action = 'import', file, force = false}) => {
+const scriptImportExport = async ({action = 'import', file, force = false, publish = false}) => {
   const buildDirectory = PathUtil.cache('import-export');
 
   await rimraf(buildDirectory, (error) => error && console.log(error));
@@ -19,7 +19,8 @@ const scriptImportExport = async ({action = 'import', file, force = false}) => {
       new webpack.DefinePlugin({
         ACTION: JSON.stringify(action),
         FILE: JSON.stringify(file),
-        FORCE: JSON.stringify(force)
+        FORCE: JSON.stringify(force),
+        PUBLISH: JSON.stringify(publish)
       })
     );
 
