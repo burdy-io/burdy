@@ -65,6 +65,7 @@ const importExport = async (file: string, options: any) => {
 
   await require('@scripts/import-export').default({
     force: options?.force,
+    publish: options?.publish || false,
     action: process.argv[2],
     file
   });
@@ -104,6 +105,7 @@ program.command('export')
 
 program.command('import')
   .addArgument(new Argument('<file>', 'input file to be restored.').argOptional())
+  .addOption(new Option('-p, --publish', 'publishes the imported pages and posts').default(false))
   .addOption(new Option('-f, --force', 'force overwrite existing file during export').default(false))
   .action(importExport);
 

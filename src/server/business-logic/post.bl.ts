@@ -53,6 +53,7 @@ export type IImportPosts = {
   user: any;
   options?: {
     force?: boolean;
+    publish?: boolean;
   };
 };
 
@@ -186,7 +187,7 @@ export const importPost = async ({
     parent = await getParent(manager, slugComponents);
   }
 
-  const postObj: any = {
+  const postObj: Partial<IPost> = {
     name: post.name,
     slug: post.slug,
     slugPath: post.slugPath,
@@ -196,6 +197,7 @@ export const importPost = async ({
     tags,
     author: user,
     meta: newMeta,
+    status: options?.publish ? 'published' : 'draft',
   };
 
   saved = await manager.save(Post, postObj);

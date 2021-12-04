@@ -7,10 +7,11 @@ import PathUtil from '@scripts/util/path.util';
 declare const ACTION: string;
 declare const FILE: string;
 declare const FORCE: boolean;
+declare const PUBLISH: boolean;
 
 const handleImport = async () => {
   await importContent({
-    options: { force: FORCE },
+    options: { force: FORCE, publish: PUBLISH },
     file: PathUtil.processRoot(FILE),
   });
 };

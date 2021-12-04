@@ -150,11 +150,14 @@ export const importContent = async ({
   file?: string;
   options?: {
     force?: string | boolean;
+    publish?: string | boolean;
   };
   include?: string[];
 }) => {
   await getManager().transaction(async (entityManager) => {
     const force = isTrue(options?.force);
+    const publish = isTrue(options?.publish);
+
     logger.info('Starting import');
     const entry = PathUtil.burdyRoot('export');
 
@@ -201,7 +204,7 @@ export const importContent = async ({
           entityManager,
           user,
           data: result,
-          options: { force },
+          options: { force, publish },
         });
         next();
       } catch (e) {
