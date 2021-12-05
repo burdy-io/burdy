@@ -198,6 +198,9 @@ export const importPost = async ({
     author: user,
     meta: newMeta,
     status: options?.publish ? 'published' : 'draft',
+    ...(options?.publish ? {
+      publishedAt: new Date()
+    } : {})
   };
 
   saved = await manager.save(Post, postObj);
