@@ -419,15 +419,16 @@ app.put(
         if (!(posts?.length > 0)) throw new BadRequestError('invalid_ids');
 
         const qb = postRepository.createQueryBuilder('post').update(Post);
+        const now = new Date();
         if (publish) {
           qb.set({
-            publishedAt: new Date(),
+            publishedAt: now,
             status: 'published',
-            publishedFrom: publishedFrom || null,
+            publishedFrom: publishedFrom || now,
             publishedUntil: publishedUntil ? endOfDay(
               new Date(publishedUntil),
             ) : null,
-            updatedAt: new Date()
+            updatedAt: now
           });
         } else {
           qb.set({
@@ -435,7 +436,7 @@ app.put(
             status: 'draft',
             publishedFrom: null,
             publishedUntil: null,
-            updatedAt: new Date()
+            updatedAt: now
           });
         }
 
