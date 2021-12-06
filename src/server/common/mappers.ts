@@ -96,7 +96,6 @@ export const mapPublicPostWithMeta = (post) => {
     name: post.name,
     slug: post.slug,
     slugPath: post.slugPath,
-    publishedFrom: post.publishedFrom,
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
     contentType: mapContentType(post.contentType),
