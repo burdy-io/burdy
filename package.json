@@ -1,6 +1,6 @@
 {
   "name": "burdy",
-  "version": "2.0.13",
+  "version": "2.1.0",
   "description": "Open Source Headless Platform",
   "main": "index.js",
   "scripts": {
@@ -94,7 +94,6 @@
     "node-notifier": "^10.0.0",
     "nodemailer": "^6.6.3",
     "nodemon": "^2.0.14",
-    "path-to-regexp": "^6.2.0",
     "pg": "^8.7.1",
     "query-string": "^7.0.1",
     "react": "^17.0.2",
@@ -173,6 +172,9 @@
     "ttypescript": "^1.5.12",
     "typescript": "^4.4.2",
     "typescript-transform-paths": "^3.3.1"
+  },
+  "peerDependencies": {
+    "path-to-regexp": "^6.2.0"
   },
   "node": ">=12.x.x <=16.x.x",
   "npm": ">=6.0.0",
