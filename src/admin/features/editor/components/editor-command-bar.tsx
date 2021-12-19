@@ -36,7 +36,7 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
   loading,
   enableEditor
 }) => {
-  const { getPost, post, setStateData, stateData, getVersionsCount } =
+  const { getPost, post, updatePost, updatePostContent, publishPosts, setStateData, stateData, getVersionsCount, loadingContent } =
     usePosts();
 
   const history = useHistory();
@@ -51,6 +51,8 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
       getVersionsCount.execute(post?.id);
     }
   }, [post]);
+
+  const apiLoading = updatePost.loading || updatePostContent?.loading || publishPosts?.loading || loadingContent;
 
   const commandItems = useMemo<ICommandBarItemProps[]>(() => {
     const items: ICommandBarItemProps[] = [
@@ -259,6 +261,7 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
           ? `History (${getVersionsCount?.result?.count})`
           : 'History',
         'data-cy': 'editor-commandBar-history',
+        disabled: apiLoading,
         iconProps: { iconName: 'History' },
         onClick: () => {
           setStateData('versionsOpen', true);
@@ -269,6 +272,7 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
         text: 'Edit Content Type',
         'data-cy': 'editor-commandBar-editContentType',
         iconProps: { iconName: 'Edit' },
+        disabled: apiLoading,
         permissions: ['content_types_update'],
         onClick: () => {
           setStateData('updateContentTypeOpen', true);
@@ -279,6 +283,7 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
         text: 'Settings',
         'data-cy': 'editor-commandBar-settings',
         iconProps: { iconName: 'Settings' },
+        disabled: apiLoading,
         onClick: () => {
           setStateData('updatePostOpen', true);
         },
@@ -288,6 +293,7 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
         text: 'Publish',
         'data-cy': 'editor-commandBar-publish',
         iconProps: { iconName: 'WebPublish' },
+        disabled: apiLoading,
         onClick: () => {
           setStateData('publishPostOpen', true);
         },
@@ -296,6 +302,7 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
         key: 'save',
         'data-cy': 'editor-commandBar-save',
         iconProps: { iconName: 'Save' },
+        disabled: apiLoading,
         text: 'Save',
         onClick: () => {
           handleSubmit();
@@ -308,6 +315,7 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
         text: 'Unpublish',
         'data-cy': 'editor-commandBar-unpublish',
         iconProps: { iconName: 'UnpublishContent' },
+        disabled: apiLoading,
         onClick: () => {
           setStateData('unpublishPostOpen', true);
         },
@@ -325,7 +333,7 @@ const EditorCommandBar: React.FC<EditorCommandBarProps> = ({
       },)
     }
     return items;
-  }, [getPost?.result, post, editor, loading, stateData, getVersionsCount?.result, menuOpened]);
+  }, [getPost?.result, apiLoading, post, editor, loading, stateData, getVersionsCount?.result, menuOpened]);
 
   return (
     <CommandBar

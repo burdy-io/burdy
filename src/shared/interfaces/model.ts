@@ -175,3 +175,17 @@ export interface IBackup {
   createdAt: Date;
   includes: string[];
 }
+
+export interface IAccessToken {
+  id: number;
+  token: string;
+  description?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface ISiteSettings {
+  id: number;
+  key?: string;
+  value?: string;
+}

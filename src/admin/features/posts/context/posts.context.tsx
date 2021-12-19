@@ -1,5 +1,5 @@
 import { useAsyncCallback, UseAsyncReturn } from 'react-async-hook';
-import React, { createContext, useContext, useMemo, useState } from 'react';
+import React, { createContext, useContext, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
 import { Selection } from '@fluentui/react';
 import { IPost } from '@shared/interfaces/model';
@@ -18,6 +18,9 @@ interface IPostsContext {
   compilePost: UseAsyncReturn<IPost, [post: any]>;
   getPreviewData: UseAsyncReturn<any, [id: number, versionId?: number]>;
   deletePosts: UseAsyncReturn<any[], [ids?: number[]]>;
+
+  loadingContent: boolean;
+  setLoadingContent: (id: string, val: boolean) => void;
 
   getVersions: UseAsyncReturn<IPost[], [postId: number, params?: any]>;
   getVersionsCount: UseAsyncReturn<any, [postId: number]>;
@@ -49,6 +52,16 @@ const PostsContext = createContext<IPostsContext>({} as any);
 const PostsContextProvider = ({ defaultAdditionalData = {}, children }) => {
   const [selectedPosts, setSelectedPosts] = useState([]);
   const [additionalData, setAdditionalData] = useState<object>(defaultAdditionalData ?? {});
+
+  const loadingContent = useRef<any>({});
+
+  const setLoadingContent = (id, val) => {
+    if (val) {
+      loadingContent.current[id] = val;
+    } else {
+      delete loadingContent.current[id];
+    }
+  }
 
   const [stateData, setStateDataImpl] = useState({});
   const setStateData = (key: string, value: any) => {
@@ -314,6 +327,9 @@ const PostsContextProvider = ({ defaultAdditionalData = {}, children }) => {
 
         stateData,
         setStateData,
+
+        loadingContent: Object.values(loadingContent?.current).some((key: string) => loadingContent?.current?.[key]),
+        setLoadingContent
       }}
     >
       {children}

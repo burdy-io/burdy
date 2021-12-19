@@ -160,13 +160,15 @@ const styles = mergeStyleSets({
   },
   urlBarSearch: {
     backgroundColor: theme.palette.white,
-    borderRadius: 20,
+    borderRadius: 4,
     padding: '0 10px',
     flex: 1,
     display: 'flex',
     alignItems: 'center',
-    height: 28,
+    height: 34,
     fontWeight: 600,
+    overflowX: 'auto',
+    whiteSpace: 'nowrap'
   },
   iframe: {
     display: 'block',
@@ -200,7 +202,6 @@ const PreviewEditor = ({
   const iframeRef = useRef(null);
   const [selectedTab, setSelectedTab] = useState(null);
   const [iframeSrc, setIframeSrc] = useState<string>();
-  const [baseUrl, setBaseUrl] = useState<string>();
 
   const history = useHistory();
 
@@ -254,7 +255,6 @@ const PreviewEditor = ({
     try {
       const response = await getPreviewData.execute(post?.id, post?.versionId);
       if (response) {
-        setBaseUrl(response?.data?.baseUrl);
         setIframeSrc(response?.src);
       }
     } catch (err) {
@@ -282,10 +282,6 @@ const PreviewEditor = ({
     return tmpTabs;
   }, [post]);
 
-  const pageUrl = useMemo(() => {
-    return baseUrl ? `${baseUrl}/${post?.slugPath}` : '';
-  }, [baseUrl, post?.slugPath]);
-
   return (
     <div className={styles.mainWrapper}>
       <div className={styles.content}>
@@ -297,7 +293,7 @@ const PreviewEditor = ({
         >
           <LoadingBar loading={loading}>
             <div className={styles.urlBar}>
-              <div className={styles.urlBarSearch}>{pageUrl}</div>
+              <div className={styles.urlBarSearch}>{iframeSrc}</div>
               <div>
                 <IconButton
                   iconProps={{ iconName: 'OpenInNewTab' }}

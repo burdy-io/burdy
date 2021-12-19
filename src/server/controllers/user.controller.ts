@@ -6,7 +6,7 @@ import { getExpires, sign } from '@server/common/jwt';
 import authMiddleware from '@server/middleware/auth.middleware';
 import asyncMiddleware from '@server/middleware/async.middleware';
 import BadRequestError from '@server/errors/bad-request-error';
-import { mailDriver, sendMail } from '@server/drivers/mail.driver';
+import { sendMail } from '@server/drivers/mail.driver';
 import UserToken, { UserTokenType } from '@server/models/user-token.model';
 import * as yup from 'yup';
 import { UserStatus } from '@shared/interfaces/model';

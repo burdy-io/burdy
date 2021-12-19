@@ -11,9 +11,11 @@ import { useDebouncedCallback } from 'use-debounce';
 import { useAuth } from '@admin/features/authentication/context/auth.context';
 import { usePosts } from '../context/posts.context';
 import { useSnackbar } from '@admin/context/snackbar';
-import { copyToClipboard } from '@admin/helpers/utility';
-
-const enablePreviewEditor = process.env.PUBLIC_ENABLE_PREVIEW_EDITOR === 'true';
+import {
+  copyToClipboard,
+  testPaths,
+} from '@admin/helpers/utility';
+import { useAllowedPaths } from '@admin/helpers/hooks';
 
 interface ISitesCommandBarProps {}
 
@@ -29,6 +31,7 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
   const history = useHistory();
 
   const { filterPermissions } = useAuth();
+  const allowedPaths = useAllowedPaths();
   const snackbar = useSnackbar();
 
   const debounced = useDebouncedCallback(async (val) => {
@@ -83,8 +86,8 @@ const SitesCommandBar: React.FC<ISitesCommandBarProps> = () => {
               history.push(`/sites/post-container/${selectedPosts?.[0]?.id}`);
             },
           },
-      enablePreviewEditor &&
-      ['page', 'hierarchical_post'].includes(selectedPosts?.[0]?.type)
+      ['page', 'hierarchical_post'].includes(selectedPosts?.[0]?.type) &&
+      testPaths(allowedPaths, selectedPosts?.[0]?.slugPath)
         ? {
             key: 'edit',
             text: 'Edit',

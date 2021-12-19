@@ -12,30 +12,49 @@ import logger from '@shared/features/logger';
 import Tag from '@server/models/tag.model';
 import { IPost, IUser } from '@shared/interfaces/model';
 import {
+  getEnhancedRepository,
   getReplaceChildrenQuery,
-  updateMeta
+  updateMeta,
 } from '@server/common/orm-helpers';
 import { v4 as uuidv4 } from 'uuid';
-import { mapPost, mapPostWithMeta } from '@server/common/mappers';
-import { compilePost, retrievePostAndCompile } from '@server/common/post.utility';
-import { sign, verify } from '@server/common/jwt';
-import Hooks from '@shared/features/hooks';
-import queryString from 'query-string';
+import {
+  mapPost,
+  mapPostWithMeta,
+  mapPublicPostWithMeta,
+} from '@server/common/mappers';
+import {
+  buildPath,
+  compilePost,
+  publishedQuery,
+  retrievePostAndCompile,
+} from '@server/common/post.utility';
+import SiteSettings from '@server/models/site-settings.model';
+import contentMiddleware, {
+  extractContentToken,
+  verifyContentToken,
+} from '@server/middleware/content.middleware';
+import { isTrue } from '@admin/helpers/utility';
 
 const app = express();
 
 export const isPostPublished = (post?: IPost) => {
   if (post?.status === 'published') {
-    if (post?.publishedFrom && isBefore(new Date(), new Date(post?.publishedFrom))) {
+    if (
+      post?.publishedFrom &&
+      isBefore(new Date(), new Date(post?.publishedFrom))
+    ) {
       return false;
     }
-    if (post?.publishedUntil && isAfter(new Date(), new Date(post?.publishedUntil))) {
+    if (
+      post?.publishedUntil &&
+      isAfter(new Date(), new Date(post?.publishedUntil))
+    ) {
       return false;
     }
     return true;
   }
   return false;
-}
+};
 
 export const createPostVersion = async (
   postRepository: Repository<Post>,
@@ -50,11 +69,11 @@ export const createPostVersion = async (
     contentType: post.contentType,
     meta: (post.meta || []).map((meta) => ({
       key: meta?.key,
-      value: meta?.value
+      value: meta?.value,
     })),
     tags: post.tags,
     author,
-    parent: post
+    parent: post,
   });
   return postVersion;
 };
@@ -81,42 +100,42 @@ app.get(
       .leftJoinAndSelect('post.tags', 'tags')
       .leftJoinAndSelect('author.meta', 'author.meta')
       .where('post.type != :postVersion', {
-        postVersion: 'post_version'
+        postVersion: 'post_version',
       });
 
     if (id) {
       qb.andWhere('post.id IN (:...ids)', {
-        ids: (id as string).split(',')
+        ids: (id as string).split(','),
       });
     }
 
     if (slug) {
       qb.andWhere('post.slugPath IN (:...slugPaths)', {
         slugPaths: (slug as string).split(','),
-      })
+      });
     }
 
     if (type) {
       qb.andWhere('post.type IN (:...types)', {
-        types: (type as string).split(',')
+        types: (type as string).split(','),
       });
     }
 
     if (contentTypeId) {
       qb.andWhere('post.contentTypeId IN (:...ids)', {
-        ids: (contentTypeId as string).split(',')
+        ids: (contentTypeId as string).split(','),
       });
     }
 
     if (contentTypeName) {
       qb.andWhere('contentType.name IN (:...name)', {
-        name: (contentTypeName as string).split(',')
+        name: (contentTypeName as string).split(','),
       });
     }
 
     if (parentId && !onlyOrphans) {
       qb.andWhere('post.parentId IN (:...parentIds)', {
-        parentIds: (parentId as string).split(',')
+        parentIds: (parentId as string).split(','),
       });
     }
 
@@ -129,10 +148,10 @@ app.get(
         new Brackets((subQb) => {
           subQb
             .where('LOWER(post.name) LIKE :search', {
-              search: `%${(search as string).toLowerCase()}%`
+              search: `%${(search as string).toLowerCase()}%`,
             })
             .orWhere('LOWER(post.slugPath) LIKE :search', {
-              search: `%${(search as string).toLowerCase()}%`
+              search: `%${(search as string).toLowerCase()}%`,
             });
         })
       );
@@ -151,7 +170,7 @@ app.post(
     await req.validate(
       {
         slug: yup.string().max(256).required(),
-        name: yup.string().max(256).required()
+        name: yup.string().max(256).required(),
       },
       'body'
     );
@@ -166,7 +185,7 @@ app.post(
         let parent;
         if (params.parentId) {
           parent = await transactionManager.findOne(Post, {
-            id: params.parentId
+            id: params.parentId,
           });
           if (!parent) throw new BadRequestError('invalid_parent');
         }
@@ -176,15 +195,18 @@ app.post(
           contentType = await transactionManager.findOne(ContentType, {
             where: {
               id: params.contentTypeId,
-              type: In(['post', 'page', 'fragment'])
-            }
+              type: In(['post', 'page', 'fragment']),
+            },
           });
           if (!contentType) throw new BadRequestError('invalid_content_type');
         }
 
         let meta = [];
         if (params.meta) {
-          meta = Object.entries(params.meta).map(([key, value]) => ({ key, value }));
+          meta = Object.entries(params.meta).map(([key, value]) => ({
+            key,
+            value,
+          }));
         }
 
         const postObj: Partial<IPost> = {
@@ -193,10 +215,10 @@ app.post(
           type: params?.type || 'post',
           contentType,
           author: req?.data?.user,
-          meta
+          meta,
         };
 
-        if(postObj.type === 'folder') {
+        if (postObj.type === 'folder') {
           postObj.status = 'published';
         }
 
@@ -213,7 +235,7 @@ app.post(
       logger.error({
         type: 'post',
         message: 'error saving post',
-        data: err.toString()
+        data: err.toString(),
       });
       if (err?.code === '23505') {
         throw new BadRequestError('duplicate_slug');
@@ -231,7 +253,7 @@ app.post(
     await req.validate(
       {
         slug: yup.string().max(256).required(),
-        name: yup.string().max(256).required()
+        name: yup.string().max(256).required(),
       },
       'body'
     );
@@ -246,7 +268,7 @@ app.post(
         let parent;
         if (parentId) {
           parent = await transactionManager.findOne(Post, {
-            id: parentId
+            id: parentId,
           });
           if (!parent) throw new BadRequestError('invalid_parent');
         }
@@ -254,41 +276,53 @@ app.post(
         const sourcePost = await transactionManager.findOne(Post, {
           relations: ['meta', 'contentType', 'parent'],
           where: {
-            id: postId
-          }
+            id: postId,
+          },
         });
         if (!sourcePost) throw new BadRequestError('invalid_source');
 
         let children: any = [sourcePost];
         if (recursive) {
-          children = await transactionManager.getRepository(Post)
+          children = await transactionManager
+            .getRepository(Post)
             .createQueryBuilder('post')
             .leftJoinAndSelect('post.contentType', 'contentType')
             .leftJoinAndSelect('post.meta', 'meta')
             .leftJoinAndSelect('post.tags', 'tags')
             .where('post.type IN (:...types)', {
-              types: ['folder', 'page', 'fragment', 'post', 'hierarchical_post']
+              types: [
+                'folder',
+                'page',
+                'fragment',
+                'post',
+                'hierarchical_post',
+              ],
             })
-            .andWhere(new Brackets((subQb) => {
-              subQb
-                .where('post.slugPath = :slugPath1', {
-                  slugPath1: sourcePost.slugPath
-                })
-                .orWhere('post.slugPath LIKE :slugPath2', {
-                  slugPath2: `${sourcePost.slugPath}/%`
-                });
-            })).addOrderBy('post.slugPath', 'ASC').getMany();
+            .andWhere(
+              new Brackets((subQb) => {
+                subQb
+                  .where('post.slugPath = :slugPath1', {
+                    slugPath1: sourcePost.slugPath,
+                  })
+                  .orWhere('post.slugPath LIKE :slugPath2', {
+                    slugPath2: `${sourcePost.slugPath}/%`,
+                  });
+              })
+            )
+            .addOrderBy('post.slugPath', 'ASC')
+            .getMany();
         }
 
         const getSlugPath = (child) => {
-          const newKey =
-            `${parent ? `${parent?.slugPath}/` : ''}${slug}${child.slugPath.slice(sourcePost?.slugPath?.length || 0)}`;
+          const newKey = `${
+            parent ? `${parent?.slugPath}/` : ''
+          }${slug}${child.slugPath.slice(sourcePost?.slugPath?.length || 0)}`;
           return newKey;
         };
         const getParent = (child, slugPath) => {
           const components = slugPath.split('/');
           components.pop();
-          return posts.find(post => post.slugPath === components.join('/'));
+          return posts.find((post) => post.slugPath === components.join('/'));
         };
         await children.reduce(async (promise, child) => {
           await promise;
@@ -301,11 +335,12 @@ app.post(
             contentType: child?.contentType,
             meta: (child.meta || []).map((meta) => ({
               key: meta?.key,
-              value: meta?.value
+              value: meta?.value,
             })),
-            parent: sourcePost.id === child.id ? parent : getParent(child, slugPath),
+            parent:
+              sourcePost.id === child.id ? parent : getParent(child, slugPath),
             tags: child.tags,
-            author: req?.data?.user
+            author: req?.data?.user,
           };
           const post = await transactionManager.save(Post, postObj);
           posts.push(post);
@@ -315,11 +350,11 @@ app.post(
       logger.error({
         type: 'post',
         message: 'error saving post',
-        data: err.toString()
+        data: err.toString(),
       });
       throw new BadRequestError('duplicate_slug');
     }
-    return res.send(posts.map(post => mapPost(post)));
+    return res.send(posts.map((post) => mapPost(post)));
   })
 );
 
@@ -332,7 +367,7 @@ app.delete(
 
     const postRepository = getRepository(Post);
     const deleted = await postRepository.delete({
-      id: In(ids)
+      id: In(ids),
     });
 
     return res.send(deleted);
@@ -356,11 +391,11 @@ app.put(
             'author',
             'author.meta',
             'parent',
-            'tags'
+            'tags',
           ],
           where: {
-            id: req.params.postId
-          }
+            id: req.params.postId,
+          },
         });
         if (!post) throw new BadRequestError('invalid_post');
 
@@ -378,7 +413,7 @@ app.put(
           post,
           Object.keys(flat).map((key) => ({
             key: `content.${key}`,
-            value: flat[key]
+            value: flat[key],
           })),
           /^content/
         );
@@ -395,7 +430,7 @@ app.put(
       logger.error({
         type: 'post',
         message: 'error saving post content',
-        data: err.toString()
+        data: err.toString(),
       });
       throw err;
     }
@@ -411,12 +446,13 @@ app.put(
     const { publish, recursive, ids, publishedFrom, publishedUntil } = req.body;
     const entityManager = getManager();
     try {
-      const result = await entityManager.transaction(async (transactionManager) => {
-        const postRepository = transactionManager.getRepository(Post);
-        const postTreeRepository = transactionManager.getTreeRepository(Post);
+      const result = await entityManager.transaction(
+        async (transactionManager) => {
+          const postRepository = transactionManager.getRepository(Post);
+          const postTreeRepository = transactionManager.getTreeRepository(Post);
 
-        let posts = await postRepository.findByIds(ids);
-        if (!(posts?.length > 0)) throw new BadRequestError('invalid_ids');
+          let posts = await postRepository.findByIds(ids);
+          if (!(posts?.length > 0)) throw new BadRequestError('invalid_ids');
 
         const qb = postRepository.createQueryBuilder('post').update(Post);
         const now = new Date();
@@ -440,29 +476,38 @@ app.put(
           });
         }
 
-        if (recursive) {
-          const all = [];
-          await Promise.all(posts.map(async (post) => {
-            const descendants = await postTreeRepository.findDescendants(post);
-            descendants.forEach(descendant => {
-              all.push(descendant);
-            })
-          }));
-          qb.where('post.id IN (:...ids)', { ids: all.map(post => post.id) });
-        } else {
-          qb.where('post.id IN (:...ids)', { ids: posts.map(post => post.id) });
-        }
+          if (recursive) {
+            const all = [];
+            await Promise.all(
+              posts.map(async (post) => {
+                const descendants = await postTreeRepository.findDescendants(
+                  post
+                );
+                descendants.forEach((descendant) => {
+                  all.push(descendant);
+                });
+              })
+            );
+            qb.where('post.id IN (:...ids)', {
+              ids: all.map((post) => post.id),
+            });
+          } else {
+            qb.where('post.id IN (:...ids)', {
+              ids: posts.map((post) => post.id),
+            });
+          }
 
-        await qb.execute();
-        posts = await postRepository.findByIds(ids);
-        return posts;
-      });
+          await qb.execute();
+          posts = await postRepository.findByIds(ids);
+          return posts;
+        }
+      );
       res.send(result);
     } catch (err) {
       logger.error({
         type: 'post',
         message: 'error saving post',
-        data: err.toString()
+        data: err.toString(),
       });
       throw err;
     }
@@ -487,11 +532,11 @@ app.put(
             'author',
             'author.meta',
             'parent',
-            'tags'
+            'tags',
           ],
           where: {
-            id: req.params.postId
-          }
+            id: req.params.postId,
+          },
         });
         if (!post) throw new BadRequestError('invalid_post');
         if (post?.type === 'post_version')
@@ -533,8 +578,8 @@ app.put(
             where: {
               id: In(
                 req?.body?.tags.map((tag) => tag?.id).filter((id) => !!id)
-              )
-            }
+              ),
+            },
           });
           post.tags = tags;
         }
@@ -550,7 +595,7 @@ app.put(
       logger.error({
         type: 'post',
         message: 'error saving post',
-        data: err.toString()
+        data: err.toString(),
       });
       throw err;
     }
@@ -568,8 +613,8 @@ app.get(
     const post = await postRepository.findOne({
       relations: ['meta', 'contentType', 'author', 'author.meta', 'tags'],
       where: {
-        id: req.params.postId
-      }
+        id: req.params.postId,
+      },
     });
     if (!post) throw new BadRequestError('invalid_post');
     if (versionId) {
@@ -577,8 +622,8 @@ app.get(
         relations: ['meta', 'contentType', 'author', 'author.meta', 'tags'],
         where: {
           id: versionId,
-          parentId: post?.id
-        }
+          parentId: post?.id,
+        },
       });
       if (!postVersion) throw new BadRequestError('invalid_post_version');
       return res.send(
@@ -587,7 +632,7 @@ app.get(
           id: post?.id,
           slug: post?.slug,
           slugPath: post?.slugPath,
-          versionId: postVersion?.id
+          versionId: postVersion?.id,
         })
       );
     }
@@ -617,7 +662,7 @@ app.get(
     if (count) {
       const number = await qb.getCount();
       return res.send({
-        count: number
+        count: number,
       });
     }
 
@@ -655,7 +700,7 @@ app.post(
         .leftJoinAndSelect('post.tags', 'tags')
         .where('post.id = :id', { id: req.params.versionId })
         .andWhere('post.parentId = :parentId', {
-          parentId: req.params.postId
+          parentId: req.params.postId,
         })
         .andWhere('post.type = :type', { type: 'post_version' })
         .getOne();
@@ -689,7 +734,7 @@ app.delete(
     const postRepository = getRepository(Post);
     const deleted = await postRepository.delete({
       id: In(ids),
-      type: 'post_version'
+      type: 'post_version',
     });
 
     return res.send(deleted);
@@ -701,51 +746,224 @@ app.get(
   authMiddleware(),
   asyncMiddleware(async (req, res) => {
     const id = req?.params?.postId;
-    const {versionId} = req?.query;
+    const { versionId } = req?.query;
     const postRepository = getRepository(Post);
-    const post = await postRepository.findOne({id});
+    const settingsRepository = getRepository(SiteSettings);
+
+    const where = { id };
+    if (versionId) {
+      where.id = versionId;
+    }
+
+    const post = await postRepository.findOne(where);
     if (!post) throw new BadRequestError('invalid_post');
 
-    const token = sign({
-      postId: post.id,
-      userId: req?.data?.user?.id,
-    }, process.env.PREVIEW_TOKEN_EXPIRES || 1800);
-
-    const data = await Hooks.applyFilters('posts/preview/data', {
-      post,
-      data: {
-        baseUrl: process.env.PREVIEW_BASE_URL,
-        token
+    const previewSettings = await settingsRepository.findOne({
+      where: {
+        key: 'previewEditor',
       },
-      src: `${process.env.PREVIEW_BASE_URL}/${post?.slugPath}?${queryString.stringify({versionId, token})}`
     });
 
-    return res.send(data);
+    if (!previewSettings) throw new BadRequestError('configuration_missing');
+    let rewrites = [];
+    try {
+      const parsed = JSON.parse(previewSettings?.value);
+      rewrites = parsed?.rewrites;
+    } catch {
+      throw new BadRequestError('configuration_invalid');
+    }
+
+    return res.send({
+      src: buildPath(post?.slugPath, rewrites as any),
+    });
   })
-)
+);
+
+app.get(
+  '/search/posts',
+  contentMiddleware({ alwaysAuthorize: true }),
+  asyncMiddleware(async (req, res) => {
+    const postRepository = getEnhancedRepository(Post);
+    const qb = postRepository.createQueryBuilder('post');
+
+    const contentTypeName = req?.query?.contentTypeName as string;
+    const type = req?.query?.type as string;
+    const search = req?.query?.search as string;
+    const parent = req?.query?.parent as string;
+    const onlyOrphans = req?.query?.onlyOrphans as string;
+    const slugPath = req?.query?.slugPath as string;
+    const tags = req?.query?.tags as string;
+    const compile = req?.query?.compile as string;
+
+    let relationsDepth;
+    if (req?.query?.relationsDepth && !Number.isNaN(Number(req?.query?.relationsDepth))) {
+      relationsDepth = Number(req?.query?.relationsDepth);
+    }
+
+    let limit = 100;
+    if (req?.query?.limit && !Number.isNaN(Number(req?.query?.limit))) {
+      limit = Number(req?.query?.limit);
+    }
+    let page = 1;
+    if (req?.query?.page && !Number.isNaN(Number(req?.query?.page))) {
+      page = Number(req?.query?.page);
+    }
+    const orderBy = req?.query?.orderBy as string;
+    const order = req?.query?.order as string;
+
+    const expand = ((req?.query?.expand as string) || '').split(',');
+
+    if (contentTypeName || expand.find((val) => val === 'contentType')) {
+      qb.leftJoinAndSelect('post.contentType', 'contentType');
+    }
+
+    if (isTrue(compile) || expand.find((val) => val === 'meta')) {
+      qb.leftJoinAndSelect('post.meta', 'meta');
+    }
+
+    if (expand.find((val) => val === 'author')) {
+      qb.leftJoinAndSelect('post.author', 'author');
+    }
+
+    if (tags || expand.find((val) => val === 'tags')) {
+      qb.leftJoinAndSelect('post.tags', 'tags');
+    }
+
+    if (parent || expand.find((val) => val === 'parent')) {
+      qb.leftJoinAndSelect('post.parent', 'parent');
+    }
+
+    qb.where('post.type IN (:...types)', {
+      types: type ? type.split(',') : ['hierarchical_post', 'post', 'page'],
+    });
+
+    if (slugPath) {
+      qb.andWhere('post.slugPath IN (:...slugPaths)', {
+        slugPaths: (slugPath as string).split(','),
+      });
+    }
+
+    if (contentTypeName) {
+      qb.andWhere('contentType.name IN (:...contentTypeNames)', {
+        contentTypeNames: contentTypeName.split(','),
+      });
+    }
+
+    if (tags) {
+      qb.andWhere('tags.slugPath IN (:...tagsSlugPaths)', {
+        tagsSlugPaths: tags.split(','),
+      });
+    }
+
+    if (isTrue(onlyOrphans)) {
+      if (parent) {
+        qb.andWhere('parent.slugPath = :parentSlugPath', {
+          parentSlugPath: parent,
+        });
+      } else {
+        qb.andWhere('post.parentId IS NULL');
+      }
+    } else if (parent) {
+      qb.andWhere('post.slugPath LIKE :parentSlugPath', {
+        parentSlugPath: `${(parent as string).toLowerCase()}/%`,
+      });
+    }
+
+    if (search?.length > 0) {
+      qb.andWhere(
+        new Brackets((subQb) => {
+          subQb
+            .where('LOWER(post.name) LIKE :search', {
+              search: `%${(search as string).toLowerCase()}%`,
+            })
+            .orWhere('LOWER(post.slugPath) LIKE :search', {
+              search: `%${(search as string).toLowerCase()}%`,
+            });
+        })
+      );
+    }
+
+    const draft = isTrue(req?.query?.draft as string);
+    if (!draft) {
+      publishedQuery(qb);
+    }
+
+    const getMany = () => {
+      qb.take(limit).skip((page - 1) * limit);
+      return qb.getMany();
+    };
+
+    qb.addOrderBy(
+      orderBy || 'post.slugPath',
+      order === 'DESC' ? 'DESC' : 'ASC'
+    );
+    const [count, results] = await Promise.all([qb.getCount(), getMany()]);
+
+    let posts;
+    if (isTrue(compile)) {
+      posts = await Promise.all((results || []).map(post => compilePost(post, {
+        draft,
+        relationsDepth: relationsDepth || 1
+      })))
+    } else {
+      posts = (results || []).map((post) => mapPublicPostWithMeta(post))
+    }
+
+    res.send({
+      count,
+      results: posts,
+      page,
+      limit,
+    });
+  })
+);
 
 app.get(
   '/content/*',
   asyncMiddleware(async (req, res) => {
-    let allowUnpublished = req?.query?.allowUnpublished === 'true';
-    let versionId = req?.query?.versionId;
-    const token = req?.headers?.token;
+    const draft = isTrue(req?.query?.draft as string);
+    const versionId = req?.query?.versionId as string;
+    const entityManager = getManager();
+    const contentToken = extractContentToken(req);
 
-    if (allowUnpublished) {
-      if (!token) allowUnpublished = false;
-      const decoded = verify(token as string);
-      if (!decoded || !decoded?.userId || !decoded?.postId) {
-        allowUnpublished = false;
-        versionId = undefined;
-      }
+    let relationsDepth;
+    if (req?.query?.relationsDepth && !Number.isNaN(Number(req?.query?.relationsDepth))) {
+      relationsDepth = Number(req?.query?.relationsDepth);
+    }
+
+    // Authorization
+    let authorized;
+    if (draft || versionId) {
+      await verifyContentToken({
+        entityManager,
+        token: contentToken,
+      });
+      authorized = true;
+    } else {
+      const apiAccess = await entityManager
+        .getRepository(SiteSettings)
+        .findOne({
+          where: {
+            key: 'apiAccess',
+          },
+        });
+      if (apiAccess?.value === 'private')
+        await verifyContentToken({
+          token: contentToken,
+          entityManager,
+        });
+      authorized = true;
     }
 
     const slugPath = (req.params[0] as string).replace(/\/$/, '');
 
-    const post = await retrievePostAndCompile({
-      slugPath,
-      versionId: versionId as string,
-    }, {allowUnpublished, query: req.query});
+    const post = await retrievePostAndCompile(
+      {
+        slugPath,
+        versionId: authorized ? (versionId as string) : undefined,
+      },
+      { relationsDepth, draft, query: req.query }
+    );
     res.send(post);
   })
 );
@@ -756,7 +974,7 @@ app.post(
   asyncMiddleware(async (req, res) => {
     const post = {
       ...(req.body || {}),
-      meta: []
+      meta: [],
     };
 
     const flat = flatten(req?.body?.meta || {});
@@ -766,12 +984,12 @@ app.post(
 
       post.meta.push({
         key,
-        value: flat[key]
+        value: flat[key],
       });
     });
 
     post.meta = post.meta.filter((meta) => flat[meta.key]);
-    const compiled = await compilePost(post, { allowUnpublished: true });
+    const compiled = await compilePost(post, { draft: true });
     res.send(compiled);
   })
 );

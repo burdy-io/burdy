@@ -12,8 +12,7 @@ const envDefaults = {
   ADMIN_PORT: '4001',
   PUBLIC_API_URL: '/api',
   REQ_LIMIT: '128mb',
-  SIGNED_COOKIE: 'eK0hL1oG1bL8yL4z',
-  PUBLIC_ENABLE_PREVIEW_EDITOR: 'false'
+  SIGNED_COOKIE: 'eK0hL1oG1bL8yL4z'
 }
 
 Object.keys(envDefaults).forEach((key) => {

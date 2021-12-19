@@ -7,6 +7,8 @@ import Hooks from '@shared/features/hooks';
 import { useAuth } from '@admin/features/authentication/context/auth.context';
 import ErrorBoundary from '@admin/components/error-boundary';
 import BackupSettings from "@admin/features/settings/tabs/backup.tab";
+import ApiSettings from '@admin/features/settings/tabs/api.tab';
+import PreviewEditorTab from '@admin/features/settings/tabs/preview.tab';
 
 const Settings = () => {
   const history = useHistory();
@@ -32,6 +34,18 @@ const Settings = () => {
         name: 'Groups',
         permissions: ['users_administration'],
         component: GroupSettings
+      },
+      {
+        key: 'api',
+        name: 'Api & Security',
+        permissions: ['all'],
+        component: ApiSettings
+      },
+      {
+        key: 'preview-editor',
+        name: 'Preview Editor',
+        permissions: ['all'],
+        component: PreviewEditorTab
       }
     ];
 

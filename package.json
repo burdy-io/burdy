@@ -1,6 +1,6 @@
 {
   "name": "burdy",
-  "version": "2.0.13",
+  "version": "2.1.0",
   "description": "Open Source Headless Platform",
   "main": "index.js",
   "scripts": {
@@ -70,6 +70,7 @@
     "cross-env": "^7.0.3",
     "css-loader": "^6.2.0",
     "date-fns": "^2.23.0",
+    "deepcopy": "^2.1.0",
     "deepmerge": "^4.2.2",
     "defer-promise": "^2.0.1",
     "dotenv-flow": "^3.2.0",
@@ -89,6 +90,7 @@
     "multer": "^1.4.3",
     "multer-s3": "^2.9.0",
     "mysql2": "^2.3.0",
+    "nanoid": "^3.1.23",
     "node-notifier": "^10.0.0",
     "nodemailer": "^6.6.3",
     "nodemon": "^2.0.14",
@@ -170,6 +172,9 @@
     "ttypescript": "^1.5.12",
     "typescript": "^4.4.2",
     "typescript-transform-paths": "^3.3.1"
+  },
+  "peerDependencies": {
+    "path-to-regexp": "^6.2.0"
   },
   "node": ">=12.x.x <=16.x.x",
   "npm": ">=6.0.0",

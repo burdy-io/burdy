@@ -5,9 +5,10 @@ import {
   Index,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { ISiteSettings } from '@shared/interfaces/model';
 
 @Entity()
-export default class SiteSettings extends BaseEntity {
+export default class SiteSettings extends BaseEntity implements ISiteSettings{
   @PrimaryGeneratedColumn('increment')
   id: number;
 

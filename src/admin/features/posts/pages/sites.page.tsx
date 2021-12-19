@@ -94,7 +94,7 @@ const SitesPage = () => {
       history.push({
         search: queryString.stringify({ id: selectedPosts?.[0]?.parentId }),
       });
-    } else {
+    } else if (selectedPosts?.length === 1) {
       history.push({
         search: queryString.stringify({ id: selectedPosts?.[0]?.id }),
       });
