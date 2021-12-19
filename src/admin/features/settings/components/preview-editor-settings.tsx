@@ -2,7 +2,7 @@ import AceEditor from 'react-ace';
 import { v4 } from 'uuid';
 import { ActionButton, Label, makeStyles, MessageBarType, PrimaryButton, Stack } from '@fluentui/react';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ControlledCheckbox, ControlledTextField } from '@admin/components/rhf-components';
+import { ControlledCheckbox } from '@admin/components/rhf-components';
 import { Controller, useForm } from 'react-hook-form';
 import { findSettingsValue, isTrue } from '@admin/helpers/utility';
 import { useSettings } from '@admin/context/settings';
@@ -23,11 +23,20 @@ const PreviewEditorSettings = () => {
   const { updateSettings, settingsArray } = useSettings();
   const {openSnackbar} = useSnackbar();
 
+  useEffect(() => {
+    if (updateSettings?.result) {
+      openSnackbar({
+        message: 'Settings updated',
+        messageBarType: MessageBarType.success
+      });
+      updateSettings.reset();
+    }
+  }, [updateSettings?.result]);
+
   const id = useMemo(() => v4(), []);
   const defaultValues = useMemo(() => {
     let state = {
       enabled: false,
-      allowedPaths: '',
       rewrites: '',
     };
 
@@ -35,7 +44,11 @@ const PreviewEditorSettings = () => {
 
     if (previewEditor) {
       try {
-        state = JSON.parse(previewEditor);
+        const tempState = JSON.parse(previewEditor);
+        state = {
+          enabled: tempState?.enabled,
+          rewrites: (typeof tempState?.rewrites === 'object') ? JSON.stringify(tempState?.rewrites, null, 2) : ''
+        };
       } catch {
         //
       }
@@ -61,35 +74,6 @@ const PreviewEditorSettings = () => {
         name="enabled"
         label="Enable Preview Editor"
       />
-      <Stack tokens={{childrenGap: 4}}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <Label>Allowed Sites Paths</Label>
-          <ActionButton
-            text="Copy example"
-            onClick={() => {
-              copy('website/:path*\n:path*');
-              openSnackbar({
-                message: 'Copied to clipboard',
-                messageBarType: MessageBarType.success
-              })
-            }}
-          />
-        </div>
-        <ControlledTextField
-          control={control}
-          disabled={!isTrue(values?.enabled)}
-          name="allowedPaths"
-          multiline
-          description="Defines which posts, pages or hierarchical_posts are valid for the preview editor. To define multiple paths just add new row. We are using path-to-regexp internally to find match"
-          placeholder={'website/:path*\n:path*'}
-        />
-      </Stack>
       <Stack tokens={{ childrenGap: 4 }}>
         <div
           style={{
@@ -160,8 +144,19 @@ const PreviewEditorSettings = () => {
           disabled={_.isEqual(values, defaultValues)}
           onClick={() => {
             handleSubmit((val) => {
-              const stringified = JSON.stringify(val);
-              updateSettings.execute('previewEditor', stringified);
+              try {
+                const rewrites = _.isEmpty(val?.rewrites) ? '' : JSON.parse(val?.rewrites)
+                const stringified = JSON.stringify({
+                  enabled: val?.enabled,
+                  rewrites
+                });
+                updateSettings.execute('previewEditor', stringified);
+              } catch (err) {
+                openSnackbar({
+                  message: 'Invalid JSON type',
+                  messageBarType: MessageBarType.error
+                })
+              }
             })();
           }}
         >

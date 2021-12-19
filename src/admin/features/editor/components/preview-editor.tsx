@@ -160,13 +160,15 @@ const styles = mergeStyleSets({
   },
   urlBarSearch: {
     backgroundColor: theme.palette.white,
-    borderRadius: 20,
+    borderRadius: 4,
     padding: '0 10px',
     flex: 1,
     display: 'flex',
     alignItems: 'center',
-    height: 28,
+    height: 34,
     fontWeight: 600,
+    overflowX: 'auto',
+    whiteSpace: 'nowrap'
   },
   iframe: {
     display: 'block',

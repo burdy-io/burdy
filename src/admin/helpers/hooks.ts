@@ -152,9 +152,9 @@ const useAllowedPaths = () => {
       if (!isTrue(parsed?.enabled)) {
         return paths;
       }
-      paths = ((parsed?.allowedPaths || '').split('\n') || []).filter(
+      paths = (parsed?.rewrites || []).map(rewrite => rewrite?.source).filter(
         (path) => path?.length > 0
-      );
+      )
     } catch {
       //
     }

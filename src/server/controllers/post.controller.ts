@@ -768,7 +768,7 @@ app.get(
     let rewrites = [];
     try {
       const parsed = JSON.parse(previewSettings?.value);
-      rewrites = JSON.parse(parsed?.rewrites);
+      rewrites = parsed?.rewrites;
     } catch {
       throw new BadRequestError('configuration_invalid');
     }
@@ -793,6 +793,12 @@ app.get(
     const onlyOrphans = req?.query?.onlyOrphans as string;
     const slugPath = req?.query?.slugPath as string;
     const tags = req?.query?.tags as string;
+    const compile = req?.query?.compile as string;
+
+    let relationsDepth;
+    if (req?.query?.relationsDepth && !Number.isNaN(Number(req?.query?.relationsDepth))) {
+      relationsDepth = Number(req?.query?.relationsDepth);
+    }
 
     let limit = 100;
     if (req?.query?.limit && !Number.isNaN(Number(req?.query?.limit))) {
@@ -811,7 +817,7 @@ app.get(
       qb.leftJoinAndSelect('post.contentType', 'contentType');
     }
 
-    if (expand.find((val) => val === 'meta')) {
+    if (isTrue(compile) || expand.find((val) => val === 'meta')) {
       qb.leftJoinAndSelect('post.meta', 'meta');
     }
 
@@ -892,9 +898,20 @@ app.get(
       order === 'DESC' ? 'DESC' : 'ASC'
     );
     const [count, results] = await Promise.all([qb.getCount(), getMany()]);
+
+    let posts;
+    if (isTrue(compile)) {
+      posts = await Promise.all((results || []).map(post => compilePost(post, {
+        draft,
+        relationsDepth: relationsDepth || 1
+      })))
+    } else {
+      posts = (results || []).map((post) => mapPublicPostWithMeta(post))
+    }
+
     res.send({
       count,
-      results: (results || []).map((post) => mapPublicPostWithMeta(post)),
+      results: posts,
       page,
       limit,
     });
@@ -908,6 +925,11 @@ app.get(
     const versionId = req?.query?.versionId as string;
     const entityManager = getManager();
     const contentToken = extractContentToken(req);
+
+    let relationsDepth;
+    if (req?.query?.relationsDepth && !Number.isNaN(Number(req?.query?.relationsDepth))) {
+      relationsDepth = Number(req?.query?.relationsDepth);
+    }
 
     // Authorization
     let authorized;
@@ -940,7 +962,7 @@ app.get(
         slugPath,
         versionId: authorized ? (versionId as string) : undefined,
       },
-      { allowUnpublished: draft, query: req.query }
+      { relationsDepth, draft, query: req.query }
     );
     res.send(post);
   })
@@ -967,7 +989,7 @@ app.post(
     });
 
     post.meta = post.meta.filter((meta) => flat[meta.key]);
-    const compiled = await compilePost(post, { allowUnpublished: true });
+    const compiled = await compilePost(post, { draft: true });
     res.send(compiled);
   })
 );
