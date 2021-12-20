@@ -382,7 +382,8 @@ const fields = [
   },
   {
     type: 'relation',
-    name: 'Relation (deprecated - use reference instead)',
+    name: 'Relation',
+    description: 'Deprecated - use reference instead',
     iconProps: { iconName: 'Relationship' },
     group: 'Core',
     fields: [

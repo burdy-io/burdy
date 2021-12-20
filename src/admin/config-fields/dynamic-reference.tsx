@@ -55,7 +55,7 @@ const DynamicReferenceImpl: React.FC<DynamicReferenceProps> = ({
     <div>
       {field?.label?.length > 0 && <Label>{`${field?.label} (Single)`}</Label>}
       <Controller
-        name={`${name}.slugPath`}
+        name={name}
         control={control}
         defaultValue={getBySlug?.result?.slugPath}
         render={({ field: controllerField }) => {
@@ -91,7 +91,7 @@ const DynamicReferenceImpl: React.FC<DynamicReferenceProps> = ({
                       <Label
                         style={{ overflow: 'hidden', wordBreak: 'break-all' }}
                       >
-                        {controllerField?.value?.slugPath}
+                        {(typeof controllerField?.value?.slugPath === 'string') ? controllerField?.value?.slugPath : ''}
                       </Label>
                       {getBySlug?.error ? (
                         <Status type="error">Invalid post</Status>
