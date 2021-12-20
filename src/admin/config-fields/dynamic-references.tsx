@@ -85,22 +85,28 @@ const DynamicReferencesComponentImpl: React.FC<DynamicReferencesComponentProps> 
               alignItems: 'flex-start',
             }}
           >
-            <Label style={{ overflow: 'hidden', wordBreak: 'break-all' }}>
-              {getBySlug?.result?.slugPath}
-            </Label>
-            <Status
-              type={
-                getBySlug?.result?.status === 'published'
-                  ? 'success'
-                  : undefined
-              }
-            >
-              {getBySlug?.result?.status}
-            </Status>
+            <>
+              <Label style={{ overflow: 'hidden', wordBreak: 'break-all' }}>
+                {slugPath}
+              </Label>
+              {getBySlug?.error ? (
+                <Status type="error">Invalid post</Status>
+              ) : (
+                <Status
+                  type={
+                    getBySlug?.result?.status === 'published'
+                      ? 'success'
+                      : undefined
+                  }
+                >
+                  {getBySlug?.result?.status}
+                </Status>
+              )}
+            </>
           </Stack>
           <Stack horizontal tokens={{ childrenGap: 8 }}>
             <IconButton
-              disabled={getBySlug?.loading}
+              disabled={getBySlug?.loading || !!getBySlug?.error}
               iconProps={{
                 iconName: 'OpenInNewTab',
               }}
@@ -139,10 +145,10 @@ const DynamicReferencesComponentImpl: React.FC<DynamicReferencesComponentProps> 
           <Controller
             name={`${name}.slugPath`}
             control={control}
-            defaultValue={getBySlug?.result?.slugPath}
+            defaultValue={slugPath}
             render={({ field }) => {
               useEffect(() => {
-                field.onChange(getBySlug?.result?.slugPath);
+                field.onChange(slugPath);
               }, []);
               return null;
             }}
@@ -269,7 +275,9 @@ const DynamicReferences: React.FC<DynamicReferencesProps> = ({
         selectionMode={SelectionMode.single}
         onDismiss={() => setSelectPostOpen(false)}
         onSubmit={(data) => {
-          append(data);
+          append({
+            slugPath: data?.[0]?.slugPath
+          });
           setSelectPostOpen(false);
         }}
         params={{

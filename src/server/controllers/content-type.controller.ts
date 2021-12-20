@@ -398,19 +398,25 @@ const fields = [
     ],
   },
   {
+    type: 'reference_single',
+    name: 'Reference - Single',
+    iconProps: { iconName: 'Relationship' },
+    group: 'Core',
+    fields: [
+      {
+        type: 'post_type_dropdown',
+        name: 'posts',
+        multiSelect: true,
+        label: 'Allowed post types',
+      },
+    ],
+  },
+  {
     type: 'reference_multiple',
     name: 'Reference - Multiple',
     iconProps: { iconName: 'Relationship' },
     group: 'Core',
     fields: [
-      {
-        type: 'text',
-        multiline: true,
-        name: 'paths',
-        label: 'Allowed post paths',
-        description:
-          'Internally we are using path-to-regexp to match the path, you can create multiple OR rules by adding new line',
-      },
       {
         type: 'post_type_dropdown',
         name: 'posts',
