@@ -605,6 +605,22 @@ app.put(
 );
 
 app.get(
+  '/posts/one',
+  authMiddleware(),
+  asyncMiddleware(async (req, res) => {
+    const slugPath = req?.query?.slugPath as string;
+    const postRepository = getRepository(Post);
+    const post = await postRepository.findOne({
+      where: {
+        slugPath
+      }
+    });
+    if (!post) throw new BadRequestError('invalid_post');
+    return res.send(mapPostWithMeta(post));
+  })
+)
+
+app.get(
   '/posts/:postId',
   authMiddleware(),
   asyncMiddleware(async (req, res) => {

@@ -35,7 +35,7 @@ app.get(
 
     if (name) {
       qb.andWhere('contentType.name IN (:...names)', {
-        names: (name as string).split(',')
+        names: (name as string).split(','),
       });
     }
 
@@ -229,8 +229,8 @@ app.get(
 
     if (name) {
       qb.andWhere('contentType.name = :name', {
-        name
-      })
+        name,
+      });
     }
 
     const contentType = await qb.getOne();
@@ -239,7 +239,7 @@ app.get(
 
     res.send(mapContentType(contentType));
   })
-)
+);
 
 app.get(
   '/content-types/:contentTypeId',
@@ -382,7 +382,7 @@ const fields = [
   },
   {
     type: 'relation',
-    name: 'Relation',
+    name: 'Relation (deprecated - use reference instead)',
     iconProps: { iconName: 'Relationship' },
     group: 'Core',
     fields: [
@@ -394,6 +394,28 @@ const fields = [
         rules: {
           required: 'Field is required',
         },
+      },
+    ],
+  },
+  {
+    type: 'reference_multiple',
+    name: 'Reference - Multiple',
+    iconProps: { iconName: 'Relationship' },
+    group: 'Core',
+    fields: [
+      {
+        type: 'text',
+        multiline: true,
+        name: 'paths',
+        label: 'Allowed post paths',
+        description:
+          'Internally we are using path-to-regexp to match the path, you can create multiple OR rules by adding new line',
+      },
+      {
+        type: 'post_type_dropdown',
+        name: 'posts',
+        multiSelect: true,
+        label: 'Allowed post types',
       },
     ],
   },
@@ -495,8 +517,9 @@ const fields = [
         defaultValue: 'json',
         label: 'Type',
         required: true,
-        options: 'json\nxml\nyaml\njavascript\ntypescript\ntext\nhtml\ncss\nsql\nmarkdown\nsh',
-      }
+        options:
+          'json\nxml\nyaml\njavascript\ntypescript\ntext\nhtml\ncss\nsql\nmarkdown\nsh',
+      },
     ],
   },
 ];

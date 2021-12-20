@@ -9,6 +9,7 @@ import {
 } from '@fluentui/react';
 import React from 'react';
 import { IPost } from '@shared/interfaces/model';
+import Status from '@admin/components/status';
 
 const theme = getTheme();
 
@@ -99,28 +100,12 @@ const PostDetails: React.FC<IPostDetailsProps> = ({ post, loading }) => {
           </Stack>
           <Stack>
             <Text className={styles.itemHeading} variant="medium" block>
-              <Stack
-                horizontal
-                verticalAlign="center"
-                tokens={{ childrenGap: 6 }}
-              >
-                <span>Status</span>
-                <div
-                  style={{
-                    display: 'inline-block',
-                    backgroundColor:
-                      post?.status === 'published'
-                        ? theme.palette.green
-                        : theme.palette.neutralLight,
-                    height: 10,
-                    width: 10,
-                    borderRadius: '50%',
-                  }}
-                />
-              </Stack>
+              Status
             </Text>
-            <Text variant="medium" block>
-              <div>{post?.status}</div>
+            <Text block>
+              <div>
+                <Status type={post?.status === 'published' ? 'success' : undefined}>{post?.status}</Status>
+              </div>
             </Text>
           </Stack>
           {post?.publishedAt && (
