@@ -23,6 +23,8 @@ import { useExtendedFormContext } from './dynamic-form';
 import ErrorBoundary from '@admin/components/error-boundary';
 import { isTrue } from '@admin/helpers/utility';
 import DynamicTextEditor from '@admin/config-fields/dynamic-text-editor';
+import DynamicReferences from '@admin/config-fields/dynamic-references';
+import DynamicReference from '@admin/config-fields/dynamic-reference';
 
 interface DynamicFieldProps {
   field: any;
@@ -46,6 +48,10 @@ const DynamicField: React.FC<DynamicFieldProps> = ({ field, name }) => {
         return <DynamicComponent field={field} name={getName()} />;
       case 'relation':
         return <DynamicRelation field={field} name={getName()} />;
+      case 'reference_single':
+        return <DynamicReference field={field} name={getName()} />;
+      case 'reference_multiple':
+        return <DynamicReferences field={field} name={getName()} />;
       case 'zone':
         return <DynamicZone field={field} name={getName()} />;
       case 'images':

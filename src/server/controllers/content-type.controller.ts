@@ -35,7 +35,7 @@ app.get(
 
     if (name) {
       qb.andWhere('contentType.name IN (:...names)', {
-        names: (name as string).split(',')
+        names: (name as string).split(','),
       });
     }
 
@@ -229,8 +229,8 @@ app.get(
 
     if (name) {
       qb.andWhere('contentType.name = :name', {
-        name
-      })
+        name,
+      });
     }
 
     const contentType = await qb.getOne();
@@ -239,7 +239,7 @@ app.get(
 
     res.send(mapContentType(contentType));
   })
-)
+);
 
 app.get(
   '/content-types/:contentTypeId',
@@ -383,6 +383,7 @@ const fields = [
   {
     type: 'relation',
     name: 'Relation',
+    description: 'Deprecated - use reference instead',
     iconProps: { iconName: 'Relationship' },
     group: 'Core',
     fields: [
@@ -394,6 +395,34 @@ const fields = [
         rules: {
           required: 'Field is required',
         },
+      },
+    ],
+  },
+  {
+    type: 'reference_single',
+    name: 'Reference - Single',
+    iconProps: { iconName: 'Relationship' },
+    group: 'Core',
+    fields: [
+      {
+        type: 'post_type_dropdown',
+        name: 'posts',
+        multiSelect: true,
+        label: 'Allowed post types',
+      },
+    ],
+  },
+  {
+    type: 'reference_multiple',
+    name: 'Reference - Multiple',
+    iconProps: { iconName: 'Relationship' },
+    group: 'Core',
+    fields: [
+      {
+        type: 'post_type_dropdown',
+        name: 'posts',
+        multiSelect: true,
+        label: 'Allowed post types',
       },
     ],
   },
@@ -495,8 +524,9 @@ const fields = [
         defaultValue: 'json',
         label: 'Type',
         required: true,
-        options: 'json\nxml\nyaml\njavascript\ntypescript\ntext\nhtml\ncss\nsql\nmarkdown\nsh',
-      }
+        options:
+          'json\nxml\nyaml\njavascript\ntypescript\ntext\nhtml\ncss\nsql\nmarkdown\nsh',
+      },
     ],
   },
 ];

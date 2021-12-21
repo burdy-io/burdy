@@ -72,7 +72,19 @@ export const parseContent = (post: IPost, path?: string) => {
     } catch {
       return null;
     }
+  };
 
+  const parseReferenceSingle = (content, path) => {
+    references[path] = content?.slugPath;
+  };
+
+  const parseReferenceMultiple = (content, path) => {
+    if (Array.isArray(content || [])) {
+      (content || []).forEach((reference, index) => {
+        references[`${path}.${index}`] = reference?.slugPath;
+      });
+    }
+    return null;
   };
 
   const parseGroup = (content = {}, path?: string) => {
@@ -104,6 +116,12 @@ export const parseContent = (post: IPost, path?: string) => {
             break;
           case 'relation':
             groupContent[contentKey] = parseRelation(content?.[contentKey], newPath);
+            break;
+          case 'reference_single':
+            groupContent[contentKey] = parseReferenceSingle(content?.[contentKey], newPath);
+            break;
+          case 'reference_multiple':
+            groupContent[contentKey] = parseReferenceMultiple(content?.[contentKey], newPath);
             break;
           case 'checkbox':
             groupContent[contentKey] = parseCheckbox(content?.[contentKey]);
