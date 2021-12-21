@@ -267,7 +267,7 @@ const DynamicReferences: React.FC<DynamicReferencesProps> = ({
             setSelectPostOpen(true);
           }}
         >
-          Add component
+          Add reference
         </ActionButton>
       </Separator>
       <PostsSelectPanel

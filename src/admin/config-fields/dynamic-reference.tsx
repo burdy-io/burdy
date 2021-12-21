@@ -144,7 +144,7 @@ const DynamicReferenceImpl: React.FC<DynamicReferenceProps> = ({
                       setSelectPostOpen(true);
                     }}
                   >
-                    Add component
+                    Add reference
                   </ActionButton>
                 </Separator>
               )}
