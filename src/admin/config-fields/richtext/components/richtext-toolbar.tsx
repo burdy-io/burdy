@@ -7,6 +7,8 @@ import {AtomicBlockUtils, EditorState, RichUtils} from "draft-js";
 import AssetsSelectPanel from "@admin/features/assets/components/assets-select-panel";
 import InsertLinkDialog from "@admin/components/insert-link-dialog";
 import InsertAceDialog from '@admin/config-fields/richtext/components/draft-ace-dialog';
+import ContentTypesComponentsSelectPanel
+  from '@admin/features/content-types/components/content-types-components-select-panel';
 
 const useToolbarStyles = makeStyles((theme) => ({
   button: {
@@ -172,6 +174,7 @@ const ActionButtons: React.FC = () => {
   const [assetOpen, setAssetOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
   const [aceOpen, setAceOpen] = useState(false);
+  const [componentsOpen, setComponentsOpen] = useState(false);
 
   const [selection, setSelection] = useState(null);
 
@@ -221,6 +224,28 @@ const ActionButtons: React.FC = () => {
       'MUTABLE',
       {
         mode
+      }
+    );
+
+    const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
+
+    setEditorState(
+      AtomicBlockUtils.insertAtomicBlock(editorState, entityKey, ' ')
+    );
+
+    EditorState.forceSelection(
+      editorState,
+      editorState.getCurrentContent().getSelectionAfter()
+    );
+  };
+
+  const createComponent = (name: string) => {
+    const contentState = editorState.getCurrentContent();
+    const contentStateWithEntity = contentState.createEntity(
+      'COMPONENT',
+      'MUTABLE',
+      {
+        name
       }
     );
 
@@ -300,6 +325,17 @@ const ActionButtons: React.FC = () => {
             return false;
           }}
         />
+        <DefaultButton
+          iconProps={{iconName: 'WebComponents'}}
+          className={classes.button}
+          disabled={disabled}
+          onMouseDown={(e) => {
+            setComponentsOpen(true);
+            e.preventDefault();
+            setSelection(editorState.getSelection());
+            return false;
+          }}
+        />
       </div>
       <AssetsSelectPanel
         isOpen={assetOpen}
@@ -339,6 +375,17 @@ const ActionButtons: React.FC = () => {
             createAce(data?.mode);
           }
           setAceOpen(false);
+        }}
+      />
+      <ContentTypesComponentsSelectPanel
+        isOpen={componentsOpen}
+        filter={{
+          type: 'component'
+        }}
+        onDismiss={() => setComponentsOpen(false)}
+        onSubmit={(e) => {
+          createComponent(e?.[0].name);
+          setComponentsOpen(false);
         }}
       />
     </>
