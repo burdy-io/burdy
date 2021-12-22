@@ -34,10 +34,6 @@ const DraftComponentBlock = (props: any) => {
 
   const {disabled} = useExtendedFormContext();
 
-  useEffect(() => {
-    console.log(contentState.getEntity(entityKey).getData()?.value);
-  }, []);
-
   const { name, value } = contentState.getEntity(entityKey).getData();
   const { setEditorProps, editorProps, forceUpdate } = useRichtext();
 
