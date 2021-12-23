@@ -763,6 +763,13 @@ app.get(
     const postRepository = getRepository(Post);
     const settingsRepository = getRepository(SiteSettings);
 
+    const setHttp = (link) => {
+      if (link.search(/^http[s]?\:\/\//) == -1) {
+        link = 'http://' + link;
+      }
+      return link;
+    }
+
     const where = { id };
     const relations = [];
     if (versionId) {
@@ -792,7 +799,7 @@ app.get(
       throw new BadRequestError('configuration_invalid');
     }
 
-    const src = buildPath(slugPath, rewrites as any);
+    const src = setHttp(buildPath(slugPath, rewrites as any));
 
     const url = new URL(src);
     const searchParams = url.searchParams;
@@ -804,6 +811,7 @@ app.get(
       searchParams.append('versionId', versionId as string);
     }
     const paramsString = searchParams.toString()?.length > 0 ? `&${searchParams.toString()}` : '';
+
     return res.send({
       src: `${url.protocol}//${url.host}${url.pathname}${paramsString}`
     });
