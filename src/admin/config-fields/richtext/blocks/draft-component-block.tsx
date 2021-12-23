@@ -1,8 +1,15 @@
-import { ContentBlock, ContentState } from 'draft-js';
+import { ContentBlock, ContentState, EditorState, Modifier, SelectionState } from 'draft-js';
 import { useRichtext } from '@admin/config-fields/dynamic-richtext.context';
-import { Label, makeStyles } from '@fluentui/react';
-import React, { useEffect, useRef } from 'react';
-import { useDebouncedCallback } from 'use-debounce';
+import {
+  DefaultButton, IconButton,
+  Label,
+  makeStyles,
+  Panel,
+  PanelType,
+  PrimaryButton,
+  Stack
+} from '@fluentui/react';
+import React, { useEffect, useRef, useState } from 'react';
 import { composeWrappers } from '@admin/helpers/hoc';
 import {
   ContentTypesContextProvider,
@@ -11,7 +18,10 @@ import {
 import DynamicGroup from '@admin/config-fields/dynamic-group';
 import LoadingBar from '@admin/components/loading-bar';
 import { useForm, FormProvider } from 'react-hook-form';
-import { FormHelperContextProvider, useExtendedFormContext } from '@admin/config-fields/dynamic-form';
+import {
+  FormHelperContextProvider,
+  useExtendedFormContext,
+} from '@admin/config-fields/dynamic-form';
 
 const useStyles = makeStyles((theme) => ({
   form: {
@@ -19,11 +29,64 @@ const useStyles = makeStyles((theme) => ({
     padding: 24,
     maxWidth: 960,
     position: 'relative',
-    minHeight: 100,
     marginLeft: 'auto',
     marginRight: 'auto',
   },
 }));
+
+const DraftComponentBlockFormWrapper = (props: any) => {
+  const { name, value, field, open, onDismiss, onSave } = props;
+
+  const { disabled } = useExtendedFormContext();
+
+  const methods = useForm({
+    mode: 'all',
+    shouldUnregister: true,
+  });
+
+  useEffect(() => {
+    if (open) {
+      methods.reset(value);
+    }
+  }, [open]);
+
+  return (
+    <Panel
+      isOpen={open}
+      headerText={name}
+      isFooterAtBottom
+      onRenderFooterContent={() => (
+        <Stack horizontal tokens={{ childrenGap: 10 }}>
+          <PrimaryButton
+            onClick={() => {
+              methods.handleSubmit((val) => {
+                onSave?.(val);
+              })();
+            }}
+          >
+            Save
+          </PrimaryButton>
+          <DefaultButton
+            onClick={() => {
+              onDismiss();
+            }}
+          >
+            Cancel
+          </DefaultButton>
+        </Stack>
+      )}
+      onDismiss={() => onDismiss()}
+      type={PanelType.custom}
+      customWidth={400 as any}
+    >
+      <FormProvider {...methods}>
+        <FormHelperContextProvider disabled={disabled} narrow>
+          <DynamicGroup field={field} />
+        </FormHelperContextProvider>
+      </FormProvider>
+    </Panel>
+  );
+};
 
 const DraftComponentBlock = (props: any) => {
   const ref = useRef();
@@ -32,10 +95,10 @@ const DraftComponentBlock = (props: any) => {
   const contentBlock = props.block as ContentBlock;
   const entityKey = contentBlock.getEntityAt(0);
 
-  const {disabled} = useExtendedFormContext();
+  const [panelOpened, setPanelOpened] = useState(false);
 
   const { name, value } = contentState.getEntity(entityKey).getData();
-  const { setEditorProps, editorProps, forceUpdate } = useRichtext();
+  const { setEditorProps, editorProps, forceUpdate, editorState, setEditorState } = useRichtext();
 
   const setReadOnly = (readOnly: boolean) => {
     setEditorProps({ ...editorProps, readOnly });
@@ -48,54 +111,73 @@ const DraftComponentBlock = (props: any) => {
     }
   }, [name]);
 
-  const methods = useForm({
-    mode: 'all',
-    shouldUnregister: true
-  });
-
-  const debounced = useDebouncedCallback((value) => {
-    contentState.mergeEntityData(entityKey, { value });
-    forceUpdate();
-  }, 300);
-
-  const handleClickOutside = e => {
-    // @ts-ignore
-    if (!ref?.current?.contains?.(e?.target)) {
-      setReadOnly(false);
-    }
-  };
-
   useEffect(() => {
-    methods.reset(value);
-    methods.watch((val) => {
-      debounced(val);
-    });
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    setReadOnly(panelOpened);
+  }, [panelOpened]);
 
   return (
-    <div
-      ref={ref}
-      className={classes.form}
-      onFocus={() => {
-        setReadOnly(true);
-      }}
-      onBlur={(e) => {
-        const relatedTarget = e?.relatedTarget as Element;
-        if (!e?.currentTarget?.contains(relatedTarget) && relatedTarget) {
-          setReadOnly(false);
-        }
-      }}
-    >
-      <Label>{name}</Label>
-      <FormProvider {...methods}>
-        <FormHelperContextProvider disabled={disabled} narrow>
-          <LoadingBar loading={getSingleContentType?.loading}>
-            <DynamicGroup field={getSingleContentType?.result} />
-          </LoadingBar>
-        </FormHelperContextProvider>
-      </FormProvider>
+    <div ref={ref} className={classes.form}>
+      <Stack horizontal horizontalAlign="space-between">
+        <Label>{name}</Label>
+        <Stack horizontal tokens={{childrenGap: 8}}>
+          <IconButton
+            iconProps={{ iconName: 'Edit' }}
+            disabled={getSingleContentType?.loading || !!getSingleContentType?.error}
+            title="Edit"
+            ariaLabel="Edit"
+            onClick={() => setPanelOpened(true)}
+          />
+          <IconButton
+            iconProps={{ iconName: 'Delete' }}
+            disabled={getSingleContentType?.loading}
+            title="Delete"
+            ariaLabel="Delete"
+            onClick={() => {
+              const blockKey = contentBlock.getKey();
+              const previousSelection = editorState.getSelection();
+              const selection = SelectionState.createEmpty(blockKey).merge({focusOffset: contentBlock.getLength()});
+
+              const newContentState = Modifier.removeRange(
+                contentState,
+                selection,
+                'backward'
+              );
+
+              const blockMap = newContentState.getBlockMap().delete(contentBlock.getKey());
+              const withoutAtomic = newContentState.merge({
+                blockMap,
+                selectionAfter: selection,
+              });
+
+              const newEditorState = EditorState.push(
+                editorState,
+                withoutAtomic as any,
+                'remove-range',
+              );
+
+              setEditorState(
+                EditorState.forceSelection(newEditorState, previousSelection)
+              )
+            }}
+          />
+        </Stack>
+      </Stack>
+      <LoadingBar loading={getSingleContentType?.loading}>
+        <DraftComponentBlockFormWrapper
+          open={panelOpened}
+          name={name}
+          value={value}
+          onSave={(val) => {
+            contentState.mergeEntityData(entityKey, { value: val });
+            forceUpdate();
+            setPanelOpened(false);
+          }}
+          onDismiss={() => {
+            setPanelOpened(false);
+          }}
+          field={getSingleContentType?.result}
+        />
+      </LoadingBar>
     </div>
   );
 };

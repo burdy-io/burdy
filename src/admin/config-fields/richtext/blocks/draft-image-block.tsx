@@ -118,15 +118,25 @@ const DraftImageBlock = (props: any) => {
       onClick: () => {
         const blockKey = contentBlock.getKey();
         const previousSelection = editorState.getSelection();
-        const selection = SelectionState.createEmpty(blockKey).merge({focusOffset: contentBlock.getText().length});
+        const selection = SelectionState.createEmpty(blockKey).merge({focusOffset: contentBlock.getLength()});
 
         const newContentState = Modifier.removeRange(
           contentState,
           selection,
-          'forward'
+          'backward'
         );
 
-        const newEditorState = EditorState.push(editorState, newContentState, 'remove-range');
+        const blockMap = newContentState.getBlockMap().delete(contentBlock.getKey());
+        const withoutAtomic = newContentState.merge({
+          blockMap,
+          selectionAfter: selection,
+        });
+
+        const newEditorState = EditorState.push(
+          editorState,
+          withoutAtomic as any,
+          'remove-range',
+        );
 
         setEditorState(
           EditorState.forceSelection(newEditorState, previousSelection)

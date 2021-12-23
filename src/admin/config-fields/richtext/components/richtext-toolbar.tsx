@@ -221,7 +221,7 @@ const ActionButtons: React.FC = () => {
 
     const contentStateWithEntity = contentState.createEntity(
       'TEXT_EDITOR',
-      'MUTABLE',
+      'IMMUTABLE',
       {
         mode
       }
@@ -243,7 +243,7 @@ const ActionButtons: React.FC = () => {
     const contentState = editorState.getCurrentContent();
     const contentStateWithEntity = contentState.createEntity(
       'COMPONENT',
-      'MUTABLE',
+      'IMMUTABLE',
       {
         name
       }
