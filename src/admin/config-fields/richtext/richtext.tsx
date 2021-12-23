@@ -87,6 +87,8 @@ const RichText: React.FC<IDynamicTextProps> = ({ field, name, onChange }) => {
       return 'not-handled';
     }
 
+    const focusOffset = selection.getFocusOffset();
+
     const splitBlockContent = Modifier.splitBlock(contentState, selection);
 
     const newLineEditorState = EditorState.push(
@@ -98,13 +100,19 @@ const RichText: React.FC<IDynamicTextProps> = ({ field, name, onChange }) => {
     const newLineSelection = newLineEditorState.getSelection();
     const newLineContent = newLineEditorState.getCurrentContent();
 
-    setEditorState(
-      EditorState.push(
-        newLineEditorState,
-        Modifier.setBlockType(newLineContent, newLineSelection, 'unstyled'),
-        'change-block-type'
+    if (focusOffset === 0) {
+      setEditorState(
+        newLineEditorState
       )
-    );
+    } else {
+      setEditorState(
+        EditorState.push(
+          newLineEditorState,
+          Modifier.setBlockType(newLineContent, newLineSelection, 'unstyled'),
+          'change-block-type'
+        )
+      );
+    }
 
     return 'handled';
   };
