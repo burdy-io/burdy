@@ -764,13 +764,19 @@ app.get(
     const settingsRepository = getRepository(SiteSettings);
 
     const where = { id };
+    const relations = [];
     if (versionId) {
       where.id = versionId;
+      relations.push('parent');
     }
 
-    const post = await postRepository.findOne(where);
+    const post = await postRepository.findOne({
+      where,
+      relations
+    });
     if (!post) throw new BadRequestError('invalid_post');
 
+    const slugPath = versionId ? post?.parent?.slugPath : post?.slugPath;
     const previewSettings = await settingsRepository.findOne({
       where: {
         key: 'previewEditor',
@@ -786,8 +792,20 @@ app.get(
       throw new BadRequestError('configuration_invalid');
     }
 
+    const src = buildPath(slugPath, rewrites as any);
+
+    const url = new URL(src);
+    const searchParams = url.searchParams;
+
+    if (!searchParams.get('draft')) {
+      searchParams.append('draft', 'true');
+    }
+    if (!searchParams.get('versionId') && versionId) {
+      searchParams.append('versionId', versionId as string);
+    }
+    const paramsString = searchParams.toString()?.length > 0 ? `&${searchParams.toString()}` : '';
     return res.send({
-      src: buildPath(post?.slugPath, rewrites as any),
+      src: `${url.protocol}//${url.host}${url.pathname}${paramsString}`
     });
   })
 );
