@@ -2,12 +2,13 @@ import React, { useEffect } from 'react';
 import { useRichtext } from '@admin/config-fields/dynamic-richtext.context';
 import { useExtendedFormContext } from '@admin/config-fields/dynamic-form';
 import {
+  convertFromRaw,
   convertToRaw,
   DraftHandleValue,
   Editor,
   EditorState,
   Modifier,
-  RichUtils,
+  RichUtils
 } from 'draft-js';
 import { Label, makeStyles } from '@fluentui/react';
 import RichtextToolbar from '@admin/config-fields/richtext/components/richtext-toolbar';
@@ -203,6 +204,21 @@ const RichText: React.FC<IDynamicTextProps> = ({ field, name, onChange }) => {
     return 'not-handled';
   };
 
+  const handlePaste = (test, html, editorState) => {
+    try {
+      const parsed = JSON.parse(test);
+      if (parsed?.entityMap && Array.isArray(parsed?.blocks)) {
+        const contentState = convertFromRaw(parsed);
+        const newEditorState = EditorState.createWithContent(contentState);
+        setEditorState(newEditorState);
+        return 'handled';
+      }
+    } catch {
+      //
+    }
+    return 'not-handled';
+  }
+
   const debounced = useDebouncedCallback((editorState) => {
     onChange(JSON.stringify(convertToRaw(editorState.getCurrentContent())));
   }, 300);
@@ -228,6 +244,7 @@ const RichText: React.FC<IDynamicTextProps> = ({ field, name, onChange }) => {
             setEditorState(state);
           }}
           onTab={onTab}
+          handlePastedText={handlePaste}
           handleReturn={disableHeaderBlock}
           readOnly={disabled}
           keyBindingFn={handleKeypress}

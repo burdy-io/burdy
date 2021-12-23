@@ -1,14 +1,16 @@
-import React, {useMemo, useState} from "react";
-import {DefaultButton, makeStyles, PrimaryButton, SelectionMode} from "@fluentui/react";
-import {useRichtext} from "@admin/config-fields/dynamic-richtext.context";
-import {useExtendedFormContext} from "@admin/config-fields/dynamic-form";
-import {IAsset} from "@shared/interfaces/model";
-import {AtomicBlockUtils, EditorState, RichUtils} from "draft-js";
-import AssetsSelectPanel from "@admin/features/assets/components/assets-select-panel";
-import InsertLinkDialog from "@admin/components/insert-link-dialog";
+import React, { useMemo, useState } from 'react';
+import { DefaultButton, makeStyles, MessageBarType, PrimaryButton, SelectionMode } from '@fluentui/react';
+import { useRichtext } from '@admin/config-fields/dynamic-richtext.context';
+import { useExtendedFormContext } from '@admin/config-fields/dynamic-form';
+import { IAsset } from '@shared/interfaces/model';
+import { AtomicBlockUtils, convertToRaw, EditorState, RichUtils } from 'draft-js';
+import AssetsSelectPanel from '@admin/features/assets/components/assets-select-panel';
+import InsertLinkDialog from '@admin/components/insert-link-dialog';
 import InsertAceDialog from '@admin/config-fields/richtext/components/draft-ace-dialog';
 import ContentTypesComponentsSelectPanel
   from '@admin/features/content-types/components/content-types-components-select-panel';
+import { useSnackbar } from '@admin/context/snackbar';
+import { copyToClipboard } from '@admin/helpers/utility';
 
 const useToolbarStyles = makeStyles((theme) => ({
   button: {
@@ -166,11 +168,11 @@ const StyleButton: React.FC<Partial<IStyleButtonProps>> = ({
   );
 };
 
-
 const ActionButtons: React.FC = () => {
   const classes = useToolbarStyles();
   const {disabled} = useExtendedFormContext();
   const {editorState, setEditorState, editorProps, setEditorProps} = useRichtext();
+  const {openSnackbar} = useSnackbar();
   const [assetOpen, setAssetOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
   const [aceOpen, setAceOpen] = useState(false);
@@ -336,6 +338,25 @@ const ActionButtons: React.FC = () => {
             return false;
           }}
         />
+        <DefaultButton
+          iconProps={{iconName: 'Copy'}}
+          className={classes.button}
+          disabled={disabled}
+          onMouseDown={() => {
+            try {
+              copyToClipboard(
+                JSON.stringify(convertToRaw(editorState.getCurrentContent()))
+              );
+              openSnackbar({
+                message: 'Content copied',
+                messageBarType: MessageBarType.success
+              })
+            } catch {
+              //
+            }
+            return false;
+          }}
+        />
       </div>
       <AssetsSelectPanel
         isOpen={assetOpen}
@@ -392,6 +413,42 @@ const ActionButtons: React.FC = () => {
   );
 };
 
+const UtilityButtons: React.FC = () => {
+  const classes = useToolbarStyles();
+  const {disabled} = useExtendedFormContext();
+  const {editorState} = useRichtext();
+  const {openSnackbar} = useSnackbar();
+
+  const styles = useToolbarStyles();
+
+  return (
+    <>
+      <div className={styles.group}>
+        <DefaultButton
+          iconProps={{iconName: 'Copy'}}
+          label='Copy'
+          className={classes.button}
+          disabled={disabled}
+          onMouseDown={() => {
+            try {
+              copyToClipboard(
+                JSON.stringify(convertToRaw(editorState.getCurrentContent()))
+              );
+              openSnackbar({
+                message: 'Raw content copied',
+                messageBarType: MessageBarType.success
+              })
+            } catch {
+              //
+            }
+            return false;
+          }}
+        />
+      </div>
+    </>
+  );
+}
+
 
 const RichtextToolbar = () => {
   return (
@@ -399,6 +456,7 @@ const RichtextToolbar = () => {
       <BlockButtons/>
       <InlineButtons/>
       <ActionButtons/>
+      <UtilityButtons/>
     </>
   )
 }
