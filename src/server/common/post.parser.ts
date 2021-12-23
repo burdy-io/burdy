@@ -22,8 +22,17 @@ export const parseContent = (post: IPost, path?: string) => {
     try {
       const richtext = JSON.parse(content);
       Object.keys(richtext?.entityMap || {}).forEach(key => {
-        if (richtext?.entityMap?.[key]?.type === 'IMAGE' && richtext?.entityMap?.[key]?.data?.npath) {
-          richtext.entityMap[key].data.src = getAssetsSrc(richtext.entityMap[key].data.npath);
+        try {
+          if (richtext?.entityMap?.[key]?.type === 'IMAGE' && richtext?.entityMap?.[key]?.data?.npath) {
+            richtext.entityMap[key].data.src = getAssetsSrc(richtext.entityMap[key].data.npath);
+          } else if (richtext?.entityMap?.[key]?.type === 'COMPONENT') {
+            richtext.entityMap[key].data = {
+              ...(richtext.entityMap[key].data || {}),
+              value: parseGroup(richtext?.entityMap?.[key]?.data?.value || {})
+            }
+          }
+        } catch {
+          //
         }
       });
       return richtext;
