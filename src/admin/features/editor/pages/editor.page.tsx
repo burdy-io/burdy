@@ -85,7 +85,8 @@ const EditorPage = () => {
       if (
         post?.type === 'page' ||
         post?.type === 'post' ||
-        post?.type === 'hierarchical_post'
+        post?.type === 'hierarchical_post' ||
+        post?.type === 'post_version'
       ) {
         setEnableEditor(!!testPaths(allowedPaths, post?.slugPath));
       }
