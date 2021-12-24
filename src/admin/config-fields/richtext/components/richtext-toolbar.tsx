@@ -263,6 +263,25 @@ const ActionButtons: React.FC = () => {
     );
   };
 
+  const createDivider = () => {
+    const contentState = editorState.getCurrentContent();
+    const contentStateWithEntity = contentState.createEntity(
+      'DIVIDER',
+      'IMMUTABLE'
+    );
+
+    const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
+
+    setEditorState(
+      AtomicBlockUtils.insertAtomicBlock(editorState, entityKey, ' ')
+    );
+
+    EditorState.forceSelection(
+      editorState,
+      editorState.getCurrentContent().getSelectionAfter()
+    );
+  };
+
   const createLink = (link: any) => {
     const selection = editorState.getSelection();
     if (!(link?.url?.length > 0)) {
@@ -294,6 +313,18 @@ const ActionButtons: React.FC = () => {
   return (
     <>
       <div className={styles.group}>
+        <DefaultButton
+          iconProps={{iconName: 'CalculatorSubtract'}}
+          label='Divider'
+          ariaLabel='Divider'
+          className={classes.button}
+          disabled={disabled}
+          onMouseDown={() => {
+            createDivider();
+            setSelection(editorState.getSelection());
+            return false;
+          }}
+        />
         <DefaultButton
           iconProps={{iconName: 'MediaAdd'}}
           className={classes.button}
@@ -335,25 +366,6 @@ const ActionButtons: React.FC = () => {
             setComponentsOpen(true);
             e.preventDefault();
             setSelection(editorState.getSelection());
-            return false;
-          }}
-        />
-        <DefaultButton
-          iconProps={{iconName: 'Copy'}}
-          className={classes.button}
-          disabled={disabled}
-          onMouseDown={() => {
-            try {
-              copyToClipboard(
-                JSON.stringify(convertToRaw(editorState.getCurrentContent()))
-              );
-              openSnackbar({
-                message: 'Content copied',
-                messageBarType: MessageBarType.success
-              })
-            } catch {
-              //
-            }
             return false;
           }}
         />

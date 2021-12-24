@@ -16,6 +16,7 @@ import DraftImageBlock from '@admin/config-fields/richtext/blocks/draft-image-bl
 import DraftAceBlock from '@admin/config-fields/richtext/blocks/draft-ace-block';
 import { useDebouncedCallback } from 'use-debounce';
 import DraftComponentBlock from '@admin/config-fields/richtext/blocks/draft-component-block';
+import DraftDividerBlock from '@admin/config-fields/richtext/blocks/draft-divider-block';
 
 const useStyles = makeStyles((theme) => ({
   editorToolbar: {
@@ -264,13 +265,19 @@ const RichText: React.FC<IDynamicTextProps> = ({ field, name, onChange }) => {
               if (type === 'TEXT_EDITOR') {
                 return {
                   component: DraftAceBlock,
-                  editable: true,
+                  editable: false,
                 };
               }
               if (type === 'COMPONENT') {
                 return {
                   component: DraftComponentBlock,
-                  editable: true,
+                  editable: false,
+                };
+              }
+              if (type === 'DIVIDER') {
+                return {
+                  component: DraftDividerBlock,
+                  editable: false,
                 };
               }
               return null;
