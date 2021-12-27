@@ -17,6 +17,7 @@ import DraftAceBlock from '@admin/config-fields/richtext/blocks/draft-ace-block'
 import { useDebouncedCallback } from 'use-debounce';
 import DraftComponentBlock from '@admin/config-fields/richtext/blocks/draft-component-block';
 import DraftDividerBlock from '@admin/config-fields/richtext/blocks/draft-divider-block';
+import { createLinkDecorator } from '@admin/config-fields/richtext/inline/draft-link-inline';
 
 const useStyles = makeStyles((theme) => ({
   editorToolbar: {
@@ -210,7 +211,10 @@ const RichText: React.FC<IDynamicTextProps> = ({ field, name, onChange }) => {
       const parsed = JSON.parse(test);
       if (parsed?.entityMap && Array.isArray(parsed?.blocks)) {
         const contentState = convertFromRaw(parsed);
-        const newEditorState = EditorState.createWithContent(contentState);
+        const newEditorState = EditorState.createWithContent(
+          contentState,
+          createLinkDecorator()
+        );
         setEditorState(newEditorState);
         return 'handled';
       }
