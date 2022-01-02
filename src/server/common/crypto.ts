@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import defer from 'defer-promise';
 
 const roundsDef = 10;

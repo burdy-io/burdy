@@ -230,7 +230,7 @@ const escapeRegExp = (str: string) => {
   return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
 };
 
-export const buildPath = (path: string, rules: {source: string; rewrite: string;}[]): string | undefined => {
+export const buildPath = (path: string, rules: {source: string; rewrite?: string; destination?: string}[]): string | undefined => {
   let resultArray: RegExpExecArray | null;
   let keys: Key[] = [];
   rules = deepcopy(rules);
@@ -260,5 +260,5 @@ export const buildPath = (path: string, rules: {source: string; rewrite: string;
     return tmpString;
   };
 
-  return rewrite(rule.rewrite as string, params)
+  return rewrite((rule?.destination || rule?.rewrite) as string, params)
 };
