@@ -1,6 +1,6 @@
 # [Burdy](https://burdy.io)
 
-**2.0 is out! Faster and more flexible then ever.**
+**2.1 is out! Faster and more flexible then ever.**
 
 <img src="https://github.com/burdy-io/burdy/blob/main/assets/burdy.png?raw=true" alt="headless cms burdy" />
 
@@ -18,6 +18,13 @@ npm run dev
 Open [http://localhost:4000/admin](http://localhost:4000/admin) to view your running app.
 When you're ready for production, run `npm run build` then `npm run start`.
 
+# 2.1 Summary
+* **Preview Editor** - Omni-channel configuration from the Admin, for more details visit https://burdy.io/docs/preview-editor
+* **Content API** - Enhanced Retrieve Content API, added new SearchPosts and SearchTags API. Enhanced Security.
+* **Content Type Fields** - Added 2 new reference fields and deprecated old relations.
+* **RichText** - Enhanced RichText field to support custom components
+* **Burdy Web and React Utils** - for more details visit https://burdy.io/docs/react-utils and https://burdy.io/docs/web-utils
+
 # 2.0 Summary
 ## New Features
 * **Backup Management** - New way of managing backups of your entire data. Backup, restore, export, import or moving content across environments!
@@ -29,6 +36,9 @@ When you're ready for production, run `npm run build` then `npm run start`.
 * **Improved Cloud Provider Support** - Besides native support for AWS infrastructure, we are officially announcing native support for DigitalOcean.
 * **Optimized Editors** - Both Headless and Preview Editors are faster then ever.
 * **Improved Localization Capability** - With the unified post/page structure, localization is a second nature of our system.
+
+## Migration to 2.1
+For migration to take place user will need to run migration scripts, for more details visit https://burdy.io/docs/database under CLI commands section
 
 ## Breaking Changes
 * Burdy 2.0 is not backwards compatible with Burdy 1.0
@@ -54,11 +64,12 @@ Out of the box Burdy comes with many features
 
 ### Field types
 
-16 Out of the box field types. Learn how to extend with your custom by visiting [Custom Editor Fields](https://burdy.io/docs/custom-editor-field/) docs.
+19 Out of the box field types. Learn how to extend with your custom by visiting [Custom Editor Fields](https://burdy.io/docs/custom-editor-field/) docs.
 
 Core:
 - Text
-- Rich Text
+- Rich Text (enhanced with custom components)
+- Ace Editor (json, js, ts, html...)
 - Number
 - Checkbox
 - Choice group
@@ -67,7 +78,9 @@ Core:
 - Dropdown
 - Color Picker
 - Date Picker
-- Relation
+- Relation (deprecated)
+- Reference Single (new)
+- Reference Multiple (new)
 - Custom Component
 
 Layout:
