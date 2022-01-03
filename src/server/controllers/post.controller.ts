@@ -804,9 +804,6 @@ app.get(
     const url = new URL(src);
     const searchParams = url.searchParams;
 
-    if (!searchParams.get('draft')) {
-      searchParams.append('draft', 'true');
-    }
     if (!searchParams.get('versionId') && versionId) {
       searchParams.append('versionId', versionId as string);
     }
