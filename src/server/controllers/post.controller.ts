@@ -807,7 +807,7 @@ app.get(
     if (!searchParams.get('versionId') && versionId) {
       searchParams.append('versionId', versionId as string);
     }
-    const paramsString = searchParams.toString()?.length > 0 ? `&${searchParams.toString()}` : '';
+    const paramsString = searchParams.toString()?.length > 0 ? `?${searchParams.toString()}` : '';
 
     return res.send({
       src: `${url.protocol}//${url.host}${url.pathname}${paramsString}`
