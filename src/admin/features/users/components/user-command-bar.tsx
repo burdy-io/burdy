@@ -119,7 +119,7 @@ const UserCommandBar: React.FC<IUserCommandBarProps> = ({
             selectedUsers.some((u) => u.id === user.id),
           onClick: async () => {
             try {
-              dialog.confirm(
+              await dialog.confirm(
                 'Deactivate Users',
                 'Are you sure you would like to proceed?'
               );
