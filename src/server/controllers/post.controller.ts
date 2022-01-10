@@ -451,7 +451,8 @@ app.put(
           let posts = await postRepository.findByIds(ids);
           if (!(posts?.length > 0)) throw new BadRequestError('invalid_ids');
 
-        const qb = postRepository.createQueryBuilder('post').update(Post);
+        const alias = postRepository.metadata.tableName;
+        const qb = postRepository.createQueryBuilder(alias).update(Post);
         const now = new Date();
         if (publish) {
           qb.set({
@@ -485,11 +486,11 @@ app.put(
                 });
               })
             );
-            qb.where('post.id IN (:...ids)', {
+            qb.where(`${alias}.id IN (:...ids)`, {
               ids: all.map((post) => post.id),
             });
           } else {
-            qb.where('post.id IN (:...ids)', {
+            qb.where(`${alias}.id IN (:...ids)`, {
               ids: posts.map((post) => post.id),
             });
           }
