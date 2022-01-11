@@ -142,7 +142,7 @@ app.put(
           tag.slugPath = newSlugPath;
 
           await transactionManager.query(
-            getReplaceChildrenQuery('tag', 'slugPath', oldSlugPath, newSlugPath)
+            getReplaceChildrenQuery(tagRepository.metadata.tableName, 'slugPath', oldSlugPath, newSlugPath)
           );
         }
 
