@@ -559,7 +559,7 @@ app.put(
 
           await transactionManager.query(
             getReplaceChildrenQuery(
-              'post',
+              postRepository.metadata.tableName,
               'slugPath',
               oldSlugPath,
               newSlugPath
