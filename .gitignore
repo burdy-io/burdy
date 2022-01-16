@@ -15,3 +15,7 @@ project/
 .next
 next.config.js
 next-env.d.ts
+
+# Cypress / E2E
+e2e/videos
+e2e/screenshots

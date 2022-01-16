@@ -1,0 +1,17 @@
+name: E2E Tests
+
+on: [push]
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: E2E Tests
+        uses: cypress-io/github-action@v2
+        with:
+          install: npm ci
+          build: npm run build
+          start: npm run e2e

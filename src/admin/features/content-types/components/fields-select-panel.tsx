@@ -194,6 +194,7 @@ const FieldsSelectPanel: React.FC<IFieldsSelectPanelProps> = ({
       <SearchBox
         placeholder="Search components..."
         onChange={(_event, newValue) => setSearch(newValue)}
+        data-cy="contentTypes-fieldsSelect-search"
         autoFocus
       />
       <ShimmeredDetailsList
