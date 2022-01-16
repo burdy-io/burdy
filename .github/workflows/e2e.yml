@@ -12,6 +12,6 @@ jobs:
       - name: E2E Tests
         uses: cypress-io/github-action@v2
         with:
-          install: npm ci
           build: npm run build
           start: npm run e2e
+          record: false
