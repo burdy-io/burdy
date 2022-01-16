@@ -16,8 +16,8 @@
     "burdy": "cross-env NODE_ENV=development ts-node -T -r tsconfig-paths/register ./src/burdy.ts",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
-    "e2e": "concurrently -k -s first \"npm:start\" \"npm:e2e:tests\"",
-    "e2e:dev": "concurrently -k -s first \"npm:dev\" \"npm:e2e:tests\"",
+    "e2e": "concurrently -k -s first \"env-cmd -f .env.e2e npm run start\" \"npm:e2e:tests\"",
+    "e2e:dev": "concurrently -k -s first \"env-cmd -f .env.e2e npm run dev\" \"npm:e2e:tests\"",
     "e2e:tests": "wait-on -t 30000 http-get://localhost:4000/api/health && npm run cypress:run"
   },
   "bin": {
@@ -168,6 +168,7 @@
     "cypress": "^9.2.1",
     "cypress-file-upload": "^5.0.8",
     "cypress-localstorage-commands": "^1.6.1",
+    "env-cmd": "^10.1.0",
     "eslint": "^7.32.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-config-airbnb-typescript": "^14.0.0",

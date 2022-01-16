@@ -2,6 +2,7 @@
 .env.*
 !.env.defaults
 !.env.sample
+!.env.e2e
 node_modules
 .idea
 dist
