@@ -13,7 +13,7 @@ jobs:
         uses: cypress-io/github-action@v2
         with:
           record: true
-          build: rm -rf burdy && npm run build
+          build: npm run build
           start: npm run e2e
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
