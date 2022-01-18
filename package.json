@@ -13,7 +13,12 @@
     "dev": "cross-env NODE_ENV=development ts-node -T -r tsconfig-paths/register ./src/burdy.ts dev",
     "build": "cross-env NODE_ENV=production ts-node -T -r tsconfig-paths/register ./src/burdy.ts build",
     "db": "cross-env NODE_ENV=development ts-node -T -r tsconfig-paths/register ./src/burdy.ts db",
-    "burdy": "cross-env NODE_ENV=development ts-node -T -r tsconfig-paths/register ./src/burdy.ts"
+    "burdy": "cross-env NODE_ENV=development ts-node -T -r tsconfig-paths/register ./src/burdy.ts",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "e2e": "concurrently -k -s first \"env-cmd -f .env.e2e npm run start\" \"npm:e2e:tests\"",
+    "e2e:dev": "concurrently -k -s first \"env-cmd -f .env.e2e npm run dev\" \"npm:e2e:tests\"",
+    "e2e:tests": "wait-on -t 30000 http-get://localhost:4000/api/health && npm run cypress:run"
   },
   "bin": {
     "burdy": "./src/burdy.js"
@@ -138,6 +143,7 @@
     "@types/dotenv-flow": "^3.2.0",
     "@types/draft-js": "^0.11.5",
     "@types/express": "^4.17.13",
+    "@types/faker": "^5.5.9",
     "@types/fs-extra": "^9.0.12",
     "@types/http-proxy": "^1.17.7",
     "@types/lodash": "^4.14.172",
@@ -157,7 +163,12 @@
     "@types/webpack-env": "^1.16.2",
     "@typescript-eslint/eslint-plugin": "^4.30.0",
     "@typescript-eslint/parser": "^4.30.0",
+    "concurrently": "^7.0.0",
     "copyfiles": "^2.4.1",
+    "cypress": "^9.2.1",
+    "cypress-file-upload": "^5.0.8",
+    "cypress-localstorage-commands": "^1.6.1",
+    "env-cmd": "^10.1.0",
     "eslint": "^7.32.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-config-airbnb-typescript": "^14.0.0",
@@ -166,13 +177,15 @@
     "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-react": "^7.25.1",
     "eslint-plugin-react-hooks": "^4.2.0",
+    "faker": "^5.5.3",
     "ncp": "^2.0.0",
     "prettier": "^2.3.2",
     "ts-node": "^10.2.1",
     "tsconfig-paths": "^3.11.0",
     "ttypescript": "^1.5.12",
     "typescript": "^4.4.2",
-    "typescript-transform-paths": "^3.3.1"
+    "typescript-transform-paths": "^3.3.1",
+    "wait-on": "^6.0.0"
   },
   "peerDependencies": {
     "path-to-regexp": "^6.2.0"
