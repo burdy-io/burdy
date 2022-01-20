@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useMemo } from 'react';
 import {
   ControlledCheckbox,
   ControlledChoiceGroup,
@@ -31,172 +31,173 @@ interface DynamicFieldProps {
   name?: string;
 }
 
-const DynamicField: React.FC<DynamicFieldProps> = ({ field, name }) => {
-  const getName = () => {
-    return name?.length ? `${name}.${field?.name}` : field?.name;
-  };
-
+const Field: React.FC<DynamicFieldProps> = ({field, name}) => {
   const { disabled, control } = useExtendedFormContext();
-
-  const Field = useCallback(() => {
-    switch (field?.type) {
-      case 'group':
-        return <DynamicGroup field={field} name={`${getName()}`} />;
-      case 'repeatable':
-        return <DynamicRepeatable field={field} name={`${getName()}`} />;
-      case 'custom':
-        return <DynamicComponent field={field} name={getName()} />;
-      case 'relation':
-        return <DynamicRelation field={field} name={getName()} />;
-      case 'reference_single':
-        return <DynamicReference field={field} name={getName()} />;
-      case 'reference_multiple':
-        return <DynamicReferences field={field} name={getName()} />;
-      case 'zone':
-        return <DynamicZone field={field} name={getName()} />;
-      case 'images':
-      case 'assets':
-        return (
-          <DynamicAssets
-            field={field}
-            selectionMode={
-              isTrue(field.multiSelect) ? SelectionMode.multiple : SelectionMode.single
-            }
-            mimeTypes={
-              field?.type === 'images'
-                ? ['image/jpeg', 'image/webp', 'image/png', 'image/gif', 'image/svg+xml']
-                : null
-            }
-            name={getName()}
-          />
-        );
-      case 'richtext':
-        return (
-          <DynamicRichText field={field} control={control} name={getName()} />
-        );
-      // Controlled
-      case 'checkbox':
-        return (
-          <ControlledCheckbox
-            control={control}
-            {...field}
-            name={getName()}
-            disabled={disabled}
-          />
-        );
-      case 'text':
-      case 'number':
-        return (
-          <ControlledTextField
-            control={control}
-            {...field}
-            rules={{
-              required: field?.required == 'true' ? 'Field is required' : false
-            }}
-            name={getName()}
-            disabled={disabled}
-          />
-        );
-      case 'datepicker':
-        return (
-          <ControlledDatePicker
-            control={control}
-            {...field}
-            rules={{
-              required: field?.required ? 'Field is required' : false
-            }}
-            name={getName()}
-            disabled={disabled}
-          />
-        );
-      case 'colorpicker':
-        return (
-          <ControlledColorPicker
-            control={control}
-            {...field}
-            rules={{
-              required: field?.required ? 'Field is required' : false
-            }}
-            name={getName()}
-            disabled={disabled}
-          />
-        );
-      case 'dropdown':
-        return (
-          <ControlledDropdown
-            control={control}
-            {...field}
-            rules={{
-              required: field?.required ? 'Field is required' : false
-            }}
-            options={(field?.options ?? '')
-              .split('\n')
-              .map((val) => ({ key: val, text: val }))}
-            name={getName()}
-            disabled={disabled}
-          />
-        );
-      case 'choicegroup':
-        return (
-          <ControlledChoiceGroup
-            control={control}
-            {...field}
-            options={(field?.options ?? '')
-              .split('\n')
-              .map((val) => ({ key: val, text: val }))}
-            name={getName()}
-            disabled={disabled}
-          />
-        );
-      case 'text-editor':
-        return (
-          <DynamicTextEditor
-            control={control}
-            field={field}
-            name={getName()}
-            disabled={disabled}
-          />
-        );
-      // Helper
-      case 'post_type_dropdown':
-        return (
-          <ControlledPostTypesDropdown
-            control={control}
-            {...field}
-            name={getName()}
-          />
-        );
-      case 'components_dropdown':
-        return (
-          <ControlledComponentsDropdown
-            control={control}
-            {...field}
-            rules={{
-              required: field?.required ? 'Field is required' : false
-            }}
-            name={getName()}
-          />
-        );
-      default: {
-        const Component =
-          Hooks.applySyncFilters(`admin/field/${field.type}`, null, field) ??
-          null;
-        if (!Component) return null;
-        return <Component field={field} name={getName()} />;
-      }
+  switch (field?.type) {
+    case 'group':
+      return <DynamicGroup field={field} name={name} />;
+    case 'repeatable':
+      return <DynamicRepeatable field={field} name={name} />;
+    case 'custom':
+      return <DynamicComponent field={field} name={name} />;
+    case 'relation':
+      return <DynamicRelation field={field} name={name} />;
+    case 'reference_single':
+      return <DynamicReference field={field} name={name} />;
+    case 'reference_multiple':
+      return <DynamicReferences field={field} name={name} />;
+    case 'zone':
+      return <DynamicZone field={field} name={name} />;
+    case 'images':
+    case 'assets':
+      return (
+        <DynamicAssets
+          field={field}
+          selectionMode={
+            isTrue(field.multiSelect) ? SelectionMode.multiple : SelectionMode.single
+          }
+          mimeTypes={
+            field?.type === 'images'
+              ? ['image/jpeg', 'image/webp', 'image/png', 'image/gif', 'image/svg+xml']
+              : null
+          }
+          name={name}
+        />
+      );
+    case 'richtext':
+      return (
+        <DynamicRichText field={field} control={control} name={name} />
+      );
+    // Controlled
+    case 'checkbox':
+      return (
+        <ControlledCheckbox
+          control={control}
+          {...field}
+          name={name}
+          disabled={disabled}
+        />
+      );
+    case 'text':
+    case 'number':
+      return (
+        <ControlledTextField
+          control={control}
+          {...field}
+          rules={{
+            required: field?.required == 'true' ? 'Field is required' : false
+          }}
+          name={name}
+          disabled={disabled}
+        />
+      );
+    case 'datepicker':
+      return (
+        <ControlledDatePicker
+          control={control}
+          {...field}
+          rules={{
+            required: field?.required ? 'Field is required' : false
+          }}
+          name={name}
+          disabled={disabled}
+        />
+      );
+    case 'colorpicker':
+      return (
+        <ControlledColorPicker
+          control={control}
+          {...field}
+          rules={{
+            required: field?.required ? 'Field is required' : false
+          }}
+          name={name}
+          disabled={disabled}
+        />
+      );
+    case 'dropdown':
+      return (
+        <ControlledDropdown
+          control={control}
+          {...field}
+          rules={{
+            required: field?.required ? 'Field is required' : false
+          }}
+          options={(field?.options ?? '')
+            .split('\n')
+            .map((val) => ({ key: val, text: val }))}
+          name={name}
+          disabled={disabled}
+        />
+      );
+    case 'choicegroup':
+      return (
+        <ControlledChoiceGroup
+          control={control}
+          {...field}
+          options={(field?.options ?? '')
+            .split('\n')
+            .map((val) => ({ key: val, text: val }))}
+          name={name}
+          disabled={disabled}
+        />
+      );
+    case 'text-editor':
+      return (
+        <DynamicTextEditor
+          control={control}
+          field={field}
+          name={name}
+          disabled={disabled}
+        />
+      );
+    // Helper
+    case 'post_type_dropdown':
+      return (
+        <ControlledPostTypesDropdown
+          control={control}
+          {...field}
+          name={name}
+        />
+      );
+    case 'components_dropdown':
+      return (
+        <ControlledComponentsDropdown
+          control={control}
+          {...field}
+          rules={{
+            required: field?.required ? 'Field is required' : false
+          }}
+          name={name}
+        />
+      );
+    default: {
+      const Component =
+        Hooks.applySyncFilters(`admin/field/${field.type}`, null, field) ??
+        null;
+      if (!Component) return null;
+      return <Component field={field} name={name} />;
     }
-  }, [JSON.stringify(field), control, getName()]);
+  }
+}
+
+const DynamicField: React.FC<DynamicFieldProps> = ({ field, name }) => {
+  const fieldName = useMemo<string>(() => {
+    return name?.length ? `${name}.${field?.name}` : field?.name;
+  }, [name, field?.name]);
+
+  const { control } = useExtendedFormContext();
 
   return (
     <div>
       <Controller
-        name={`${getName()}_$type`}
+        name={`${fieldName}_$type`}
         control={control}
         defaultValue={field?.type}
         render={() => null}
       />
-      <ErrorBoundary message={`Field ${getName()} errored. Please check console for more details`}>
-        <Field />
+      <ErrorBoundary message={`Field ${fieldName} errored. Please check console for more details`}>
+        <Field name={fieldName} field={field} />
       </ErrorBoundary>
     </div>
   );

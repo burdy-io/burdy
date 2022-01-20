@@ -180,7 +180,7 @@ const FieldsList: React.FC<IFieldsListProps> = ({ field, isRoot }) => {
         ))}
         {components?.length === 0 && (
           <Separator>
-            <span style={{ fontSize: 12 }}>No components</span>
+            <span style={{ fontSize: 12 }}>All components</span>
           </Separator>
         )}
       </div>

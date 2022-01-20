@@ -19,7 +19,7 @@ import { useExtendedFormContext } from '@admin/config-fields/dynamic-form';
 
 const classnames = mergeStyleSets({
   assetsWrapper: {
-    minHeight: 240,
+    minHeight: 174,
     overflowY: 'auto',
     overflowX: 'hidden',
   },
