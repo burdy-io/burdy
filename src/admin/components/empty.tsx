@@ -16,8 +16,8 @@ const classNames = mergeStyleSets({
   },
   imageContainerCompact: {
     margin: '0px auto',
-    height: 158,
-    width: 158
+    height: 100,
+    width: 100
   },
   rootCompact: {
     textAlign: 'center',

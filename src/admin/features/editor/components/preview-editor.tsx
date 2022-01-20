@@ -132,7 +132,7 @@ const styles = mergeStyleSets({
   },
   editor: {
     boxShadow: theme.effects.elevation16,
-    maxWidth: 1200,
+    maxWidth: 1920,
     position: 'relative',
     minHeight: 100,
     marginLeft: 'auto',
