@@ -1,6 +1,6 @@
 {
   "name": "burdy",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "Open Source Headless Platform",
   "main": "index.js",
   "scripts": {
