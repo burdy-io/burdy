@@ -1,5 +1,5 @@
 import {
-  IObjectWithKey,
+  IObjectWithKey, ISelectionOptions,
   ISelectionOptionsWithRequiredGetKey,
   Selection,
 } from '@fluentui/react';
@@ -77,7 +77,8 @@ export const useSelection = <T extends {}>(
 ) =>
   useMemo(() => {
     const { defaultSelectedItems, ...original } = constructor;
-    const selection = new ExtendedSelection<T>(original as any);
+    // @ts-ignore
+    const selection = new ExtendedSelection<T>(original);
 
     if (defaultSelectedItems) {
       selection.setDefaultSelectedItems(defaultSelectedItems);
