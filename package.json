@@ -6,6 +6,7 @@
   "scripts": {
     "postcompile": "ncp LICENSE dist/LICENSE && ncp README.md dist/README.md && ts-node -T misc/copy-static-files.ts && ts-node -T misc/correct-types.ts",
     "lint": "eslint ./src --ignore-path .gitignore",
+    "type-check": "tsc --noEmit",
     "lint:fix": "npm run lint -- --fix",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx}\" --ignore-path .gitignore",
     "compile": "rimraf dist/ && ttsc -p ./tsconfig.production.json",
