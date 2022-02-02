@@ -152,6 +152,7 @@
     "@types/react-router": "^5.1.18",
     "@types/react-router-dom": "^5.3.3",
     "@types/rimraf": "^3.0.2",
+    "@types/sharp": "^0.29.5",
     "@types/unzipper": "^0.10.5",
     "@types/uuid": "^8.3.4",
     "@types/webpack-env": "^1.16.3",
@@ -176,6 +177,9 @@
   },
   "peerDependencies": {
     "path-to-regexp": "^6.2.0"
+  },
+  "optionalDependencies": {
+    "sharp": "^0.30.0"
   },
   "node": ">=12.x.x <=16.x.x",
   "npm": ">=6.0.0",

@@ -19,13 +19,14 @@ import {
   Tree,
   TreeChildren,
   TreeParent,
-  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import AssetMeta from '@server/models/asset-meta.model';
 import { IAsset } from '@shared/interfaces/model';
 import User from './user.model';
 import Tag from './tag.model';
+import FileDriver from '@server/drivers/file.driver';
+import { ReadStream } from 'fs';
 
 @Entity()
 @Tree('materialized-path')
@@ -98,5 +99,10 @@ export default class Asset extends BaseEntity implements IAsset {
       result = [...result, ...this.getAncestorsList(entity.parent)];
     }
     return result;
+  }
+
+  public readStream(options?: any): ReadStream {
+    const fileDriver = FileDriver.getInstance();
+    return fileDriver.createReadStream(this.document, options || {});
   }
 }
