@@ -10,13 +10,13 @@ import queryString from 'query-string';
 
 const imageController = express();
 
-type ImageFormat = keyof FormatEnum | AvailableFormatInfo
+type ImageFormat = keyof FormatEnum | AvailableFormatInfo;
 
 interface ImageOptions {
   // General
   animated?: boolean;
   progressive?: boolean;
-  format?: ImageFormat;
+  format?: ImageFormat | 'auto';
   quality?: number;
   // Resizing
   width?: number;
@@ -51,7 +51,6 @@ imageController.get(
 
     const accepts = req.header('Accept') || '';
 
-    let { format } = query;
     const {
       animated = false,
       progressive = true,
@@ -59,7 +58,8 @@ imageController.get(
       fit = 'cover',
       gravity = 'center',
       width,
-      height
+      height,
+      format: defaultFormat = 'auto'
     } = query
 
     const assetRepository = getEnhancedRepository(Asset);
@@ -75,8 +75,12 @@ imageController.get(
       });
     }
 
-    if (!format) {
+    let format: ImageFormat;
+
+    if (!defaultFormat || defaultFormat === 'auto') {
       format = resolveFormat(accepts, asset.mimeType);
+    } else {
+      format = undefined;
     }
 
     let imageProcessor = sharp({ animated });
