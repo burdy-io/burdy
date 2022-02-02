@@ -14,6 +14,8 @@ import publicController from '@server/controllers/public.controller';
 import backupController from '@server/controllers/backup.controller';
 import accessTokenController from '@server/controllers/access-token.controller';
 import searchController from '@server/controllers/search.controller';
+import { moduleExists } from '@server/common/module-helper';
+import logger from '@shared/features/logger';
 
 Hooks.addAction(
   'api/init',
@@ -46,6 +48,13 @@ Hooks.addAction(
     app.use(backupController);
     app.use(accessTokenController);
     app.use(searchController);
+
+    if (moduleExists('sharp')) {
+      const { default: imageController } = await import('@server/controllers/image.controller');
+      app.use(imageController);
+    } else {
+      logger.info('Image module disabled. Sharp dependency not found.')
+    }
   },
   { id: 'core/controllers' }
 );
