@@ -54,8 +54,7 @@ const styles = mergeStyleSets({
     alignItems: 'center'
   },
   editor: {
-    boxShadow: theme.effects.elevation16,
-    padding: 24,
+    padding: '0 24px 24px 24px',
     maxWidth: 960,
     position: 'relative',
     minHeight: 100,

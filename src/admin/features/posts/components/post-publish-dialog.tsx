@@ -1,4 +1,7 @@
-import { ControlledCheckbox, ControlledDatePicker } from '@admin/components/rhf-components';
+import {
+  ControlledCheckbox,
+  ControlledDatePicker,
+} from '@admin/components/rhf-components';
 import { useSnackbar } from '@admin/context/snackbar';
 import { usePosts } from '@admin/features/posts/context/posts.context';
 import {
@@ -10,11 +13,12 @@ import {
   MessageBar,
   MessageBarType,
   PrimaryButton,
-  Stack
+  Stack,
 } from '@fluentui/react';
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { IPost } from '@shared/interfaces/model';
+import { isTrue } from '@admin/helpers/utility';
 
 interface IPostPublishDialogProps {
   posts: IPost[];
@@ -23,16 +27,18 @@ interface IPostPublishDialogProps {
   onDismiss?: () => void;
   onUpdated?: (data?: any) => void;
   disableRecursive?: boolean;
+  handleContentSubmit?: any;
 }
 
 const PostPublishDialog: React.FC<IPostPublishDialogProps> = ({
-                                                                isOpen,
-                                                                onDismiss,
-                                                                onUpdated,
-                                                                title,
-                                                                posts,
-                                                                disableRecursive
-                                                              }) => {
+  isOpen,
+  onDismiss,
+  onUpdated,
+  title,
+  posts,
+  disableRecursive,
+  handleContentSubmit,
+}) => {
   const { publishPosts } = usePosts();
 
   const { openSnackbar } = useSnackbar();
@@ -40,8 +46,9 @@ const PostPublishDialog: React.FC<IPostPublishDialogProps> = ({
   const { control, handleSubmit, reset } = useForm({
     mode: 'all',
     defaultValues: {
-      recursive: false
-    }
+      recursive: false,
+      saveContent: !!handleContentSubmit,
+    },
   });
 
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
@@ -51,7 +58,8 @@ const PostPublishDialog: React.FC<IPostPublishDialogProps> = ({
     if (isOpen) {
       setScheduleEnabled(false);
       reset({
-        recursive: false
+        recursive: false,
+        saveContent: !!handleContentSubmit,
       });
     }
   }, [isOpen]);
@@ -61,7 +69,7 @@ const PostPublishDialog: React.FC<IPostPublishDialogProps> = ({
       onUpdated(publishPosts?.result);
       openSnackbar({
         message: 'Post(s) published',
-        messageBarType: MessageBarType.success
+        messageBarType: MessageBarType.success,
       });
     }
   }, [publishPosts?.result]);
@@ -72,15 +80,15 @@ const PostPublishDialog: React.FC<IPostPublishDialogProps> = ({
       onDismiss={onDismiss}
       dialogContentProps={{
         type: DialogType.close,
-        title: title || 'Publish post(s)'
+        title: title || 'Publish post(s)',
       }}
       modalProps={{
-        styles: { main: { maxWidth: 450 } }
+        styles: { main: { maxWidth: 450 } },
       }}
     >
       <Stack
         tokens={{
-          childrenGap: 8
+          childrenGap: 8,
         }}
       >
         {publishPosts.error?.message && (
@@ -88,43 +96,81 @@ const PostPublishDialog: React.FC<IPostPublishDialogProps> = ({
             {publishPosts.error.message}
           </MessageBar>
         )}
-        {!disableRecursive && <ControlledCheckbox control={control} name='recursive' label='Include children' />}
+        {!!handleContentSubmit && (
+          <ControlledCheckbox
+            control={control}
+            name="saveContent"
+            label="Save Content"
+          />
+        )}
+        {!disableRecursive && (
+          <ControlledCheckbox
+            control={control}
+            name="recursive"
+            label="Include children"
+          />
+        )}
         <Checkbox
           onChange={(e, val) => {
             setScheduleEnabled(val);
           }}
           checked={scheduleEnabled}
-          name='schedule'
-          label='Schedule at date'
+          name="schedule"
+          label="Schedule at date"
         />
         {scheduleEnabled && (
           <ControlledDatePicker
             control={control}
-            label='Published from'
-            name='publishedFrom'
+            label="Published from"
+            name="publishedFrom"
           />
         )}
         {scheduleEnabled && (
           <ControlledDatePicker
             control={control}
-            label='Published until'
-            name='publishedUntil'
+            label="Published until"
+            name="publishedUntil"
           />
         )}
       </Stack>
       <DialogFooter>
-        <DefaultButton onClick={onDismiss} data-cy="dialog-cancel" text='Cancel' />
+        <DefaultButton
+          onClick={onDismiss}
+          data-cy="dialog-cancel"
+          text="Cancel"
+        />
         <PrimaryButton
           onClick={() => {
             handleSubmit((data) => {
-              publishPosts.execute({
-                ...(data || {}),
-                publish: true,
-                ids: posts.map(post => post.id)
-              });
+              if (handleContentSubmit && data?.saveContent) {
+                handleContentSubmit(
+                  (content) => {
+                    publishPosts.execute({
+                      ...(data || {}),
+                      publish: true,
+                      ids: posts.map((post) => post.id),
+                      content,
+                      saveContent: isTrue(data?.saveContent)
+                    });
+                  },
+                  () => {
+                    openSnackbar({
+                      message: 'Form has errors',
+                      messageBarType: MessageBarType.severeWarning,
+                    });
+                  }
+                )();
+              } else {
+                publishPosts.execute({
+                  ...(data || {}),
+                  saveContent: isTrue(data?.saveContent),
+                  publish: true,
+                  ids: posts.map((post) => post.id),
+                });
+              }
             })();
           }}
-          text='Publish'
+          text="Publish"
           disabled={publishPosts?.loading}
           data-cy="dialog-confirm"
         />

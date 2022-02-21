@@ -182,6 +182,7 @@ const EditorPage = () => {
         onUpdated={() => {
           setStateData('publishPostOpen', false);
         }}
+        handleContentSubmit={methods.handleSubmit}
         isOpen={stateData?.publishPostOpen}
         posts={[post]}
       />

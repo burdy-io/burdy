@@ -6,6 +6,7 @@ import packageJSON from '../package.json';
 import PathUtil from "@scripts/util/path.util";
 import ConsoleOutput from "@scripts/util/console-output.util";
 import path from 'path';
+import {DbAction} from "@scripts/interfaces/db-actions";
 
 const program = new Command();
 
@@ -58,20 +59,36 @@ const exportContentTypes = async () => {
   require(ctScriptPath);
 }
 
-const importExport = async (file: string, options: any) => {
+const handleDbAction = async (action: DbAction) => {
   process.env.NODE_ENV = process.env.NODE_ENV ?? 'development';
 
-  const script = PathUtil.cache('import-export', 'main.js');
-
-  await require('@scripts/import-export').default({
-    force: options?.force,
-    publish: options?.publish || false,
-    action: process.argv[2],
-    file
-  });
+  const script = PathUtil.cache('db-actions', 'main.js');
+  await require('@scripts/db-actions').default(action);
 
   require(script);
 }
+
+const importContent = async (file: string, options: any) => handleDbAction({
+  type: 'import',
+  payload: {
+    force: options?.force || false,
+    publish: options?.publish || false,
+    file
+  }
+});
+
+const exportContent = async (file: string, options: any) => handleDbAction({
+  type: 'export',
+  payload: {
+    force: options?.force || false,
+    file
+  }
+});
+
+const generateApiKey = async (name: string) => handleDbAction({
+  type: 'generateApiKey',
+  payload: { name }
+});
 
 // Initial program setup
 program.storeOptionsAsProperties(false).allowUnknownOption(true);
@@ -101,13 +118,17 @@ program.command('db').allowUnknownOption(true).helpOption(false).description('Ru
 program.command('export')
   .addArgument(new Argument('<file>', 'name of the export file (zip).').argOptional())
   .addOption(new Option('-f, --force', 'force overwrite existing file during export').default(false))
-  .action(importExport);
+  .action(exportContent);
 
 program.command('import')
   .addArgument(new Argument('<file>', 'input file to be restored.').argOptional())
   .addOption(new Option('-p, --publish', 'publishes the imported pages and posts').default(false))
   .addOption(new Option('-f, --force', 'force overwrite existing file during export').default(false))
-  .action(importExport);
+  .action(importContent);
+
+program.command('generate:key')
+  .addArgument(new Argument('<name>', 'api key name.').argRequired())
+  .action(generateApiKey)
 
 const contentTypeCommands = program.command('ct').description('Content type helpers')
 contentTypeCommands

@@ -16,6 +16,7 @@ import {
   useStorageState,
 } from '@admin/helpers/hooks';
 import ExtendedSelection, { useSelection } from '@admin/helpers/selection';
+import querystring from 'querystring';
 
 const FOLDER_MIME_TYPE = 'application/vnd.burdy.folder';
 const IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -87,7 +88,9 @@ const AssetsContextProvider = ({ children }) => {
     'tiles'
   );
 
-  const assetSrc = (asset: IAsset) => `/api/assets/single?npath=${asset?.thumbnail ?? asset.npath}`;
+  const assetSrc = (asset: IAsset) => `/api/assets/single?${querystring.stringify({
+    npath: asset?.thumbnail || asset.npath
+  })}`;
 
   const assetsState = useModelState<IAsset>([], (a, b) => {
     if (a?.mimeType === FOLDER_MIME_TYPE && b?.mimeType !== FOLDER_MIME_TYPE) {

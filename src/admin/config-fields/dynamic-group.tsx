@@ -125,7 +125,7 @@ const DynamicGroup: React.FC<DynamicGroupProps> = ({ field, name }) => {
               className={`${styles.fields} ${
                 tab?.name !== selectedTab ? styles.hide : ''
               }`}
-              tokens={{ childrenGap: 10 }}
+              tokens={{ childrenGap: 18 }}
             >
               {(tab?.fields ?? []).map((field) => (
                 <DynamicField key={field.name} field={field} name={name} />

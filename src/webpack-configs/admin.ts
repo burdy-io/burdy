@@ -56,7 +56,7 @@ const adminDefaultWebpack = {
       new TerserPlugin({
         terserOptions: {
           parse: {
-            ecma: 8,
+            ecma: 2017,
           },
           compress: {
             ecma: 5,

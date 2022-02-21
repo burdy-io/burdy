@@ -16,10 +16,7 @@ import {
   updateMeta,
 } from '@server/common/orm-helpers';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  mapPost,
-  mapPostWithMeta,
-} from '@server/common/mappers';
+import { mapPost, mapPostWithMeta } from '@server/common/mappers';
 import {
   buildPath,
   compilePost,
@@ -440,7 +437,8 @@ app.put(
   `/posts/publish`,
   authMiddleware(),
   asyncMiddleware(async (req, res) => {
-    const { publish, recursive, ids, publishedFrom, publishedUntil } = req.body;
+    const { publish, recursive, ids, publishedFrom, publishedUntil, content, saveContent } =
+      req.body;
     const entityManager = getManager();
     try {
       const result = await entityManager.transaction(
@@ -450,29 +448,68 @@ app.put(
 
           let posts = await postRepository.findByIds(ids);
           if (!(posts?.length > 0)) throw new BadRequestError('invalid_ids');
+          if (saveContent && content && posts?.length === 1) {
+            const post = await postRepository.findOne({
+              relations: [
+                'meta',
+                'contentType',
+                'author',
+                'author.meta',
+                'parent',
+                'tags',
+              ],
+              where: {
+                id: ids?.[0],
+              },
+            });
 
-        const alias = postRepository.metadata.tableName;
-        const qb = postRepository.createQueryBuilder(alias).update(Post);
-        const now = new Date();
-        if (publish) {
-          qb.set({
-            publishedAt: now,
-            status: 'published',
-            publishedFrom: publishedFrom || now,
-            publishedUntil: publishedUntil ? endOfDay(
-              new Date(publishedUntil),
-            ) : null,
-            updatedAt: now
-          });
-        } else {
-          qb.set({
-            publishedAt: null,
-            status: 'draft',
-            publishedFrom: null,
-            publishedUntil: null,
-            updatedAt: now
-          });
-        }
+            await createPostVersion(
+              transactionManager.getRepository(Post),
+              post,
+              req?.data?.user
+            );
+
+            const flat = flatten(content);
+
+            await updateMeta(
+              transactionManager,
+              Post,
+              post,
+              Object.keys(flat).map((key) => ({
+                key: `content.${key}`,
+                value: flat[key],
+              })),
+              /^content/
+            );
+
+            post.author = req?.data?.user;
+            post.updatedAt = new Date();
+
+            await postRepository.save(post);
+          }
+          
+          const alias = postRepository.metadata.tableName;
+          const qb = postRepository.createQueryBuilder(alias).update(Post);
+          const now = new Date();
+          if (publish) {
+            qb.set({
+              publishedAt: now,
+              status: 'published',
+              publishedFrom: publishedFrom || now,
+              publishedUntil: publishedUntil
+                ? endOfDay(new Date(publishedUntil))
+                : null,
+              updatedAt: now,
+            });
+          } else {
+            qb.set({
+              publishedAt: null,
+              status: 'draft',
+              publishedFrom: null,
+              publishedUntil: null,
+              updatedAt: now,
+            });
+          }
 
           if (recursive) {
             const all = [];
@@ -610,13 +647,13 @@ app.get(
     const postRepository = getRepository(Post);
     const post = await postRepository.findOne({
       where: {
-        slugPath
-      }
+        slugPath,
+      },
     });
     if (!post) throw new BadRequestError('invalid_post');
     return res.send(mapPostWithMeta(post));
   })
-)
+);
 
 app.get(
   '/posts/:postId',
@@ -769,7 +806,7 @@ app.get(
         link = `http://${link}`;
       }
       return link;
-    }
+    };
 
     const where = { id };
     const relations = [];
@@ -780,7 +817,7 @@ app.get(
 
     const post = await postRepository.findOne({
       where,
-      relations
+      relations,
     });
     if (!post) throw new BadRequestError('invalid_post');
 
@@ -808,10 +845,11 @@ app.get(
     if (!searchParams.get('versionId') && versionId) {
       searchParams.append('versionId', versionId as string);
     }
-    const paramsString = searchParams.toString()?.length > 0 ? `?${searchParams.toString()}` : '';
+    const paramsString =
+      searchParams.toString()?.length > 0 ? `?${searchParams.toString()}` : '';
 
     return res.send({
-      src: `${url.protocol}//${url.host}${url.pathname}${paramsString}`
+      src: `${url.protocol}//${url.host}${url.pathname}${paramsString}`,
     });
   })
 );
@@ -825,7 +863,10 @@ app.get(
     const contentToken = extractContentToken(req);
 
     let relationsDepth;
-    if (req?.query?.relationsDepth && !Number.isNaN(Number(req?.query?.relationsDepth))) {
+    if (
+      req?.query?.relationsDepth &&
+      !Number.isNaN(Number(req?.query?.relationsDepth))
+    ) {
       relationsDepth = Number(req?.query?.relationsDepth);
     }
 
