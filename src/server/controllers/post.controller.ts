@@ -487,8 +487,9 @@ app.put(
 
             await postRepository.save(post);
           }
-
-          const qb = postRepository.createQueryBuilder('post').update(Post);
+          
+          const alias = postRepository.metadata.tableName;
+          const qb = postRepository.createQueryBuilder(alias).update(Post);
           const now = new Date();
           if (publish) {
             qb.set({
@@ -522,11 +523,11 @@ app.put(
                 });
               })
             );
-            qb.where('post.id IN (:...ids)', {
+            qb.where(`${alias}.id IN (:...ids)`, {
               ids: all.map((post) => post.id),
             });
           } else {
-            qb.where('post.id IN (:...ids)', {
+            qb.where(`${alias}.id IN (:...ids)`, {
               ids: posts.map((post) => post.id),
             });
           }
@@ -595,7 +596,7 @@ app.put(
 
           await transactionManager.query(
             getReplaceChildrenQuery(
-              'post',
+              postRepository.metadata.tableName,
               'slugPath',
               oldSlugPath,
               newSlugPath

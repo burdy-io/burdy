@@ -386,7 +386,7 @@ app.put(
 
       await tManager.save(Asset, asset);
       const result = await tManager.query(
-        getReplaceChildrenQuery('asset', 'npath', originalNPath, npath)
+        getReplaceChildrenQuery(tManager.getRepository(Asset).metadata.tableName, 'npath', originalNPath, npath)
       );
 
       // if not at least one entry (the very object we're renaming) was updated, then the query or the data is wrong
